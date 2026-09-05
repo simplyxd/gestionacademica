@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editor de plan de estudios</title>
+  <style>
+    :root {
+      --line: #333;
+      --muted: #666;
+      --bg: #f4f4f4;
+      --box: #fff;
+      --dash: #999;
+      --obl: #222;
+      --ele: #555;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--line);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    /* --- chrome --- */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--line);
+      background: #e8e8e8;
+    }
+    .topbar .brand { font-weight: 700; letter-spacing: 0.04em; }
+    .topbar .meta { color: var(--muted); font-size: 12px; }
+    .crumb {
+      padding: 8px 16px;
+      border-bottom: 1px dashed var(--dash);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .crumb span { color: var(--line); }
+
+    .page { padding: 16px; max-width: 1400px; margin: 0 auto; }
+
+    .banner {
+      border: 1px dashed var(--dash);
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #eee;
+    }
+
+    /* --- context --- */
+    .context {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .context h1 { font-size: 20px; font-weight: 700; }
+    .context .sub { color: var(--muted); margin-top: 4px; }
+    .badge-estado {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 1px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 6px;
+    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button, .btn {
+      font: inherit;
+      border: 2px solid var(--line);
+      background: var(--box);
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    button.primary { background: var(--line); color: #fff; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.ghost { border-style: dashed; color: var(--muted); }
+    button.linkish {
+      border: none;
+      background: none;
+      padding: 0;
+      text-decoration: underline;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border: 2px solid var(--line);
+      background: var(--box);
+      margin-bottom: 16px;
+    }
+    .summary strong { font-variant-numeric: tabular-nums; }
+    .summary .det { color: var(--muted); }
+
+    /* --- board --- */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(160px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .sem {
+      border: 2px solid var(--line);
+      background: var(--box);
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sem header {
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+    .sem header .ttl {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      display: flex;
+      justify-content: space-between;
+    }
+    .sem header .cr { font-weight: 400; color: var(--muted); }
+    .sem header .split {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+    .sem .list {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .sem .empty {
+      border: 1px dashed var(--dash);
+      color: var(--dash);
+      padding: 16px 8px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .sem .add-sem {
+      margin: 0 8px 8px;
+      width: calc(100% - 16px);
+      font-size: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #fafafa;
+    }
+    .card .code { font-weight: 700; font-size: 12px; }
+    .card .name { font-size: 13px; margin: 2px 0 6px; }
+    .card .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .tipo {
+      border: 1px solid var(--line);
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .tipo.electiva { border-style: dashed; color: var(--ele); }
+
+    /* --- modal --- */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--box);
+      border: 2px solid var(--line);
+      width: min(480px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+    }
+    .modal header {
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--line);
+      font-weight: 700;
+    }
+    .modal .body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .modal .foot {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      font: inherit;
+      padding: 6px 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .err { font-size: 12px; color: #a00; display: none; }
+    .err.show { display: block; }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--line);
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 13px;
+      display: none;
+      z-index: 20;
+      max-width: 320px;
+    }
+    .toast.show { display: block; }
+
+    @media (max-width: 900px) {
+      .board {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 560px) {
+      .board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">SGA · Instituto Nueva Formación</div>
+    <div class="meta">Coordinador académico</div>
+  </header>
+  <div class="crumb">
+    Estructura académica / Carreras / Ingeniería en Informática / <span>Plan 2024</span>
+  </div>
+
+  <main class="page">
+    <p class="banner">
+      Boceto de la pantalla de edición de un plan de estudios, la idea es que cada asiganatura guardada aca quede perssitente en la base de datos.
+    </p>
+
+    <div class="context">
+      <div>
+        <h1>Editor de plan de estudios</h1>
+        <p class="sub">
+          Ingeniería en Informática · Plan 2024 · versión 1
+          <span class="badge-estado">vigente</span>
+        </p>
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-add">+ Agregar asignatura</button>
+        <button type="button" class="ghost" id="btn-prereq">Prerrequisitos (Pagina diferente) →</button>
+        <button type="button" class="primary" id="btn-save">Guardar</button>
+      </div>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div class="board" id="board"></div>
+  </main>
+
+  <div class="overlay" id="overlay" role="dialog" aria-labelledby="modal-title">
+    <div class="modal">
+      <header id="modal-title">Agregar asignatura al plan</header>
+      <div class="body">
+        <p class="hint">Datos de la asignatura. Si el código ya existe, se reutiliza.</p>
+        <div class="grid2">
+          <div>
+            <label for="inp-codigo">Código</label>
+            <input id="inp-codigo" type="text" maxlength="12" placeholder="MAT103" autocomplete="off" />
+          </div>
+          <div>
+            <label for="inp-creditos">Créditos</label>
+            <input id="inp-creditos" type="number" min="1" max="20" value="6" />
+          </div>
+        </div>
+        <div>
+          <label for="inp-nombre">Nombre</label>
+          <input id="inp-nombre" type="text" placeholder="Álgebra lineal" autocomplete="off" />
+        </div>
+        <div class="grid2">
+          <div>
+            <label for="sel-sem">Semestre</label>
+            <select id="sel-sem"></select>
+          </div>
+          <div>
+            <label for="sel-tipo">Tipo en este plan</label>
+            <select id="sel-tipo">
+              <option value="obligatoria">Obligatoria</option>
+              <option value="electiva">Electiva</option>
+            </select>
+          </div>
+        </div>
+        <p class="err" id="form-err"></p>
+      </div>
+      <div class="foot">
+        <button type="button" id="btn-cancel">Cancelar</button>
+        <button type="button" class="primary" id="btn-confirm">Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Mock en memoria: no hay backend ni persistencia.
+    const SEMESTRES = 8;
+
+    // Catálogo de asignaturas (código, nombre, créditos).
+    let catalogo = [
+      { id: "mat101", codigo: "MAT101", nombre: "Álgebra", creditos: 6 },
+      { id: "prg101", codigo: "PRG101", nombre: "Intro. a la programación", creditos: 8 },
+      { id: "ing101", codigo: "ING101", nombre: "Inglés I", creditos: 4 },
+      { id: "mat102", codigo: "MAT102", nombre: "Cálculo", creditos: 6 },
+      { id: "prg102", codigo: "PRG102", nombre: "Estructuras de datos", creditos: 8 },
+      { id: "bd201",  codigo: "BD201",  nombre: "Bases de datos", creditos: 6 },
+      { id: "web201", codigo: "WEB201", nombre: "Desarrollo web", creditos: 6 },
+      { id: "ele301", codigo: "ELE301", nombre: "Tópicos de IA", creditos: 4 },
+      { id: "ele302", codigo: "ELE302", nombre: "Ciberseguridad", creditos: 4 },
+      { id: "tit801", codigo: "TIT801", nombre: "Proyecto de título", creditos: 10 },
+    ];
+
+    // Plan: qué asignatura va en qué semestre y si es obligatoria/electiva.
+    let plan = [
+      { id: "mat101", semestre: 1, tipo: "obligatoria" },
+      { id: "prg101", semestre: 1, tipo: "obligatoria" },
+      { id: "ing101", semestre: 1, tipo: "obligatoria" },
+      { id: "mat102", semestre: 2, tipo: "obligatoria" },
+      { id: "prg102", semestre: 2, tipo: "obligatoria" },
+      { id: "bd201",  semestre: 3, tipo: "obligatoria" },
+      { id: "web201", semestre: 3, tipo: "obligatoria" },
+      { id: "ele301", semestre: 5, tipo: "electiva" },
+      { id: "tit801", semestre: 8, tipo: "obligatoria" },
+    ];
+
+    // Referencias al DOM.
+    const board = document.getElementById("board");
+    const summary = document.getElementById("summary");
+    const overlay = document.getElementById("overlay");
+    const toastEl = document.getElementById("toast");
+    const selSem = document.getElementById("sel-sem");
+    const selTipo = document.getElementById("sel-tipo");
+    const inpCodigo = document.getElementById("inp-codigo");
+    const inpNombre = document.getElementById("inp-nombre");
+    const inpCreditos = document.getElementById("inp-creditos");
+    const formErr = document.getElementById("form-err");
+
+    // Busca una asignatura del catálogo por id.
+    function asigById(id) {
+      return catalogo.find((a) => a.id === id);
+    }
+
+    // Normaliza el código (MAT101 → mat101) para usarlo como id.
+    function slugCodigo(codigo) {
+      return codigo.trim().toLowerCase().replace(/\s+/g, "");
+    }
+
+    // Mensaje temporal abajo a la derecha.
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toast.t);
+      toast.t = setTimeout(() => toastEl.classList.remove("show"), 2500);
+    }
+
+    // Redibuja columnas y barra de créditos (todo por semestre).
+    function render() {
+      const porSem = [];
+      board.innerHTML = "";
+
+      for (let s = 1; s <= SEMESTRES; s++) {
+        const items = plan.filter((p) => p.semestre === s);
+        // Créditos de este semestre, separados por tipo.
+        let crObl = 0, crEle = 0;
+        items.forEach((p) => {
+          const a = asigById(p.id);
+          const cr = a ? a.creditos : 0;
+          if (p.tipo === "electiva") crEle += cr;
+          else crObl += cr;
+        });
+        const total = crObl + crEle;
+        porSem.push({ s, total, crObl, crEle, n: items.length });
+
+        // Columna: cabecera con créditos, tarjetas y botón de alta.
+        const col = document.createElement("section");
+        col.className = "sem";
+        col.innerHTML =
+          "<header>" +
+            "<div class='ttl'>Semestre " + s + "<span class='cr'>" + total + " cr</span></div>" +
+            "<div class='split'>" + crObl + " obl · " + crEle + " ele</div>" +
+          "</header>";
+        const list = document.createElement("div");
+        list.className = "list";
+
+        if (!items.length) {
+          list.innerHTML = "<div class='empty'>sin asignaturas</div>";
+        } else {
+          items.forEach((p) => {
+            const a = asigById(p.id);
+            const card = document.createElement("article");
+            card.className = "card";
+            card.innerHTML =
+              "<div class='code'>" + a.codigo + " · " + a.creditos + " cr</div>" +
+              "<div class='name'>" + a.nombre + "</div>" +
+              "<div class='row'>" +
+                "<button type='button' class='tipo " + p.tipo + "' data-id='" + p.id + "'>" +
+                  (p.tipo === "electiva" ? "Electiva" : "Obligatoria") +
+                "</button>" +
+                "<button type='button' class='linkish' data-remove='" + p.id + "'>quitar</button>" +
+              "</div>";
+            list.appendChild(card);
+          });
+        }
+        col.appendChild(list);
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "ghost add-sem";
+        addBtn.dataset.addSem = String(s);
+        addBtn.textContent = "+ asignatura";
+        col.appendChild(addBtn);
+        board.appendChild(col);
+      }
+
+      // Barra superior: créditos de S1…S8.
+      summary.innerHTML = porSem.map(function (x) {
+        return "<span>S" + x.s + ": <strong>" + x.total + "</strong> cr" +
+          (x.n ? " <span class='det'>(" + x.crObl + " obl / " + x.crEle + " ele)</span>" : "") +
+          "</span>";
+      }).join("");
+    }
+
+    // Llena el combo de semestre del modal (opcionalmente preseleccionado).
+    function fillSemSelect(preselect) {
+      selSem.innerHTML = "";
+      for (let s = 1; s <= SEMESTRES; s++) {
+        const opt = document.createElement("option");
+        opt.value = String(s);
+        opt.textContent = "Semestre " + s;
+        selSem.appendChild(opt);
+      }
+      selSem.value = String(preselect || 1);
+      selTipo.value = "obligatoria";
+    }
+
+    // Abre el formulario de alta, vacío, en el semestre indicado.
+    function openModal(semestre) {
+      formErr.classList.remove("show");
+      formErr.textContent = "";
+      inpCodigo.value = "";
+      inpNombre.value = "";
+      inpCreditos.value = "6";
+      fillSemSelect(semestre);
+      overlay.classList.add("open");
+      inpCodigo.focus();
+    }
+    function closeModal() {
+      overlay.classList.remove("open");
+    }
+
+    // Clicks en el tablero: alta por columna, toggle de tipo, quitar.
+    board.addEventListener("click", (e) => {
+      const t = e.target;
+      if (t.dataset.addSem) {
+        openModal(Number(t.dataset.addSem));
+        return;
+      }
+      if (t.dataset.id) {
+        const item = plan.find((p) => p.id === t.dataset.id);
+        item.tipo = item.tipo === "electiva" ? "obligatoria" : "electiva";
+        render();
+      }
+      if (t.dataset.remove) {
+        plan = plan.filter((p) => p.id !== t.dataset.remove);
+        render();
+      }
+    });
+
+    // Valida el form, crea/reusa en catálogo y mete la asignatura al plan.
+    function confirmarAlta() {
+      const codigo = inpCodigo.value.trim().toUpperCase();
+      const nombre = inpNombre.value.trim();
+      const creditos = Number(inpCreditos.value);
+      const semestre = Number(selSem.value);
+      const tipo = selTipo.value;
+
+      // Código, nombre y créditos > 0; el código no puede repetirse en el plan.
+      if (!codigo || !nombre) {
+        formErr.textContent = "Código y nombre son obligatorios.";
+        formErr.classList.add("show");
+        return;
+      }
+      if (!creditos || creditos < 1) {
+        formErr.textContent = "Los créditos deben ser un número mayor a 0.";
+        formErr.classList.add("show");
+        return;
+      }
+
+      const id = slugCodigo(codigo);
+      if (plan.some((p) => p.id === id)) {
+        formErr.textContent = "Esa asignatura ya está en el plan.";
+        formErr.classList.add("show");
+        return;
+      }
+
+      // Si el código es nuevo, entra al catálogo; si no, se actualiza.
+      let existente = asigById(id);
+      if (!existente) {
+        existente = { id, codigo, nombre, creditos };
+        catalogo.push(existente);
+      } else {
+        existente.nombre = nombre;
+        existente.creditos = creditos;
+        existente.codigo = codigo;
+      }
+
+      plan.push({ id, semestre, tipo });
+      closeModal();
+      render();
+    }
+
+    // Botones de la cabecera y del modal (Guardar / prerrequisitos son solo mock).
+    document.getElementById("btn-add").addEventListener("click", () => openModal(1));
+    document.getElementById("btn-cancel").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+    document.getElementById("btn-confirm").addEventListener("click", confirmarAlta);
+    overlay.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") confirmarAlta();
+    });
+    document.getElementById("btn-save").addEventListener("click", () => {
+      toast("Mock: no se persiste. En el producto esto iría al API.");
+    });
+    document.getElementById("btn-prereq").addEventListener("click", () => {
+      toast("Otra pantalla (E2-6): prerrequisitos del plan, no de la asignatura suelta.");
+    });
+
+    render(); // primera pintura con los datos de ejemplo
+  </script>
+</body>
+</html>
