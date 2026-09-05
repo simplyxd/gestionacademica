@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wireframe E9-3 — Mi horario semanal</title>
+  <style>
+    :root {
+      --line: #333;
+      --muted: #666;
+      --bg: #f4f4f4;
+      --box: #fff;
+      --dash: #999;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--line);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--line);
+      background: #e8e8e8;
+    }
+    .topbar .brand { font-weight: 700; letter-spacing: 0.04em; }
+    .topbar .meta { color: var(--muted); font-size: 12px; }
+    .crumb {
+      padding: 8px 16px;
+      border-bottom: 1px dashed var(--dash);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .crumb span { color: var(--line); }
+
+    .page { padding: 16px; max-width: 1200px; margin: 0 auto; }
+
+    .banner {
+      border: 1px dashed var(--dash);
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      background: #eee;
+    }
+
+    .context {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .context h1 { font-size: 20px; font-weight: 700; }
+    .context .sub { color: var(--muted); margin-top: 4px; }
+    .badge-estado {
+      display: inline-block;
+      border: 1px solid var(--line);
+      padding: 1px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 6px;
+    }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button {
+      font: inherit;
+      border: 2px solid var(--line);
+      background: var(--box);
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    button.primary { background: var(--line); color: #fff; }
+    button.ghost { border-style: dashed; color: var(--muted); }
+    button.linkish {
+      border: none;
+      background: none;
+      padding: 0;
+      text-decoration: underline;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    button.day {
+      min-width: 44px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    button.day.on { background: var(--line); color: #fff; }
+
+    .summary {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border: 2px solid var(--line);
+      background: var(--box);
+      margin-bottom: 16px;
+    }
+    .summary strong { font-variant-numeric: tabular-nums; }
+    .summary .det { color: var(--muted); }
+
+    .days { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
+    .grid-wrap {
+      overflow-x: auto;
+      border: 2px solid var(--line);
+      background: var(--box);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 56px repeat(6, minmax(110px, 1fr));
+      grid-template-rows: 36px repeat(12, 44px);
+      min-width: 760px;
+    }
+    .slot, .hh, .dh {
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+    }
+    .dh {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: #eee;
+    }
+    .hh {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 4px 6px 0 0;
+      font-size: 11px;
+      color: var(--muted);
+      background: #fafafa;
+    }
+    .bloque {
+      margin: 2px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      background: #fafafa;
+      overflow: hidden;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .bloque:hover { background: #eee; }
+    .bloque .code { font-weight: 700; }
+    .bloque .meta { color: var(--muted); font-size: 11px; }
+
+    .leyenda {
+      margin-top: 16px;
+      border: 1px dashed var(--dash);
+      padding: 10px 12px;
+    }
+    .leyenda h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .leyenda ul { list-style: none; display: flex; flex-wrap: wrap; gap: 12px 20px; }
+    .leyenda button { font-weight: 700; }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--box);
+      border: 2px solid var(--line);
+      width: min(420px, 100%);
+    }
+    .modal header {
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--line);
+      font-weight: 700;
+    }
+    .modal .body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .modal .body dt { font-size: 12px; color: var(--muted); }
+    .modal .body dd { margin-bottom: 6px; }
+    .modal .foot {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--line);
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 13px;
+      display: none;
+      z-index: 20;
+      max-width: 320px;
+    }
+    .toast.show { display: block; }
+
+    @media (max-width: 720px) {
+      .days { display: flex; }
+      .grid { min-width: 0; grid-template-columns: 48px 1fr; }
+      .grid.hide-0 .c0, .grid.hide-1 .c1, .grid.hide-2 .c2,
+      .grid.hide-3 .c3, .grid.hide-4 .c4, .grid.hide-5 .c5 { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">SGA · Instituto Nueva Formación</div>
+    <div class="meta">Docente · wireframe E9-3</div>
+  </header>
+  <div class="crumb">
+    Portal docente / <span>Mi horario</span>
+  </div>
+
+  <main class="page">
+    <p class="banner">
+      Vista de horario semanal disponible para estudiantes, solo lectura. Nómina y listado de secciones son otras pantallas
+    </p>
+
+    <div class="context">
+      <div>
+        <h1>Mi horario semanal</h1>
+        <p class="sub">
+          Ana Soto · Período 2026-1
+          <span class="badge-estado">en curso</span>
+        </p>
+      </div>
+      <div class="actions">
+        <button type="button" class="ghost" id="btn-secciones">Mis secciones →</button>
+      </div>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div class="days" id="days"></div>
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
+    </div>
+    <div class="leyenda">
+      <h2>Secciones del período</h2>
+      <ul id="leyenda"></ul>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay" role="dialog" aria-labelledby="modal-title">
+    <div class="modal">
+      <header id="modal-title">Bloque</header>
+      <div class="body" id="modal-body"></div>
+      <div class="foot">
+        <button type="button" id="btn-nomina">Ver nómina</button>
+        <button type="button" class="primary" id="btn-cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Mock en memoria: portal docente, solo consulta (E9).
+    const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const HORA_INI = 8;
+    const HORA_FIN = 20; // exclusivo: última fila es 19:00–20:00
+
+    // Secciones asignadas a este docente en el período.
+    const secciones = [
+      { id: "prg101a", codigo: "PRG101", nombre: "Intro. a la programación", seccion: "A", sede: "Sede Centro", sala: "Lab 201", modalidad: "presencial", jornada: "diurna", inscritos: 28, cupo: 32 },
+      { id: "bd201b",  codigo: "BD201",  nombre: "Bases de datos",            seccion: "B", sede: "Sede Centro", sala: "Aula 14",  modalidad: "presencial", jornada: "diurna", inscritos: 22, cupo: 30 },
+      { id: "web201c", codigo: "WEB201", nombre: "Desarrollo web",            seccion: "C", sede: "—",           sala: "Ambiente virtual", modalidad: "online", jornada: "vespertina", inscritos: 35, cupo: 40 },
+    ];
+
+    // Bloques: día 0=Lun … 5=Sáb; horas en punto (fin exclusivo).
+    const bloques = [
+      { id: "b1", seccionId: "prg101a", dia: 0, inicio: 8,  fin: 10 },
+      { id: "b2", seccionId: "prg101a", dia: 2, inicio: 8,  fin: 10 },
+      { id: "b3", seccionId: "bd201b",  dia: 1, inicio: 10, fin: 12 },
+      { id: "b4", seccionId: "bd201b",  dia: 3, inicio: 10, fin: 12 },
+      { id: "b5", seccionId: "web201c", dia: 4, inicio: 18, fin: 20 },
+    ];
+
+    const grid = document.getElementById("grid");
+    const summary = document.getElementById("summary");
+    const leyenda = document.getElementById("leyenda");
+    const daysBar = document.getElementById("days");
+    const overlay = document.getElementById("overlay");
+    const toastEl = document.getElementById("toast");
+    const modalTitle = document.getElementById("modal-title");
+    const modalBody = document.getElementById("modal-body");
+
+    let seccionAbierta = null;
+    let diaFiltro = 0; // en móvil, qué columna se muestra
+
+    function seccionById(id) {
+      return secciones.find((s) => s.id === id);
+    }
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toast.t);
+      toast.t = setTimeout(() => toastEl.classList.remove("show"), 2500);
+    }
+
+    // Fila CSS: hora 8 → row 2 (row 1 es el encabezado de días).
+    function filaHora(h) {
+      return h - HORA_INI + 2;
+    }
+
+    function horasSemana() {
+      return bloques.reduce((acc, b) => acc + (b.fin - b.inicio), 0);
+    }
+
+    // Pinta encabezados, celdas vacías y bloques posicionados en la grilla.
+    function renderGrid() {
+      grid.innerHTML = "";
+      grid.className = "grid hide-" + [0,1,2,3,4,5].filter((d) => d !== diaFiltro).join(" hide-");
+
+      const corner = document.createElement("div");
+      corner.className = "dh";
+      corner.style.gridColumn = "1";
+      corner.style.gridRow = "1";
+      grid.appendChild(corner);
+
+      DIAS.forEach((nombre, d) => {
+        const h = document.createElement("div");
+        h.className = "dh c" + d;
+        h.textContent = nombre;
+        h.style.gridColumn = String(d + 2);
+        h.style.gridRow = "1";
+        grid.appendChild(h);
+      });
+
+      for (let h = HORA_INI; h < HORA_FIN; h++) {
+        const label = document.createElement("div");
+        label.className = "hh";
+        label.textContent = String(h).padStart(2, "0") + ":00";
+        label.style.gridColumn = "1";
+        label.style.gridRow = String(filaHora(h));
+        grid.appendChild(label);
+
+        DIAS.forEach((_, d) => {
+          const cell = document.createElement("div");
+          cell.className = "slot c" + d;
+          cell.style.gridColumn = String(d + 2);
+          cell.style.gridRow = String(filaHora(h));
+          grid.appendChild(cell);
+        });
+      }
+
+      bloques.forEach((b) => {
+        const s = seccionById(b.seccionId);
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "bloque c" + b.dia;
+        el.dataset.bloque = b.id;
+        el.style.gridColumn = String(b.dia + 2);
+        el.style.gridRow = filaHora(b.inicio) + " / " + filaHora(b.fin);
+        el.innerHTML =
+          "<div class='code'>" + s.codigo + "-" + s.seccion + "</div>" +
+          "<div class='meta'>" + String(b.inicio).padStart(2, "0") + ":00–" +
+            String(b.fin).padStart(2, "0") + ":00 · " + s.sala + "</div>";
+        grid.appendChild(el);
+      });
+    }
+
+    function renderSummary() {
+      summary.innerHTML =
+        "<span><strong>" + secciones.length + "</strong> secciones</span>" +
+        "<span><strong>" + bloques.length + "</strong> bloques</span>" +
+        "<span><strong>" + horasSemana() + "</strong> h/semana</span>" +
+        "<span class='det'>jornada mixta (diurna + vespertina)</span>";
+    }
+
+    function renderLeyenda() {
+      leyenda.innerHTML = "";
+      secciones.forEach((s) => {
+        const li = document.createElement("li");
+        li.innerHTML =
+          "<button type='button' class='linkish' data-seccion='" + s.id + "'>" +
+            s.codigo + "-" + s.seccion + "</button> " +
+          "<span class='det'>" + s.nombre + " · " + s.modalidad + "</span>";
+        leyenda.appendChild(li);
+      });
+    }
+
+    function renderDays() {
+      daysBar.innerHTML = "";
+      DIAS.forEach((nombre, d) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "day" + (d === diaFiltro ? " on" : "");
+        btn.dataset.dia = String(d);
+        btn.textContent = nombre;
+        daysBar.appendChild(btn);
+      });
+    }
+
+    function abrirBloque(id) {
+      const b = bloques.find((x) => x.id === id);
+      const s = seccionById(b.seccionId);
+      seccionAbierta = s.id;
+      modalTitle.textContent = s.codigo + "-" + s.seccion + " · " + s.nombre;
+      modalBody.innerHTML =
+        "<dl>" +
+          "<dt>Horario</dt><dd>" + DIAS[b.dia] + " " +
+            String(b.inicio).padStart(2, "0") + ":00–" + String(b.fin).padStart(2, "0") + ":00</dd>" +
+          "<dt>Sede / sala</dt><dd>" + s.sede + " · " + s.sala + "</dd>" +
+          "<dt>Modalidad / jornada</dt><dd>" + s.modalidad + " · " + s.jornada + "</dd>" +
+          "<dt>Inscritos</dt><dd>" + s.inscritos + " / " + s.cupo + "</dd>" +
+        "</dl>";
+      overlay.classList.add("open");
+    }
+
+    function closeModal() {
+      overlay.classList.remove("open");
+      seccionAbierta = null;
+    }
+
+    function render() {
+      renderSummary();
+      renderDays();
+      renderGrid();
+      renderLeyenda();
+    }
+
+    // Click en un bloque de la grilla → detalle.
+    grid.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-bloque]");
+      if (btn) abrirBloque(btn.dataset.bloque);
+    });
+
+    // En móvil, elige qué día se ve.
+    daysBar.addEventListener("click", (e) => {
+      if (!e.target.dataset.dia) return;
+      diaFiltro = Number(e.target.dataset.dia);
+      render();
+    });
+
+    // Leyenda: abre el primer bloque de esa sección.
+    leyenda.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-seccion]");
+      if (!btn) return;
+      const b = bloques.find((x) => x.seccionId === btn.dataset.seccion);
+      if (b) abrirBloque(b.id);
+    });
+
+    document.getElementById("btn-cerrar").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+    document.getElementById("btn-nomina").addEventListener("click", () => {
+      toast("Otra pantalla (E9-2): nómina de inscritos de la sección.");
+    });
+    document.getElementById("btn-secciones").addEventListener("click", () => {
+      toast("Otra pantalla (E9-1): listado de secciones del período.");
+    });
+
+    render();
+  </script>
+</body>
+</html>
