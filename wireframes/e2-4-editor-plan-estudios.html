@@ -1,337 +1,562 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Editor de plan de estudios</title>
+  <title>Editor de plan de estudios · SGA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.35.0/dist/tabler-icons.min.css" />
   <style>
+    /* ==========================================================
+       SGA · Design tokens (ver system-design.md §2–§3)
+       ========================================================== */
     :root {
-      --line: #333;
-      --muted: #666;
-      --bg: #f4f4f4;
-      --box: #fff;
-      --dash: #999;
-      --obl: #222;
-      --ele: #555;
+      color-scheme: light dark;
+
+      /* --- Escalas cromáticas (constantes, no cambian con el tema) --- */
+      --navy-0:#EEF2FB; --navy-1:#D7E0F4; --navy-2:#B3C2E6; --navy-3:#8AA0D6; --navy-4:#6480C4;
+      --navy-5:#4462AF; --navy-6:#2E4A95; --navy-7:#1F3777; --navy-8:#14285A; --navy-9:#0B1B3F;
+
+      --indigo-0:#EEF0FC; --indigo-1:#DCE0F8; --indigo-2:#BCC3F0; --indigo-3:#98A3E6; --indigo-4:#7583DA;
+      --indigo-5:#5766CC; --indigo-6:#4351B8; --indigo-7:#35409A; --indigo-8:#293178; --indigo-9:#1E2456;
+
+      --amber-0:#FFF8E6; --amber-1:#FFEDC2; --amber-2:#FFDE94; --amber-3:#FFCC61; --amber-4:#F7B93A;
+      --amber-5:#E6A420; --amber-6:#C98A12; --amber-7:#A36E0C; --amber-8:#7C5308; --amber-9:#563A05;
+
+      --slate-0:#F8FAFC; --slate-1:#F1F5F9; --slate-2:#E2E8F0; --slate-3:#CBD5E1; --slate-4:#94A3B8;
+      --slate-5:#64748B; --slate-6:#475569; --slate-7:#334155; --slate-8:#1E293B; --slate-9:#0F172A;
+
+      --teal-0:#ECFDF7; --teal-1:#CDF7EA; --teal-2:#9EEFD7; --teal-3:#66E0BF; --teal-4:#34C9A4;
+      --teal-5:#12AC89; --teal-6:#0B7F66; --teal-7:#0A6753; --teal-8:#0B5243; --teal-9:#083A30;
+
+      --crimson-0:#FEF1F2; --crimson-1:#FDDDE0; --crimson-2:#FBBFC5; --crimson-3:#F7919C; --crimson-4:#EF5F6F;
+      --crimson-5:#E23A4E; --crimson-6:#C4283B; --crimson-7:#A41F31; --crimson-8:#861C2C; --crimson-9:#6E1626;
+
+      --orange-0:#FFF5EB; --orange-1:#FFE6CC; --orange-2:#FFCF99; --orange-3:#FFB05C; --orange-4:#FF9129;
+      --orange-5:#F5760F; --orange-6:#D95E07; --orange-7:#B4480A; --orange-8:#90390D; --orange-9:#6E2D0C;
+
+      --sky-0:#EFF8FF; --sky-1:#D9EEFF; --sky-2:#B6E0FF; --sky-3:#85CCFA; --sky-4:#4DB3F2;
+      --sky-5:#2496E0; --sky-6:#0E6FB3; --sky-7:#0F5A91; --sky-8:#124B76; --sky-9:#10395A;
+
+      /* --- Tipografía --- */
+      --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+      /* --- Espaciado --- */
+      --sp-xs:8px; --sp-sm:12px; --sp-md:16px; --sp-lg:24px; --sp-xl:32px; --sp-2xl:48px;
+
+      /* --- Radios --- */
+      --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:20px;
+
+      /* --- Sombras (modo claro) --- */
+      --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+      --shadow-sm: 0 2px 8px rgba(15,23,42,.06);
+      --shadow-md: 0 8px 24px rgba(15,23,42,.08);
+      --shadow-lg: 0 16px 40px rgba(15,23,42,.10);
+
+      /* --- Dimensiones estándar --- */
+      --header-h:64px; --control-h:42px; --content-max:1440px;
+
+      /* --- Semánticos (modo claro) --- */
+      --bg: var(--slate-0);
+      --aurora-1: rgba(46,74,149,.08);
+      --aurora-2: rgba(67,81,184,.07);
+      --aurora-3: rgba(230,164,32,.06);
+      --text: var(--slate-9);
+      --text-dim: var(--slate-6);
+      --text-dim-strong: var(--slate-5);
+      --card-bg: #FFFFFF;
+      --card-border: var(--slate-2);
+      --surface-alt: var(--slate-1);
+      --input-bg: #FFFFFF;
+      --input-border: var(--slate-3);
+      --primary: var(--navy-6);
+      --primary-hover: var(--navy-7);
+      --primary-text-on: #FFFFFF;
+      --link: var(--navy-6);
+
+      --glass-bg: rgba(255,255,255,.75);
+      --glass-bg-strong: rgba(255,255,255,.88);
+      --glass-bg-fallback: rgba(255,255,255,.97);
+      --glass-border: rgba(0,0,0,.08);
+      --glass-highlight: rgba(255,255,255,.30);
+      --glass-shadow: 0 8px 32px 0 rgba(0,0,0,.07);
+      --glass-blur: 12px;
+      --glass-saturate: 180%;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [data-theme="dark"] {
+      --bg: var(--slate-9);
+      --aurora-1: rgba(100,128,196,.16);
+      --aurora-2: rgba(117,131,218,.14);
+      --aurora-3: rgba(247,185,58,.07);
+      --text: var(--slate-1);
+      --text-dim: var(--slate-4);
+      --text-dim-strong: var(--slate-3);
+      --card-bg: var(--slate-8);
+      --card-border: var(--slate-7);
+      --surface-alt: var(--slate-8);
+      --input-bg: var(--slate-8);
+      --input-border: var(--slate-6);
+      --primary: var(--navy-5);
+      --primary-hover: var(--navy-4);
+      --primary-text-on: #FFFFFF;
+      --link: var(--navy-4);
+
+      --glass-bg: rgba(15,23,42,.80);
+      --glass-bg-strong: rgba(15,23,42,.92);
+      --glass-bg-fallback: rgba(15,23,42,.97);
+      --glass-border: rgba(255,255,255,.14);
+      --glass-highlight: rgba(255,255,255,.06);
+      --glass-shadow: 0 8px 32px 0 rgba(0,0,0,.35);
+
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,.32);
+      --shadow-md: 0 8px 24px rgba(0,0,0,.38);
+      --shadow-lg: 0 16px 40px rgba(0,0,0,.42);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--line);
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, var(--aurora-1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, var(--aurora-2) 0, transparent 50%),
+        radial-gradient(at 50% 100%, var(--aurora-3) 0, transparent 55%);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: var(--text);
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.55;
+      min-height: 100dvh;
+      font-feature-settings: 'tnum';
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 160ms ease, color 160ms ease;
     }
 
-    /* --- chrome --- */
-    .topbar {
+    .tabular { font-variant-numeric: tabular-nums; }
+    .sga-code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: var(--indigo-6);
+    }
+    [data-theme="dark"] .sga-code { color: var(--indigo-3); }
+
+    a { color: var(--link); }
+
+    .ic-16 { font-size: 16px; }
+    .ic-18 { font-size: 18px; }
+    .ic-20 { font-size: 20px; }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: var(--r-sm);
+    }
+
+    /* ---------- Liquid Glass ---------- */
+    .sga-glass {
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow), inset 0 1px 0 0 var(--glass-highlight);
+    }
+    .sga-glass-strong { background: var(--glass-bg-strong); }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .sga-glass { background: var(--glass-bg-fallback); }
+    }
+    @media (prefers-reduced-transparency: reduce) {
+      .sga-glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--glass-bg-fallback); }
+    }
+
+    /* ---------- Header ---------- */
+    .sga-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      height: var(--header-h);
+      border-bottom: 1px solid var(--glass-border);
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .sga-header__inner {
+      max-width: var(--content-max);
+      margin: 0 auto;
+      height: 100%;
+      padding: 0 var(--sp-md);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
-      border-bottom: 2px solid var(--line);
-      background: #e8e8e8;
-    }
-    .topbar .brand { font-weight: 700; letter-spacing: 0.04em; }
-    .topbar .meta { color: var(--muted); font-size: 12px; }
-    .crumb {
-      padding: 8px 16px;
-      border-bottom: 1px dashed var(--dash);
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .crumb span { color: var(--line); }
-
-    .page { padding: 16px; max-width: 1400px; margin: 0 auto; }
-
-    .banner {
-      border: 1px dashed var(--dash);
-      padding: 8px 12px;
-      margin-bottom: 16px;
-      font-size: 12px;
-      color: var(--muted);
-      background: #eee;
-    }
-
-    /* --- context --- */
-    .context {
-      display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 16px;
+      gap: var(--sp-sm);
     }
-    .context h1 { font-size: 20px; font-weight: 700; }
-    .context .sub { color: var(--muted); margin-top: 4px; }
-    .badge-estado {
-      display: inline-block;
-      border: 1px solid var(--line);
-      padding: 1px 8px;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-left: 6px;
-    }
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sga-brand { display: flex; align-items: baseline; gap: var(--sp-sm); min-width: 0; }
+    .sga-brand strong { font-weight: 700; font-size: 18px; color: var(--navy-6); }
+    [data-theme="dark"] .sga-brand strong { color: var(--navy-3); }
+    .sga-brand span { color: var(--text-dim); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 720px) { .sga-brand span { display: none; } }
 
-    button, .btn {
-      font: inherit;
-      border: 2px solid var(--line);
-      background: var(--box);
-      padding: 6px 12px;
-      cursor: pointer;
+    .sga-header__right { display: flex; align-items: center; gap: var(--sp-sm); }
+    .sga-role-badge {
+      font-size: 12px; font-weight: 600; color: var(--text-dim);
+      border: 1px solid var(--card-border); border-radius: 999px; padding: 4px 12px;
+      background: var(--card-bg);
     }
-    button.primary { background: var(--line); color: #fff; }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-    button.ghost { border-style: dashed; color: var(--muted); }
-    button.linkish {
-      border: none;
-      background: none;
-      padding: 0;
-      text-decoration: underline;
-      color: var(--muted);
-      font-size: 12px;
+    .sga-icon-toggle {
+      width: 36px; height: 36px; border-radius: var(--r-md);
+      border: 1px solid transparent; background: transparent; color: var(--text);
+      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
     }
+    .sga-icon-toggle:hover { background: var(--surface-alt); }
 
-    .summary {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      padding: 10px 12px;
-      border: 2px solid var(--line);
-      background: var(--box);
-      margin-bottom: 16px;
-    }
-    .summary strong { font-variant-numeric: tabular-nums; }
-    .summary .det { color: var(--muted); }
+    /* ---------- Layout ---------- */
+    .sga-shell { padding: var(--sp-lg) var(--sp-md) var(--sp-2xl); }
+    .sga-container { max-width: var(--content-max); margin: 0 auto; }
 
-    /* --- board --- */
-    .board {
-      display: grid;
-      grid-template-columns: repeat(8, minmax(160px, 1fr));
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-    }
-    .sem {
-      border: 2px solid var(--line);
-      background: var(--box);
-      min-height: 280px;
-      display: flex;
-      flex-direction: column;
-    }
-    .sem header {
-      padding: 8px;
-      border-bottom: 1px solid var(--line);
-      font-size: 12px;
-    }
-    .sem header .ttl {
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      display: flex;
-      justify-content: space-between;
-    }
-    .sem header .cr { font-weight: 400; color: var(--muted); }
-    .sem header .split {
-      font-weight: 400;
-      color: var(--muted);
-      font-size: 11px;
-      margin-top: 2px;
-    }
-    .sem .list {
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-    }
-    .sem .empty {
-      border: 1px dashed var(--dash);
-      color: var(--dash);
-      padding: 16px 8px;
-      text-align: center;
-      font-size: 12px;
-    }
-    .sem .add-sem {
-      margin: 0 8px 8px;
-      width: calc(100% - 16px);
-      font-size: 12px;
-    }
+    .sga-breadcrumbs { font-size: 13px; color: var(--text-dim); margin-bottom: var(--sp-md); }
+    .sga-breadcrumbs .sep { margin: 0 6px; color: var(--text-dim-strong); }
+    .sga-breadcrumbs strong { color: var(--text); font-weight: 600; }
 
-    .card {
-      border: 1px solid var(--line);
-      padding: 8px;
-      background: #fafafa;
-    }
-    .card .code { font-weight: 700; font-size: 12px; }
-    .card .name { font-size: 13px; margin: 2px 0 6px; }
-    .card .row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-    }
-    .tipo {
-      border: 1px solid var(--line);
-      font-size: 10px;
-      text-transform: uppercase;
-      padding: 1px 6px;
-      cursor: pointer;
-      background: #fff;
-    }
-    .tipo.electiva { border-style: dashed; color: var(--ele); }
-
-    /* --- modal --- */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 10;
-    }
-    .overlay.open { display: flex; }
-    .modal {
-      background: var(--box);
-      border: 2px solid var(--line);
-      width: min(480px, 100%);
-      max-height: 90vh;
-      overflow: auto;
-    }
-    .modal header {
-      padding: 12px 16px;
-      border-bottom: 2px solid var(--line);
-      font-weight: 700;
-    }
-    .modal .body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .modal .foot {
-      padding: 12px 16px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-    select, input[type="text"], input[type="number"] {
-      width: 100%;
-      font: inherit;
-      padding: 6px 8px;
-      border: 1px solid var(--line);
-      background: #fff;
-    }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .hint { font-size: 12px; color: var(--muted); }
-    .err { font-size: 12px; color: #a00; display: none; }
-    .err.show { display: block; }
-
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      background: var(--line);
-      color: #fff;
-      padding: 10px 14px;
+    /* ---------- Alert / banner ---------- */
+    .sga-alert {
+      display: flex; gap: var(--sp-sm); align-items: flex-start;
+      border-radius: var(--r-md); padding: var(--sp-sm) var(--sp-md);
+      margin-bottom: var(--sp-lg);
       font-size: 13px;
-      display: none;
-      z-index: 20;
-      max-width: 320px;
+      border: 1px solid transparent;
     }
-    .toast.show { display: block; }
+    .sga-alert--sky { background: var(--sky-0); color: var(--sky-8); border-color: var(--sky-2); }
+    [data-theme="dark"] .sga-alert--sky { background: rgba(36,150,224,.12); color: var(--sky-2); border-color: rgba(36,150,224,.3); }
+    .sga-alert i { margin-top: 2px; flex-shrink: 0; }
 
-    @media (max-width: 900px) {
-      .board {
-        grid-template-columns: 1fr 1fr;
-      }
+    /* ---------- Page header ---------- */
+    .sga-page-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: var(--sp-md); flex-wrap: wrap; margin-bottom: var(--sp-lg);
     }
-    @media (max-width: 560px) {
-      .board { grid-template-columns: 1fr; }
+    .sga-page-header h1 {
+      font-size: 26px; font-weight: 700; line-height: 1.25; margin: 0 0 4px;
+    }
+    .sga-page-header__desc { color: var(--text-dim); font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .sga-page-header__actions { display: flex; gap: var(--sp-sm); flex-wrap: wrap; align-items: center; }
+
+    /* ---------- Badges ---------- */
+    .sga-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 10px; border-radius: 999px;
+      font-size: 11.5px; font-weight: 600; line-height: 1.7;
+      white-space: nowrap;
+    }
+    .sga-badge--teal { background: var(--teal-0); color: var(--teal-7); }
+    [data-theme="dark"] .sga-badge--teal { background: rgba(18,172,137,.16); color: var(--teal-2); }
+    .sga-badge--orange { background: var(--orange-0); color: var(--orange-8); }
+    [data-theme="dark"] .sga-badge--orange { background: rgba(255,145,41,.16); color: var(--orange-2); }
+    .sga-badge--slate-outline {
+      background: transparent; color: var(--text-dim);
+      border: 1px solid var(--card-border);
+    }
+
+    /* ---------- Buttons ---------- */
+    .sga-btn {
+      font: inherit; font-weight: 600; font-size: 13.5px;
+      display: inline-flex; align-items: center; gap: 6px;
+      height: var(--control-h); padding: 0 16px;
+      border-radius: var(--r-md); border: 1px solid transparent;
+      cursor: pointer; white-space: nowrap;
+      transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+    }
+    .sga-btn:active { transform: translateY(1px); }
+    .sga-btn--filled { background: var(--primary); color: var(--primary-text-on); }
+    .sga-btn--filled:hover { background: var(--primary-hover); }
+    .sga-btn--light { background: var(--navy-0); color: var(--navy-7); }
+    [data-theme="dark"] .sga-btn--light { background: rgba(68,98,175,.18); color: var(--navy-2); }
+    .sga-btn--light:hover { background: var(--navy-1); }
+    [data-theme="dark"] .sga-btn--light:hover { background: rgba(68,98,175,.28); }
+    .sga-btn--subtle { background: transparent; color: var(--text-dim); }
+    .sga-btn--subtle:hover { background: var(--surface-alt); color: var(--text); }
+    .sga-btn--sm { height: 32px; padding: 0 12px; font-size: 12.5px; }
+    .sga-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .sga-btn:disabled:hover { background: inherit; }
+
+    .sga-icon-btn {
+      width: 30px; height: 30px; border-radius: var(--r-sm);
+      border: none; background: transparent; color: var(--text-dim);
+      display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .sga-icon-btn:hover { background: var(--crimson-0); color: var(--crimson-7); }
+    [data-theme="dark"] .sga-icon-btn:hover { background: rgba(226,58,78,.16); color: var(--crimson-2); }
+
+    /* ---------- Summary card ---------- */
+    .sga-summary-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: var(--r-md); box-shadow: var(--shadow-sm);
+      padding: var(--sp-sm) var(--sp-md);
+      display: flex; flex-wrap: wrap; gap: var(--sp-md);
+      margin-bottom: var(--sp-lg);
+    }
+    .sga-summary__item { display: inline-flex; align-items: baseline; gap: 5px; font-size: 13px; }
+    .sga-summary__sem { color: var(--text-dim); font-weight: 600; }
+    .sga-summary__item strong { font-size: 15px; font-weight: 700; }
+    .sga-summary__unit { color: var(--text-dim); font-size: 12px; }
+    .sga-summary__det { color: var(--text-dim); font-size: 12px; }
+
+    /* ---------- Board ---------- */
+    .sga-board {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(200px, 1fr));
+      gap: var(--sp-md);
+      overflow-x: auto;
+      padding-bottom: var(--sp-sm);
+      scroll-snap-type: x proximity;
+    }
+    .sga-sem-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: var(--r-md); box-shadow: var(--shadow-sm);
+      display: flex; flex-direction: column; min-height: 300px;
+      scroll-snap-align: start;
+    }
+    .sga-sem-card__header {
+      padding: var(--sp-sm) var(--sp-sm) 8px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .sga-sem-card__title {
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    }
+    .sga-sem-card__split { font-size: 11.5px; color: var(--text-dim); margin-top: 3px; }
+    .sga-sem-card__list {
+      padding: var(--sp-sm); display: flex; flex-direction: column; gap: var(--sp-sm); flex: 1;
+    }
+    .sga-empty-mini {
+      border: 1px dashed var(--card-border); border-radius: var(--r-sm);
+      color: var(--text-dim); padding: var(--sp-md) var(--sp-sm);
+      text-align: center; font-size: 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .sga-sem-card__add {
+      margin: 0 var(--sp-sm) var(--sp-sm); justify-content: center;
+    }
+
+    .sga-asig-card {
+      border: 1px solid var(--card-border); border-radius: var(--r-sm);
+      background: var(--surface-alt); padding: var(--sp-sm);
+    }
+    .sga-asig-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+    .sga-asig-card__cr { font-size: 11px; color: var(--text-dim); }
+    .sga-asig-card__name { font-size: 13px; font-weight: 500; margin: 3px 0 8px; }
+    .sga-asig-card__bottom { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+
+    .sga-chip {
+      font: inherit; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em;
+      padding: 3px 9px; border-radius: 999px; cursor: pointer; border: 1px solid transparent;
+    }
+    .sga-chip--obligatoria { background: var(--navy-0); color: var(--navy-7); }
+    [data-theme="dark"] .sga-chip--obligatoria { background: rgba(68,98,175,.2); color: var(--navy-2); }
+    .sga-chip--electiva { background: var(--amber-0); color: var(--amber-8); border-style: dashed; border-color: var(--amber-4); }
+    [data-theme="dark"] .sga-chip--electiva { background: rgba(230,164,32,.14); color: var(--amber-2); border-color: var(--amber-5); }
+
+    /* ---------- Overlay / Modal ---------- */
+    .sga-overlay {
+      display: none; position: fixed; inset: 0; z-index: 50;
+      background: rgba(15,23,42,.45);
+      align-items: center; justify-content: center; padding: var(--sp-md);
+    }
+    .sga-overlay.open { display: flex; }
+    .sga-modal {
+      width: min(500px, 100%); max-height: 90vh; overflow: auto;
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-lg);
+    }
+    .sga-modal__header { padding: var(--sp-md) var(--sp-lg); border-bottom: 1px solid var(--card-border); }
+    .sga-modal__header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+    .sga-modal__body { padding: var(--sp-lg); display: flex; flex-direction: column; gap: var(--sp-md); }
+    .sga-modal__foot {
+      padding: var(--sp-md) var(--sp-lg); border-top: 1px solid var(--card-border);
+      display: flex; justify-content: flex-end; gap: var(--sp-sm);
+    }
+    .sga-hint { font-size: 12.5px; color: var(--text-dim); margin: 0; }
+
+    .sga-field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-dim); margin-bottom: 5px; }
+    .sga-field input, .sga-field select {
+      width: 100%; font: inherit; font-size: 14px;
+      height: var(--control-h); padding: 0 12px;
+      border-radius: var(--r-md); border: 1px solid var(--input-border);
+      background: var(--input-bg); color: var(--text);
+    }
+    .sga-field input:focus, .sga-field select:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+    .sga-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md); }
+
+    .sga-error {
+      display: none; align-items: flex-start; gap: 6px;
+      font-size: 12.5px; color: var(--crimson-7); margin: 0;
+      background: var(--crimson-0); border: 1px solid var(--crimson-2);
+      border-radius: var(--r-sm); padding: 8px 10px;
+    }
+    [data-theme="dark"] .sga-error { color: var(--crimson-2); background: rgba(226,58,78,.12); border-color: rgba(226,58,78,.3); }
+    .sga-error.show { display: flex; }
+
+    /* ---------- Toast / notification ---------- */
+    .sga-toast {
+      position: fixed; top: 20px; right: 20px; z-index: 60;
+      display: none; align-items: flex-start; gap: 10px;
+      max-width: 360px; padding: 12px 14px;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-left: 3px solid var(--sky-6);
+      border-radius: var(--r-md); box-shadow: var(--shadow-md);
+      font-size: 13px; color: var(--text);
+    }
+    .sga-toast.show { display: flex; }
+    .sga-toast i { color: var(--sky-6); margin-top: 1px; flex-shrink: 0; }
+
+    @media (prefers-reduced-motion: reduce) { .sga-btn, .sga-icon-btn { transition: none; } }
+
+    @media (max-width: 1100px) { .sga-board { grid-template-columns: repeat(4, minmax(200px, 1fr)); } }
+    @media (max-width: 640px) {
+      .sga-board { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+      .sga-grid2 { grid-template-columns: 1fr; }
+      .sga-page-header__actions { width: 100%; }
+      .sga-btn { flex: 1; justify-content: center; }
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">SGA · Instituto Nueva Formación</div>
-    <div class="meta">Coordinador académico</div>
-  </header>
-  <div class="crumb">
-    Estructura académica / Carreras / Ingeniería en Informática / <span>Plan 2024</span>
-  </div>
-
-  <main class="page">
-    <p class="banner">
-      Boceto de la pantalla de edición de un plan de estudios, la idea es que cada asiganatura guardada aca quede perssitente en la base de datos.
-    </p>
-
-    <div class="context">
-      <div>
-        <h1>Editor de plan de estudios</h1>
-        <p class="sub">
-          Ingeniería en Informática · Plan 2024 · versión 1
-          <span class="badge-estado">vigente</span>
-        </p>
+  <header class="sga-header sga-glass">
+    <div class="sga-header__inner">
+      <div class="sga-brand">
+        <strong>SGA</strong>
+        <span>Instituto Universitario Nueva Formación</span>
       </div>
-      <div class="actions">
-        <button type="button" id="btn-add">+ Agregar asignatura</button>
-        <button type="button" class="ghost" id="btn-prereq">Prerrequisitos (Pagina diferente) →</button>
-        <button type="button" class="primary" id="btn-save">Guardar</button>
+      <div class="sga-header__right">
+        <span class="sga-role-badge">Coordinador académico</span>
+        <button type="button" class="sga-icon-toggle" id="btn-theme" aria-label="Cambiar esquema de color">
+          <i class="ti ti-moon ic-18" aria-hidden="true"></i>
+        </button>
       </div>
     </div>
+  </header>
 
-    <div class="summary" id="summary"></div>
-    <div class="board" id="board"></div>
-  </main>
+  <div class="sga-shell">
+    <div class="sga-container">
+      <nav class="sga-breadcrumbs" aria-label="Ruta de navegación">
+        Estructura académica <span class="sep">/</span> Carreras <span class="sep">/</span> Ingeniería en Informática <span class="sep">/</span> <strong>Plan 2024</strong>
+      </nav>
 
-  <div class="overlay" id="overlay" role="dialog" aria-labelledby="modal-title">
-    <div class="modal">
-      <header id="modal-title">Agregar asignatura al plan</header>
-      <div class="body">
-        <p class="hint">Datos de la asignatura. Si el código ya existe, se reutiliza.</p>
-        <div class="grid2">
-          <div>
-            <label for="inp-codigo">Código</label>
+      <div class="sga-alert sga-alert--sky" role="note">
+        <i class="ti ti-info-circle ic-18" aria-hidden="true"></i>
+        <span>Boceto de la pantalla de edición de un plan de estudios, la idea es que cada asiganatura guardada aca quede perssitente en la base de datos.</span>
+      </div>
+
+      <div class="sga-page-header">
+        <div>
+          <h1>Editor de plan de estudios</h1>
+          <p class="sga-page-header__desc">
+            Ingeniería en Informática · Plan 2024 · versión 1
+            <span class="sga-badge sga-badge--teal"><i class="ti ti-circle-check ic-16" aria-hidden="true"></i>vigente</span>
+          </p>
+        </div>
+        <div class="sga-page-header__actions">
+          <button type="button" class="sga-btn sga-btn--light" id="btn-add">
+            <i class="ti ti-plus ic-18" aria-hidden="true"></i>Agregar asignatura
+          </button>
+          <button type="button" class="sga-btn sga-btn--subtle" id="btn-prereq">
+            Prerrequisitos<i class="ti ti-arrow-right ic-16" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="sga-btn sga-btn--filled" id="btn-save">
+            <i class="ti ti-device-floppy ic-18" aria-hidden="true"></i>Guardar
+          </button>
+        </div>
+      </div>
+
+      <div class="sga-summary-card" id="summary" aria-label="Créditos por semestre"></div>
+      <div class="sga-board" id="board" role="list" aria-label="Semestres del plan"></div>
+    </div>
+  </div>
+
+  <div class="sga-overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="sga-modal sga-glass sga-glass-strong">
+      <div class="sga-modal__header">
+        <h3 id="modal-title">Agregar asignatura al plan</h3>
+      </div>
+      <div class="sga-modal__body">
+        <p class="sga-hint">Datos de la asignatura. Si el código ya existe, se reutiliza. * Campo obligatorio</p>
+        <div class="sga-grid2">
+          <div class="sga-field">
+            <label for="inp-codigo">Código *</label>
             <input id="inp-codigo" type="text" maxlength="12" placeholder="MAT103" autocomplete="off" />
           </div>
-          <div>
-            <label for="inp-creditos">Créditos</label>
+          <div class="sga-field">
+            <label for="inp-creditos">Créditos *</label>
             <input id="inp-creditos" type="number" min="1" max="20" value="6" />
           </div>
         </div>
-        <div>
-          <label for="inp-nombre">Nombre</label>
+        <div class="sga-field">
+          <label for="inp-nombre">Nombre *</label>
           <input id="inp-nombre" type="text" placeholder="Álgebra lineal" autocomplete="off" />
         </div>
-        <div class="grid2">
-          <div>
-            <label for="sel-sem">Semestre</label>
+        <div class="sga-grid2">
+          <div class="sga-field">
+            <label for="sel-sem">Semestre *</label>
             <select id="sel-sem"></select>
           </div>
-          <div>
-            <label for="sel-tipo">Tipo en este plan</label>
+          <div class="sga-field">
+            <label for="sel-tipo">Tipo en este plan *</label>
             <select id="sel-tipo">
               <option value="obligatoria">Obligatoria</option>
               <option value="electiva">Electiva</option>
             </select>
           </div>
         </div>
-        <p class="err" id="form-err"></p>
+        <p class="sga-error" id="form-err">
+          <i class="ti ti-alert-circle ic-16" aria-hidden="true"></i>
+          <span></span>
+        </p>
       </div>
-      <div class="foot">
-        <button type="button" id="btn-cancel">Cancelar</button>
-        <button type="button" class="primary" id="btn-confirm">Agregar</button>
+      <div class="sga-modal__foot">
+        <button type="button" class="sga-btn sga-btn--subtle" id="btn-cancel">Cancelar</button>
+        <button type="button" class="sga-btn sga-btn--filled" id="btn-confirm">Agregar</button>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="sga-toast" id="toast" role="status">
+    <i class="ti ti-info-circle ic-18" aria-hidden="true"></i>
+    <span id="toast-msg"></span>
+  </div>
 
   <script>
+    // ---------- Esquema de color: claro/oscuro con preferencia persistida ----------
+    (function initTheme() {
+      const stored = localStorage.getItem('sga-theme');
+      const preferDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = stored || (preferDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    function paintThemeIcon() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const icon = document.querySelector('#btn-theme i');
+      icon.className = 'ic-18 ti ' + (isDark ? 'ti-sun' : 'ti-moon');
+    }
+
+    document.getElementById('btn-theme').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('sga-theme', next);
+      paintThemeIcon();
+    });
+    paintThemeIcon();
+
     // Mock en memoria: no hay backend ni persistencia.
     const SEMESTRES = 8;
 
@@ -367,12 +592,14 @@
     const summary = document.getElementById("summary");
     const overlay = document.getElementById("overlay");
     const toastEl = document.getElementById("toast");
+    const toastMsg = document.getElementById("toast-msg");
     const selSem = document.getElementById("sel-sem");
     const selTipo = document.getElementById("sel-tipo");
     const inpCodigo = document.getElementById("inp-codigo");
     const inpNombre = document.getElementById("inp-nombre");
     const inpCreditos = document.getElementById("inp-creditos");
     const formErr = document.getElementById("form-err");
+    const formErrText = formErr.querySelector("span");
 
     // Busca una asignatura del catálogo por id.
     function asigById(id) {
@@ -384,12 +611,12 @@
       return codigo.trim().toLowerCase().replace(/\s+/g, "");
     }
 
-    // Mensaje temporal abajo a la derecha.
+    // Mensaje temporal abajo a la derecha (notificación tipo "info").
     function toast(msg) {
-      toastEl.textContent = msg;
+      toastMsg.textContent = msg;
       toastEl.classList.add("show");
       clearTimeout(toast.t);
-      toast.t = setTimeout(() => toastEl.classList.remove("show"), 2500);
+      toast.t = setTimeout(() => toastEl.classList.remove("show"), 3500);
     }
 
     // Redibuja columnas y barra de créditos (todo por semestre).
@@ -412,30 +639,37 @@
 
         // Columna: cabecera con créditos, tarjetas y botón de alta.
         const col = document.createElement("section");
-        col.className = "sem";
+        col.className = "sga-sem-card";
+        col.setAttribute("role", "listitem");
         col.innerHTML =
-          "<header>" +
-            "<div class='ttl'>Semestre " + s + "<span class='cr'>" + total + " cr</span></div>" +
-            "<div class='split'>" + crObl + " obl · " + crEle + " ele</div>" +
+          "<header class='sga-sem-card__header'>" +
+            "<div class='sga-sem-card__title'>Semestre " + s +
+              "<span class='sga-badge sga-badge--slate-outline tabular'>" + total + " cr</span></div>" +
+            "<div class='sga-sem-card__split'>" + crObl + " obl · " + crEle + " ele</div>" +
           "</header>";
         const list = document.createElement("div");
-        list.className = "list";
+        list.className = "sga-sem-card__list";
 
         if (!items.length) {
-          list.innerHTML = "<div class='empty'>sin asignaturas</div>";
+          list.innerHTML = "<div class='sga-empty-mini'><i class='ti ti-inbox ic-18' aria-hidden='true'></i><span>Sin asignaturas</span></div>";
         } else {
           items.forEach((p) => {
             const a = asigById(p.id);
             const card = document.createElement("article");
-            card.className = "card";
+            card.className = "sga-asig-card";
             card.innerHTML =
-              "<div class='code'>" + a.codigo + " · " + a.creditos + " cr</div>" +
-              "<div class='name'>" + a.nombre + "</div>" +
-              "<div class='row'>" +
-                "<button type='button' class='tipo " + p.tipo + "' data-id='" + p.id + "'>" +
+              "<div class='sga-asig-card__top'>" +
+                "<span class='sga-code'>" + a.codigo + "</span>" +
+                "<span class='sga-asig-card__cr tabular'>" + a.creditos + " cr</span>" +
+              "</div>" +
+              "<div class='sga-asig-card__name'>" + a.nombre + "</div>" +
+              "<div class='sga-asig-card__bottom'>" +
+                "<button type='button' class='sga-chip sga-chip--" + p.tipo + "' data-id='" + p.id + "'>" +
                   (p.tipo === "electiva" ? "Electiva" : "Obligatoria") +
                 "</button>" +
-                "<button type='button' class='linkish' data-remove='" + p.id + "'>quitar</button>" +
+                "<button type='button' class='sga-icon-btn' data-remove='" + p.id + "' aria-label='Quitar " + a.codigo + " del plan'>" +
+                  "<i class='ti ti-trash ic-16' aria-hidden='true'></i>" +
+                "</button>" +
               "</div>";
             list.appendChild(card);
           });
@@ -443,17 +677,18 @@
         col.appendChild(list);
         const addBtn = document.createElement("button");
         addBtn.type = "button";
-        addBtn.className = "ghost add-sem";
+        addBtn.className = "sga-btn sga-btn--subtle sga-btn--sm sga-sem-card__add";
         addBtn.dataset.addSem = String(s);
-        addBtn.textContent = "+ asignatura";
+        addBtn.innerHTML = "<i class='ti ti-plus ic-16' aria-hidden='true'></i>Asignatura";
         col.appendChild(addBtn);
         board.appendChild(col);
       }
 
       // Barra superior: créditos de S1…S8.
       summary.innerHTML = porSem.map(function (x) {
-        return "<span>S" + x.s + ": <strong>" + x.total + "</strong> cr" +
-          (x.n ? " <span class='det'>(" + x.crObl + " obl / " + x.crEle + " ele)</span>" : "") +
+        return "<span class='sga-summary__item'><span class='sga-summary__sem'>S" + x.s + "</span>" +
+          "<strong class='tabular'>" + x.total + "</strong><span class='sga-summary__unit'>cr</span>" +
+          (x.n ? " <span class='sga-summary__det'>(" + x.crObl + " obl / " + x.crEle + " ele)</span>" : "") +
           "</span>";
       }).join("");
     }
@@ -474,7 +709,7 @@
     // Abre el formulario de alta, vacío, en el semestre indicado.
     function openModal(semestre) {
       formErr.classList.remove("show");
-      formErr.textContent = "";
+      formErrText.textContent = "";
       inpCodigo.value = "";
       inpNombre.value = "";
       inpCreditos.value = "6";
@@ -488,7 +723,8 @@
 
     // Clicks en el tablero: alta por columna, toggle de tipo, quitar.
     board.addEventListener("click", (e) => {
-      const t = e.target;
+      const t = e.target.closest("[data-add-sem], [data-id], [data-remove]");
+      if (!t) return;
       if (t.dataset.addSem) {
         openModal(Number(t.dataset.addSem));
         return;
@@ -497,12 +733,19 @@
         const item = plan.find((p) => p.id === t.dataset.id);
         item.tipo = item.tipo === "electiva" ? "obligatoria" : "electiva";
         render();
+        return;
       }
       if (t.dataset.remove) {
         plan = plan.filter((p) => p.id !== t.dataset.remove);
         render();
       }
     });
+
+    // Muestra un error en el formulario (Alert en línea, no solo un toast).
+    function mostrarError(msg) {
+      formErrText.textContent = msg;
+      formErr.classList.add("show");
+    }
 
     // Valida el form, crea/reusa en catálogo y mete la asignatura al plan.
     function confirmarAlta() {
@@ -514,20 +757,17 @@
 
       // Código, nombre y créditos > 0; el código no puede repetirse en el plan.
       if (!codigo || !nombre) {
-        formErr.textContent = "Código y nombre son obligatorios.";
-        formErr.classList.add("show");
+        mostrarError("Código y nombre son obligatorios.");
         return;
       }
       if (!creditos || creditos < 1) {
-        formErr.textContent = "Los créditos deben ser un número mayor a 0.";
-        formErr.classList.add("show");
+        mostrarError("Los créditos deben ser un número mayor a 0.");
         return;
       }
 
       const id = slugCodigo(codigo);
       if (plan.some((p) => p.id === id)) {
-        formErr.textContent = "Esa asignatura ya está en el plan.";
-        formErr.classList.add("show");
+        mostrarError("Esa asignatura ya está en el plan.");
         return;
       }
 
@@ -545,6 +785,7 @@
       plan.push({ id, semestre, tipo });
       closeModal();
       render();
+      toast(codigo + " se agregó al semestre " + semestre + ".");
     }
 
     // Botones de la cabecera y del modal (Guardar / prerrequisitos son solo mock).
@@ -553,7 +794,8 @@
     overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
     document.getElementById("btn-confirm").addEventListener("click", confirmarAlta);
     overlay.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") confirmarAlta();
+      if (e.key === "Escape") closeModal();
+      if (e.key === "Enter" && e.target.tagName !== "SELECT") confirmarAlta();
     });
     document.getElementById("btn-save").addEventListener("click", () => {
       toast("Mock: no se persiste. En el producto esto iría al API.");
