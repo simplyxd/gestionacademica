@@ -2,6 +2,16 @@
 
 Append-only. Más reciente arriba.
 
+## 2026-09-06 — Sistema de Diseño institucional: Mantine v7, paleta Navy/Indigo/Amber y Liquid Glass
+
+**Decision:** Se adopta **Mantine UI v7** como librería exclusiva para React. Paleta institucional basada en Navy (`#0f2347` / `#1e3a8a`), Índigo (`#312e81` / `#4338ca`), Acento Ámbar dorado (`#d97706`), Neutros Slate y semánticos (Teal/Crimson). Se define una identidad visual *Liquid Glass* sutil (`backdrop-filter: blur(12px)` en Headers/Navbars/Cards resumen) con filosofía UX *anti-agobio* (espaciado `md`/`lg`, tablas de máx. 7 columnas con Drawer lateral, Stepper para formularios y mapeo visual de las 7 reglas de inscripción). Documentado exhaustivamente en `system-design.md`.
+
+**Rationale:** El prototipo del SGA debe ser legible, moderno y coherente para un equipo de 6 personas trabajando en paralelo. Mantine v7 ofrece sistema de temas centralizado, hooks nativos (`@mantine/hooks`, `@mantine/dates`, `@mantine/notifications`) y evita inconsistencias o mezclas de frameworks.
+
+**Rejected:** Ant Design (demasiado rígido/denso tipo ERP legacy), MUI (muy verboso), Tailwind/shadcn sin base previa instalada, interfaces recargadas sin paginación ni jerarquía.
+
+**Scope/links:** [`system-design.md`](../../system-design.md) · [requerimientos-no-funcionales.md](../specs/requerimientos-no-funcionales.md)
+
 ## 2026-09-05 — Backlog curado como mapa, no como dump
 
 **Decision:** Las 85 tarjetas siguen en `backlog-sga.md`. En `context/` solo el mapa de épicos, sprints y decisiones extraídas.

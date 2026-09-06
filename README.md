@@ -99,6 +99,7 @@ El enunciado original se partió en specs temáticas en [`context/`](context/REA
 
 | Documento | Para qué |
 |---|---|
+| [Sistema de Diseño (UI/UX)](system-design.md) | **Fuente de verdad visual y técnica:** Mantine v7, paletas, tokens glass, componentes, feedback de 7 reglas y Do's/Don'ts |
 | [Overview](context/general/overview.md) | Qué es el proyecto, reglas y fuera de alcance |
 | [Glosario](context/general/glossary.md) | Términos del dominio (sección, matrícula, período, etc.) |
 | [Modelo de negocio](context/specs/modelo-de-negocio.md) | Entidades y ciclo semestral |
