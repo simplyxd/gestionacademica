@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe 3 - Nómina de Estudiantes</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a365d; text-align: center; }
+        .filter { background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #4a5568; }
+        select { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #edf2f7; color: #2d3748; }
+        .badge { background: #c6f6d5; color: #22543d; padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Nómina de Estudiantes por Sección (RF11)</h2>
+    
+    <div class="filter">
+        <label>Seleccionar Sección Asignada:</label>
+        <select id="selectorSeccion" onchange="actualizarNomina()">
+            <option value="sec1">Sección 01 - Ingeniería de Software (Diurna)</option>
+            <option value="sec2">Sección 02 - Base de Datos (Vespertina)</option>
+        </select>
+    </div>
+
+    <h3>Estudiantes Matriculados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoNomina">
+            <!-- Contenido dinámico por JS -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const datosSecciones = {
+        sec1: [
+            { nombre: "Juan Pérez", correo: "juan.estudiante@universidad.edu", estado: "Vigente" },
+            { nombre: "María González", correo: "maria.gonzalez@universidad.edu", estado: "Vigente" }
+        ],
+        sec2: [
+            { nombre: "Carlos Soto", correo: "carlos.soto@universidad.edu", estado: "Vigente" },
+            { nombre: "Lucía Alarcón", correo: "lucia.alarcon@universidad.edu", estado: "Vigente" }
+        ]
+    };
+
+    function actualizarNomina() {
+        const seccion = document.getElementById('selectorSeccion').value;
+        const tbody = document.getElementById('cuerpoNomina');
+        tbody.innerHTML = "";
+
+        datosSecciones[seccion].forEach(est => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${est.nombre}</td>
+                <td>${est.correo}</td>
+                <td><span class="badge">${est.estado}</span></td>
+            `;
+            tbody.appendChild(fila);
+        });
+    }
+
+    // Cargar la primera sección por defecto al iniciar
+    window.onload = actualizarNomina;
+</script>
+
+</body>
+</html>

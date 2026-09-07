@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe - ABM de Sedes (RF2)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a365d; text-align: center; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .full { grid-column: span 2; }
+        label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 13px; color: #4a5568; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 10px; background: #2b6cb0; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; }
+        button:hover { background: #2c5282; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #edf2f7; color: #2d3748; }
+        .btn-del { background: #e53e3e; color: white; border: none; padding: 5px 8px; border-radius: 3px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ABM de Sedes (RF2 / Estructura Institucional)</h2>
+    <form id="formSede">
+        <div class="form-grid">
+            <div class="full">
+                <label>Nombre de la Sede</label>
+                <input type="text" id="nombreSede" required placeholder="Ej. Sede Central Providencia">
+            </div>
+            <div class="full">
+                <label>Dirección Física</label>
+                <input type="text" id="direccionSede" required placeholder="Ej. Av. Principal 1234">
+            </div>
+            <div>
+                <label>Comuna / Ciudad</label>
+                <input type="text" id="comunaSede" required placeholder="Ej. Santiago">
+            </div>
+            <div>
+                <label>Estado Operativo</label>
+                <select id="estadoSede">
+                    <option value="Activa">Activa</option>
+                    <option value="En Mantenimiento">En Mantenimiento</option>
+                    <option value="Inactiva">Inactiva</option>
+                </select>
+            </div>
+            <div class="full">
+                <button type="submit">Guardar Sede (Alta)</button>
+            </div>
+        </div>
+    </form>
+
+    <h3>Listado de Sedes Registradas</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Comuna</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tablaSedesCuerpo">
+            <tr>
+                <td>Sede Central</td>
+                <td>Av. Libertador 4500</td>
+                <td>Santiago</td>
+                <td>Activa</td>
+                <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+            </tr>
+            <tr>
+                <td>Sede Norte</td>
+                <td>Camino Costero 800</td>
+                <td>Antofagasta</td>
+                <td>Activa</td>
+                <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.getElementById('formSede').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombreSede').value;
+        const direccion = document.getElementById('direccionSede').value;
+        const comuna = document.getElementById('comunaSede').value;
+        const estado = document.getElementById('estadoSede').value;
+
+        const tbody = document.getElementById('tablaSedesCuerpo');
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.innerHTML = `
+            <td>${nombre}</td>
+            <td>${direccion}</td>
+            <td>${comuna}</td>
+            <td>${estado}</td>
+            <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+        `;
+        tbody.appendChild(nuevaFila);
+        this.reset();
+    });
+
+    function eliminarSede(btn) {
+        btn.closest('tr').remove();
+    }
+</script>
+
+</body>
+</html>

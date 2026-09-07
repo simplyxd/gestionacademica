@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe - Mis Secciones del Periodo (RF9 / Consulta de Oferta)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a365d; text-align: center; margin-bottom: 20px; }
+        .filter { background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        label { font-weight: bold; font-size: 14px; color: #4a5568; }
+        select { padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #edf2f7; color: #2d3748; }
+        .badge { background: #ebf8ff; color: #2b6cb0; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; border: 1px solid #bee3f8; }
+        .btn-accion { background: #2b6cb0; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-accion:hover { background: #2c5282; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Mis Secciones del Periodo (RF9 / Gestión de Matrícula)</h2>
+    
+    <div class="filter">
+        <div>
+            <label>Seleccionar Periodo:</label>
+            <select id="periodoSeccion" onchange="cargarSeccionesPeriodo()">
+                <option value="2026-2">2026 - Segundo Semestre (Vigente)</option>
+                <option value="2026-1">2026 - Primer Semestre (Cursado)</option>
+            </select>
+        </div>
+        <div id="totalSecciones" style="font-size: 14px; color: #4a5568; font-weight: bold;">
+            Total Secciones: 3
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código / Sección</th>
+                <th>Asignatura</th>
+                <th>Modalidad / Jornada</th>
+                <th>Créditos</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tablaSeccionesCuerpo">
+            <!-- Contenido dinámico generado por JS -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const datosPeriodos = {
+        "2026-2": [
+            { codigo: "INF-301 (Sec 01)", nombre: "Ingeniería de Software I", detalle: "Presencial / Diurna", creditos: 6 },
+            { codigo: "INF-302 (Sec 02)", nombre: "Base de Datos Avanzadas", detalle: "Online / Vespertina", creditos: 6 },
+            { codigo: "LID-101 (Sec 01)", nombre: "Liderazgo de Equipos", detalle: "Presencial / Diurna", creditos: 4 }
+        ],
+        "2026-1": [
+            { codigo: "INF-201 (Sec 01)", nombre: "Algoritmos y Estructuras de Datos", detalle: "Presencial / Diurna", creditos: 8 },
+            { codigo: "MAT-202 (Sec 02)", nombre: "Matemáticas Discretas", detalle: "Presencial / Diurna", creditos: 6 }
+        ]
+    };
+
+    function cargarSeccionesPeriodo() {
+        const periodo = document.getElementById('periodoSeccion').value;
+        const tbody = document.getElementById('tablaSeccionesCuerpo');
+        const listado = datosPeriodos[periodo];
+        
+        tbody.innerHTML = "";
+        document.getElementById('totalSecciones').innerText = `Total Secciones: ${listado.length}`;
+
+        listado.forEach(sec => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td><span class="badge">${sec.codigo}</span></td>
+                <td><b>${sec.nombre}</b></td>
+                <td>${sec.detalle}</td>
+                <td>${sec.creditos} SCT</td>
+                <td><button class="btn-accion" onclick="verDetalleSeccion('${sec.nombre}')">Ver Nómina</button></td>
+            `;
+            tbody.appendChild(fila);
+        });
+    }
+
+    function verDetalleSeccion(nombreMateria) {
+        alert(`Redirigiendo a la nómina de estudiantes y detalles de la sección para: ${nombreMateria}`);
+    }
+
+    // Inicializar al cargar la página
+    window.onload = cargarSeccionesPeriodo;
+</script>
+
+</body>
+</html>
