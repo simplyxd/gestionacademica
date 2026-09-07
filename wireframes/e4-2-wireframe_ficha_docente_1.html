@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wireframe - Ficha de Docente</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f2f2f2;
+    color: #333;
+    padding: 24px;
+  }
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #999;
+  }
+
+  /* Top nav bar (placeholder) */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #999;
+    padding: 14px 20px;
+    background: #e6e6e6;
+  }
+  .topbar .logo {
+    border: 1px dashed #999;
+    padding: 6px 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .topbar .nav {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+  }
+  .topbar .nav span {
+    border: 1px solid #999;
+    padding: 4px 10px;
+    background: #fff;
+  }
+  .topbar .user {
+    border: 1px solid #999;
+    padding: 6px 12px;
+    font-size: 13px;
+    background: #fff;
+  }
+
+  .content {
+    padding: 20px;
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+  }
+
+  .section {
+    border: 1px solid #999;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    background: #ddd;
+    padding: 8px 12px;
+    font-weight: bold;
+    font-size: 14px;
+    border-bottom: 1px solid #999;
+  }
+  .section-body {
+    padding: 16px;
+  }
+
+  /* Datos del docente */
+  .datos-grid {
+    display: grid;
+    grid-template-columns: 90px 1fr 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+  .avatar-box {
+    grid-row: span 3;
+    width: 90px;
+    height: 90px;
+    border: 1px dashed #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #999;
+    text-align: center;
+    background: #f5f5f5;
+  }
+  .field {
+    font-size: 13px;
+  }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: #777;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .field .box {
+    border: 1px solid #bbb;
+    background: #fafafa;
+    padding: 6px 8px;
+    min-height: 16px;
+  }
+  .status-pill {
+    display: inline-block;
+    border: 1px solid #666;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-size: 11px;
+    background: #eee;
+  }
+
+  /* Carga académica summary */
+  .carga-summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    flex: 1;
+    border: 1px solid #999;
+    padding: 12px;
+    text-align: center;
+    background: #f8f8f8;
+  }
+  .stat-box .num {
+    font-size: 22px;
+    font-weight: bold;
+    border: 1px dashed #bbb;
+    padding: 4px 0;
+    margin-bottom: 6px;
+  }
+  .stat-box .label {
+    font-size: 11px;
+    color: #777;
+    text-transform: uppercase;
+  }
+
+  .bar-chart {
+    border: 1px solid #bbb;
+    padding: 12px;
+    background: #fafafa;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .bar-row .bar-label {
+    width: 90px;
+    color: #555;
+  }
+  .bar-row .bar-track {
+    flex: 1;
+    background: #e0e0e0;
+    height: 14px;
+    border: 1px solid #ccc;
+  }
+  .bar-row .bar-fill {
+    background: #999;
+    height: 100%;
+  }
+
+  /* Tabla de secciones asignadas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: #e8e8e8;
+    border: 1px solid #bbb;
+    padding: 8px;
+    text-align: left;
+  }
+  tbody td {
+    border: 1px solid #ccc;
+    padding: 8px;
+  }
+  tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
+  .badge {
+    border: 1px solid #999;
+    background: #eee;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .filters-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+  .filters-row .filter-box {
+    border: 1px solid #bbb;
+    background: #fafafa;
+    padding: 6px 10px;
+    color: #777;
+  }
+
+  .note {
+    font-size: 11px;
+    color: #999;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .filters-row select {
+    border: 1px solid #bbb;
+    background: #fafafa;
+    padding: 6px 10px;
+    color: #333;
+    font-size: 12px;
+    font-family: inherit;
+  }
+
+  .nomina-row td {
+    background: #f5f5f5;
+    padding: 10px 14px;
+  }
+  .nomina-row ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .nomina-row li {
+    border: 1px solid #bbb;
+    background: #fff;
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+  .hidden {
+    display: none;
+  }
+
+  .badge.clickable {
+    cursor: pointer;
+  }
+  .badge.clickable:hover {
+    background: #ddd;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Topbar placeholder -->
+  <div class="topbar">
+    <div class="logo">GESTIÓN ACADÉMICA</div>
+    <div class="nav">
+      <span>Inicio</span>
+      <span>Secciones</span>
+      <span>Docentes</span>
+      <span>Reportes</span>
+    </div>
+    <div class="user">Coordinador Académico ▾</div>
+  </div>
+
+  <div class="content">
+    <div class="breadcrumb">Docentes &gt; Ficha de docente</div>
+    <h1>Ficha de Docente</h1>
+
+    <!-- Datos del docente -->
+    <div class="section">
+      <div class="section-title">Datos del docente</div>
+      <div class="section-body">
+        <div class="datos-grid">
+          <div class="avatar-box">Foto</div>
+
+          <div class="field">
+            <label>Nombre completo</label>
+            <div class="box">Nombre Apellido</div>
+          </div>
+          <div class="field">
+            <label>RUT / ID</label>
+            <div class="box">00.000.000-0</div>
+          </div>
+
+          <div class="field">
+            <label>Correo institucional</label>
+            <div class="box">docente@institucion.cl</div>
+          </div>
+          <div class="field">
+            <label>Sede</label>
+            <div class="box">Sede Central</div>
+          </div>
+
+          <div class="field">
+            <label>Especialidad / Área</label>
+            <div class="box">Ingeniería Informática</div>
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <div class="box"><span class="status-pill">● Activo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carga académica -->
+    <div class="section">
+      <div class="section-title">Carga académica — Periodo actual</div>
+      <div class="section-body">
+        <div class="carga-summary">
+          <div class="stat-box">
+            <div class="num">4</div>
+            <div class="label">Secciones asignadas</div>
+          </div>
+          <div class="stat-box">
+            <div class="num">3</div>
+            <div class="label">Asignaturas distintas</div>
+          </div>
+          <div class="stat-box">
+            <div class="num">16</div>
+            <div class="label">Horas pedagógicas / semana</div>
+          </div>
+          <div class="stat-box">
+            <div class="num">98</div>
+            <div class="label">Estudiantes inscritos</div>
+          </div>
+        </div>
+
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">Lunes</div>
+            <div class="bar-track"><div class="bar-fill" style="width:40%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Martes</div>
+            <div class="bar-track"><div class="bar-fill" style="width:70%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Miércoles</div>
+            <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Jueves</div>
+            <div class="bar-track"><div class="bar-fill" style="width:55%"></div></div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Viernes</div>
+            <div class="bar-track"><div class="bar-fill" style="width:30%"></div></div>
+          </div>
+          <div class="note">Distribución de horas por día (placeholder)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secciones asignadas -->
+    <div class="section">
+      <div class="section-title">Secciones asignadas</div>
+      <div class="section-body">
+        <div class="filters-row">
+          <div class="filter-box">Período: 2026-2</div>
+          <select id="filtroSede">
+            <option value="todas">Sede: Todas</option>
+            <option value="Sala 204">Sede: Sala 204</option>
+            <option value="Online">Sede: Online</option>
+            <option value="Sala 110">Sede: Sala 110</option>
+            <option value="Sala 305">Sede: Sala 305</option>
+          </select>
+          <select id="filtroModalidad">
+            <option value="todas">Modalidad: Todas</option>
+            <option value="presencial">Presencial</option>
+            <option value="online">Online</option>
+          </select>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Asignatura</th>
+              <th>Sección</th>
+              <th>Horario</th>
+              <th>Sala / Modalidad</th>
+              <th>Cupos</th>
+              <th>Inscritos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tablaSecciones">
+            <tr class="fila-seccion" data-sede="Sala 204" data-modalidad="presencial">
+              <td>Base de Datos I</td>
+              <td>SEC-01</td>
+              <td>Lun/Mié 08:00-09:30</td>
+              <td><span class="badge">Sala 204</span></td>
+              <td>30</td>
+              <td>27</td>
+              <td><span class="badge clickable" onclick="toggleNomina(this, 'nom-1')">Ver nómina</span></td>
+            </tr>
+            <tr class="nomina-row hidden" id="nom-1">
+              <td colspan="7">
+                <ul>
+                  <li>Ana Torres</li><li>Bruno Silva</li><li>Camila Rojas</li><li>Diego Pérez</li><li>Elena Muñoz</li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr class="fila-seccion" data-sede="Online" data-modalidad="online">
+              <td>Programación Web</td>
+              <td>SEC-02</td>
+              <td>Mar/Jue 10:00-11:30</td>
+              <td><span class="badge">Online</span></td>
+              <td>25</td>
+              <td>25</td>
+              <td><span class="badge clickable" onclick="toggleNomina(this, 'nom-2')">Ver nómina</span></td>
+            </tr>
+            <tr class="nomina-row hidden" id="nom-2">
+              <td colspan="7">
+                <ul>
+                  <li>Franco Núñez</li><li>Gabriela Soto</li><li>Hugo Vera</li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr class="fila-seccion" data-sede="Sala 110" data-modalidad="presencial">
+              <td>Programación Web</td>
+              <td>SEC-03</td>
+              <td>Vie 09:00-12:00</td>
+              <td><span class="badge">Sala 110</span></td>
+              <td>25</td>
+              <td>18</td>
+              <td><span class="badge clickable" onclick="toggleNomina(this, 'nom-3')">Ver nómina</span></td>
+            </tr>
+            <tr class="nomina-row hidden" id="nom-3">
+              <td colspan="7">
+                <ul>
+                  <li>Isidora Fuentes</li><li>Javier Castro</li>
+                </ul>
+              </td>
+            </tr>
+
+            <tr class="fila-seccion" data-sede="Sala 305" data-modalidad="presencial">
+              <td>Estructura de Datos</td>
+              <td>SEC-01</td>
+              <td>Lun/Mié 14:00-15:30</td>
+              <td><span class="badge">Sala 305</span></td>
+              <td>30</td>
+              <td>28</td>
+              <td><span class="badge clickable" onclick="toggleNomina(this, 'nom-4')">Ver nómina</span></td>
+            </tr>
+            <tr class="nomina-row hidden" id="nom-4">
+              <td colspan="7">
+                <ul>
+                  <li>Karla Vidal</li><li>Luis Ortiz</li><li>Marta Leiva</li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="note">Cada fila enlaza a la nómina de estudiantes inscritos (RF11)</div>
+        <div class="note" id="contadorFiltro"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Toggle simple: muestra/oculta la nómina de una sección al hacer clic
+  function toggleNomina(badge, filaId) {
+    var fila = document.getElementById(filaId);
+    var visible = !fila.classList.contains('hidden');
+    fila.classList.toggle('hidden');
+    badge.textContent = visible ? 'Ver nómina' : 'Ocultar nómina';
+  }
+
+  // Filtro simple por sede/sala y modalidad: solo muestra/oculta filas
+  function aplicarFiltros() {
+    var sede = document.getElementById('filtroSede').value;
+    var modalidad = document.getElementById('filtroModalidad').value;
+    var filas = document.querySelectorAll('.fila-seccion');
+    var visibles = 0;
+
+    filas.forEach(function (fila) {
+      var coincideSede = (sede === 'todas' || fila.dataset.sede === sede);
+      var coincideModalidad = (modalidad === 'todas' || fila.dataset.modalidad === modalidad);
+      var mostrar = coincideSede && coincideModalidad;
+
+      fila.classList.toggle('hidden', !mostrar);
+      if (mostrar) visibles++;
+
+      // si se oculta la sección, oculta también su fila de nómina
+      var nomina = fila.nextElementSibling;
+      if (nomina && nomina.classList.contains('nomina-row') && !mostrar) {
+        nomina.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('contadorFiltro').textContent =
+      'Mostrando ' + visibles + ' de ' + filas.length + ' secciones.';
+  }
+
+  document.getElementById('filtroSede').addEventListener('change', aplicarFiltros);
+  document.getElementById('filtroModalidad').addEventListener('change', aplicarFiltros);
+
+  aplicarFiltros();
+</script>
+
+</body>
+</html>
