@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal Académico UNAB - Mi Horario Semanal (E9-3)</title>
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --surface: #ffffff;
+            --border-color: #cbd5e1;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --accent-dark: #1a2530;
+            --accent-hover: #0f172a;
+            --input-bg: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-main); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            color: var(--text-primary); 
+        }
+
+        header { 
+            background: var(--accent-dark); 
+            color: #f8fafc; 
+            padding: 15px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 4px solid #8b0000; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand img {
+            height: 35px;
+            width: auto;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        header h1 { 
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 600;
+        }
+
+        nav a { 
+            color: #cbd5e1; 
+            text-decoration: none; 
+            margin-left: 20px; 
+            font-size: 14px; 
+            transition: color 0.2s;
+        }
+        nav a:hover { color: #ffffff; }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            max-width: 1100px;
+            width: 100%;
+            background: var(--surface);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--input-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .info-header h3 {
+            margin-top: 0;
+            color: var(--accent-dark);
+            font-size: 18px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            text-align: left;
+        }
+
+        .info-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .logo-container {
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container img {
+            max-width: 160px;
+            height: auto;
+            display: block;
+        }
+
+        .schedule-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 { 
+            color: var(--accent-dark); 
+            margin-top: 0; 
+            font-size: 20px; 
+            margin-bottom: 20px;
+            border-left: 4px solid #8b0000;
+            padding-left: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: var(--accent-dark);
+            color: #ffffff;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        td.time-col {
+            background: var(--input-bg);
+            font-weight: bold;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .class-card {
+            background: #e2e8f0;
+            border-left: 3px solid #334155;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .class-card:hover {
+            background: #cbd5e1;
+        }
+
+        .class-title {
+            font-weight: bold;
+            color: var(--accent-dark);
+        }
+
+        .class-room {
+            color: var(--text-secondary);
+            font-size: 11px;
+        }
+
+        footer { 
+            background: var(--accent-dark); 
+            color: #94a3b8; 
+            text-align: center; 
+            padding: 15px; 
+            font-size: 13px; 
+            border-top: 1px solid #475569; 
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <img src="images.png" alt="Logo UNAB">
+            <h1>Sistema de Gestión Académica</h1>
+        </div>
+        <nav>
+            <a href="#">Inicio</a>
+            <a href="#">Directorio</a>
+            <a href="#">Soporte</a>
+            <a href="#">Salir</a>
+        </nav>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="dashboard-grid">
+            
+            <!-- Panel izquierdo: Contexto institucional y logotipo oficial -->
+            <div class="info-section">
+                <div class="info-header">
+                    <h3>Portal Estudiantil (RF9)</h3>
+                    <p>Visualización semanal de asignaturas matriculadas. Haga clic sobre cualquier bloque de clase para consultar los detalles de sala y docente asignado.</p>
+                </div>
+                <div class="logo-container">
+                    <img src="images.png" alt="Universidad Andrés Bello">
+                </div>
+            </div>
+
+            <!-- Panel derecho: Grilla de Horario Semanal [E9-3] -->
+            <div class="schedule-section">
+                <h2>[E9-3] Mi Horario Semanal</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bloque / Hora</th>
+                                <th>Lunes</th>
+                                <th>Martes</th>
+                                <th>Miércoles</th>
+                                <th>Jueves</th>
+                                <th>Viernes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="time-col">08:30 - 10:00</td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Ingeniería de Software I', 'Sala 302 - Prof. M. Soto')">
+                                        <div class="class-title">Ing. de Software I</div>
+                                        <div class="class-room">Sala 302</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Ingeniería de Software I', 'Sala 302 - Prof. M. Soto')">
+                                        <div class="class-title">Ing. de Software I</div>
+                                        <div class="class-room">Sala 302</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">10:15 - 11:45</td>
+                                <td></td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Arquitectura de Software', 'Lab 04 - Prof. R. Gómez')">
+                                        <div class="class-title">Arq. de Software</div>
+                                        <div class="class-room">Lab 04</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Arquitectura de Software', 'Lab 04 - Prof. R. Gómez')">
+                                        <div class="class-title">Arq. de Software</div>
+                                        <div class="class-room">Lab 04</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">12:00 - 13:30</td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Liderazgo de Equipos', 'Auditorio A - Prof. C. Tapia')">
+                                        <div class="class-title">Liderazgo Equipos</div>
+                                        <div class="class-room">Auditorio A</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td>
+                                    <div class="class-card" onclick="verDetalle('Liderazgo de Equipos', 'Auditorio A - Prof. C. Tapia')">
+                                        <div class="class-title">Liderazgo Equipos</div>
+                                        <div class="class-room">Auditorio A</div>
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Universidad Andrés Bello — Dirección de Informática y Servicios Tecnológicos.</p>
+    </footer>
+
+    <script>
+        function verDetalle(asignatura, detalle) {
+            alert('Detalle de Asignatura:\n\nAsignatura: ' + asignatura + '\nUbicación y Docente: ' + detalle);
+        }
+    </script>
+</body>
+</html>
