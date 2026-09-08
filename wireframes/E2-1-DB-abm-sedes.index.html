@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe - ABM de Sedes (RF2)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a365d; text-align: center; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .full { grid-column: span 2; }
+        label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 13px; color: #4a5568; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 10px; background: #2b6cb0; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; width: 100%; }
+        button:hover { background: #2c5282; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #edf2f7; color: #2d3748; }
+        .btn-del { background: #e53e3e; color: white; border: none; padding: 5px 8px; border-radius: 3px; cursor: pointer; }
+        :root { --bg-main:#eef1f4; --accent-dark:#1a2530; --accent-red:#8b0000; --border-color:#cbd5e1; } * { box-sizing:border-box; } body { margin:0; padding:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg-main); color:#1e293b; font-family:'Segoe UI',Tahoma,sans-serif; } header { background:var(--accent-dark); color:#f8fafc; padding:15px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid var(--accent-red); } .header-brand { display:flex; align-items:center; gap:12px; } .header-brand img { height:35px; background:#fff; padding:2px 6px; border-radius:4px; } header h1 { margin:0; font-size:18px; } nav a { color:#cbd5e1; text-decoration:none; margin-left:20px; font-size:14px; } nav a:hover { color:#fff; } .main-wrapper { flex:1; width:100%; padding:38px 20px; } .container { max-width:1080px; width:100%; margin:auto; padding:32px; border:1px solid var(--border-color); border-radius:12px; box-shadow:0 10px 25px rgba(15,23,42,.08); } h2 { text-align:left; border-left:4px solid var(--accent-red); padding-left:12px; } th { background:#e2e8f0; } tr:hover td { background:#f8fafc; } button { background:var(--accent-dark); } button:hover { background:#0f172a; } footer { background:var(--accent-dark); color:#94a3b8; text-align:center; padding:15px; font-size:13px; } @media (max-width:700px) { header { padding:14px 18px; } nav a { margin-left:8px; font-size:12px; } .main-wrapper { padding:20px 10px; } .container { padding:20px 14px; overflow-x:auto; } table { min-width:700px; } }
+        .progress-message { margin: 0 0 15px; padding: 11px 14px; border-left: 4px solid #8b0000; border-radius: 5px; background: #e2e8f0; color: #334155; font-size: 13px; font-weight: 600; }
+        .progress-message.complete { background: #dcfce7; border-left-color: #15803d; color: #166534; }
+    </style>
+</head>
+<body>
+<header><div class="header-brand"><img src="images.png" alt="Logo UNAB"><h1>Sistema de Gestión Académica</h1></div><nav><a href="#">Inicio</a><a href="#">Directorio</a><a href="#">Soporte</a><a href="#">Salir</a></nav></header><main class="main-wrapper">
+
+<div class="container">
+    <h2>ABM de Sedes (RF2 / Estructura Institucional)</h2>
+    <form id="formSede">
+        <div id="mensajeSede" class="progress-message">Se han completado 0 de 4 campos.</div>
+        <div class="form-grid">
+            <div class="full">
+                <label>Nombre de la Sede</label>
+                <input type="text" id="nombreSede" required placeholder="Ej. Sede Central Providencia">
+            </div>
+            <div class="full">
+                <label>Dirección Física</label>
+                <input type="text" id="direccionSede" required placeholder="Ej. Av. Principal 1234">
+            </div>
+            <div>
+                <label>Comuna / Ciudad</label>
+                <input type="text" id="comunaSede" required placeholder="Ej. Santiago">
+            </div>
+            <div>
+                <label>Estado Operativo</label>
+                <select id="estadoSede">
+                    <option value="Activa">Activa</option>
+                    <option value="En Mantenimiento">En Mantenimiento</option>
+                    <option value="Inactiva">Inactiva</option>
+                </select>
+            </div>
+            <div class="full">
+                <button type="submit">Guardar Sede (Alta)</button>
+            </div>
+        </div>
+    </form>
+
+    <h3>Listado de Sedes Registradas</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>Comuna</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tablaSedesCuerpo">
+            <tr>
+                <td>Sede Central</td>
+                <td>Av. Libertador 4500</td>
+                <td>Santiago</td>
+                <td>Activa</td>
+                <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+            </tr>
+            <tr>
+                <td>Sede Norte</td>
+                <td>Camino Costero 800</td>
+                <td>Antofagasta</td>
+                <td>Activa</td>
+                <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</main><footer><p>&copy; 2026 Universidad Andrés Bello — Dirección de Informática y Servicios Tecnológicos.</p></footer>
+
+<script>
+    document.getElementById('formSede').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombreSede').value;
+        const direccion = document.getElementById('direccionSede').value;
+        const comuna = document.getElementById('comunaSede').value;
+        const estado = document.getElementById('estadoSede').value;
+
+        const tbody = document.getElementById('tablaSedesCuerpo');
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.innerHTML = `
+            <td>${nombre}</td>
+            <td>${direccion}</td>
+            <td>${comuna}</td>
+            <td>${estado}</td>
+            <td><button class="btn-del" onclick="eliminarSede(this)">Eliminar</button></td>
+        `;
+        tbody.appendChild(nuevaFila);
+        this.reset();
+        actualizarProgresoSede();
+    });
+
+    function actualizarProgresoSede() {
+        const campos = ['nombreSede', 'direccionSede', 'comunaSede', 'estadoSede'];
+        const completados = campos.filter(id => document.getElementById(id).value.trim() !== '').length;
+        const mensaje = document.getElementById('mensajeSede');
+        mensaje.textContent = completados === campos.length
+            ? 'Se han completado los 4 campos. La sede está lista para guardarse.'
+            : `Se han completado ${completados} de ${campos.length} campos.`;
+        mensaje.classList.toggle('complete', completados === campos.length);
+    }
+
+    document.querySelectorAll('#formSede input, #formSede select').forEach(campo => {
+        campo.addEventListener('input', actualizarProgresoSede);
+        campo.addEventListener('change', actualizarProgresoSede);
+    });
+    actualizarProgresoSede();
+
+    function eliminarSede(btn) {
+        btn.closest('tr').remove();
+    }
+</script>
+
+</body>
+</html>

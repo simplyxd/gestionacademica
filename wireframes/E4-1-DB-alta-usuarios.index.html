@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal Académico UNAB - Alta de Usuario (E4-1)</title>
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --surface: #ffffff;
+            --border-color: #cbd5e1;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --accent-dark: #1a2530;
+            --accent-hover: #0f172a;
+            --input-bg: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-main); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            color: var(--text-primary); 
+        }
+
+        header { 
+            background: var(--accent-dark); 
+            color: #f8fafc; 
+            padding: 15px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 4px solid #8b0000; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand img {
+            height: 35px;
+            width: auto;
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        header h1 { 
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 600;
+        }
+
+        nav a { 
+            color: #cbd5e1; 
+            text-decoration: none; 
+            margin-left: 20px; 
+            font-size: 14px; 
+            transition: color 0.2s;
+        }
+        nav a:hover { color: #ffffff; }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            max-width: 950px;
+            width: 100%;
+            background: var(--surface);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--input-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .info-header h3 {
+            margin-top: 0;
+            color: var(--accent-dark);
+            font-size: 18px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            text-align: left;
+        }
+
+        .info-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .logo-container {
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container img {
+            max-width: 200px;
+            height: auto;
+            display: block;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h2 { 
+            color: var(--accent-dark); 
+            margin-top: 0; 
+            font-size: 20px; 
+            margin-bottom: 20px;
+            border-left: 4px solid #8b0000;
+            padding-left: 10px;
+        }
+
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: 600; 
+            font-size: 13px; 
+            color: var(--text-secondary); 
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #94a3b8; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            background: var(--input-bg); 
+            font-size: 14px; 
+            color: var(--text-primary);
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: var(--accent-dark); 
+            background: #ffffff; 
+            box-shadow: 0 0 0 3px rgba(26, 37, 48, 0.1);
+        }
+
+        .hidden { display: none; }
+
+        .conditional { 
+            background: #e2e8f0; 
+            padding: 15px; 
+            border: 1px dashed #64748b; 
+            border-radius: 6px; 
+            margin-bottom: 15px; 
+        }
+
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: var(--accent-dark); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+
+        button:hover { 
+            background: var(--accent-hover); 
+        }
+
+        footer { 
+            background: var(--accent-dark); 
+            color: #94a3b8; 
+            text-align: center; 
+            padding: 15px; 
+            font-size: 13px; 
+            border-top: 1px solid #475569; 
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-brand">
+            <img src="images.png" alt="Logo UNAB">
+            <h1>Sistema de Gestión Académica</h1>
+        </div>
+        <nav>
+            <a href="#">Inicio</a>
+            <a href="#">Directorio</a>
+            <a href="#">Soporte</a>
+            <a href="#">Salir</a>
+        </nav>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="dashboard-grid">
+            
+            <!-- Panel izquierdo: Información institucional y el logotipo oficial proporcionado -->
+            <div class="info-section">
+                <div class="info-header">
+                    <h3>Módulo de Seguridad (RF1)</h3>
+                    <p>Gestión centralizada de perfiles y autorizaciones institucionales. Seleccione el tipo de usuario para desplegar los parámetros obligatorios correspondientes en el sistema.</p>
+                </div>
+                <div class="logo-container">
+                    <img src="images.png" alt="Universidad Andrés Bello">
+                </div>
+            </div>
+
+            <!-- Panel derecho: Formulario interactivo E4-1 -->
+            <div class="form-section">
+                <h2>[E4-1] Alta de Usuario</h2>
+                <form id="formRegistro">
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="nombre" required placeholder="Ej. Camila Valenzuela">
+                    </div>
+                    <div class="form-group">
+                        <label>Correo Institucional</label>
+                        <input type="email" id="email" required placeholder="c.valenzuela@unab.cl">
+                    </div>
+                    <div class="form-group">
+                        <label>Perfil de Usuario</label>
+                        <select id="perfil" required onchange="cambiarCampos()">
+                            <option value="">-- Seleccione Perfil --</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Coordinador">Coordinador Académico</option>
+                            <option value="Docente">Docente</option>
+                            <option value="Estudiante">Estudiante</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos condicionales para Estudiante -->
+                    <div id="secEstudiante" class="conditional hidden">
+                        <label style="color:var(--accent-dark);">Parámetros de Estudiante</label>
+                        <div class="form-group" style="margin-bottom:0; margin-top: 8px;">
+                            <label>Carrera Asignada</label>
+                            <select id="carrera">
+                                <option value="Informatica">Ingeniería en Computación e Informática</option>
+                                <option value="Civil">Ingeniería Civil Industrial</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Campos condicionales para Docente -->
+                    <div id="secDocente" class="conditional hidden">
+                        <label style="color:var(--accent-dark);">Parámetros de Docente</label>
+                        <div class="form-group" style="margin-bottom:0; margin-top: 8px;">
+                            <label>Sede Académica</label>
+                            <select id="sedeDocente">
+                                <option value="Casona">Sede Casona de Las Condes</option>
+                                <option value="Bellavista">Sede Bellavista</option>
+                                <option value="República">Sede República</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit">Registrar Usuario</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Universidad Andrés Bello — Dirección de Informática y Servicios Tecnológicos.</p>
+    </footer>
+
+    <script>
+        function cambiarCampos() {
+            const perfil = document.getElementById('perfil').value;
+            const secEstudiante = document.getElementById('secEstudiante');
+            const secDocente = document.getElementById('secDocente');
+
+            secEstudiante.classList.add('hidden');
+            secDocente.classList.add('hidden');
+
+            if (perfil === 'Estudiante') {
+                secEstudiante.classList.remove('hidden');
+            } else if (perfil === 'Docente') {
+                secDocente.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('formRegistro').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('¡Usuario registrado con éxito en el sistema universitario!');
+            this.reset();
+            cambiarCampos();
+        });
+    </script>
+</body>
+</html>

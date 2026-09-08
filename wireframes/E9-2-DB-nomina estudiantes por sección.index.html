@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe 3 - Nómina de Estudiantes</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #1a365d; text-align: center; }
+        .filter { background: #f7fafc; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #4a5568; }
+        select { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+        th { background: #edf2f7; color: #2d3748; }
+        .badge { background: #c6f6d5; color: #22543d; padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        :root { --bg-main:#eef1f4; --accent-dark:#1a2530; --accent-red:#8b0000; --border-color:#cbd5e1; } * { box-sizing:border-box; } body { margin:0; padding:0; min-height:100vh; display:flex; flex-direction:column; background:var(--bg-main); color:#1e293b; font-family:'Segoe UI',Tahoma,sans-serif; } header { background:var(--accent-dark); color:#f8fafc; padding:15px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid var(--accent-red); } .header-brand { display:flex; align-items:center; gap:12px; } .header-brand img { height:35px; background:#fff; padding:2px 6px; border-radius:4px; } header h1 { margin:0; font-size:18px; } nav a { color:#cbd5e1; text-decoration:none; margin-left:20px; font-size:14px; } nav a:hover { color:#fff; } .main-wrapper { flex:1; width:100%; padding:38px 20px; } .container { max-width:1080px; width:100%; margin:auto; padding:32px; border:1px solid var(--border-color); border-radius:12px; box-shadow:0 10px 25px rgba(15,23,42,.08); } h2 { text-align:left; border-left:4px solid var(--accent-red); padding-left:12px; } th { background:#e2e8f0; } tr:hover td { background:#f8fafc; } footer { background:var(--accent-dark); color:#94a3b8; text-align:center; padding:15px; font-size:13px; } @media (max-width:700px) { header { padding:14px 18px; } nav a { margin-left:8px; font-size:12px; } .main-wrapper { padding:20px 10px; } .container { padding:20px 14px; overflow-x:auto; } table { min-width:650px; } }
+        .progress-message { margin: 0 0 15px; padding: 11px 14px; border-left: 4px solid #8b0000; border-radius: 5px; background: #e2e8f0; color: #334155; font-size: 13px; font-weight: 600; }
+    </style>
+</head>
+<body>
+<header><div class="header-brand"><img src="images.png" alt="Logo UNAB"><h1>Sistema de Gestión Académica</h1></div><nav><a href="#">Inicio</a><a href="#">Directorio</a><a href="#">Soporte</a><a href="#">Salir</a></nav></header><main class="main-wrapper">
+
+<div class="container">
+    <h2>Nómina de Estudiantes por Sección (RF11)</h2>
+    
+    <div class="filter">
+        <label>Seleccionar Sección Asignada:</label>
+        <select id="selectorSeccion" onchange="actualizarNomina()">
+            <option value="sec1">Sección 01 - Ingeniería de Software (Diurna)</option>
+            <option value="sec2">Sección 02 - Base de Datos (Vespertina)</option>
+        </select>
+    </div>
+    <div id="mensajeNomina" class="progress-message">Se han cargado 0 estudiantes para la sección seleccionada.</div>
+
+    <h3>Estudiantes Matriculados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpoNomina">
+            <!-- Contenido dinámico por JS -->
+        </tbody>
+    </table>
+</div>
+</main><footer><p>&copy; 2026 Universidad Andrés Bello — Dirección de Informática y Servicios Tecnológicos.</p></footer>
+
+<script>
+    const datosSecciones = {
+        sec1: [
+            { nombre: "Juan Pérez", correo: "juan.estudiante@universidad.edu", estado: "Vigente" },
+            { nombre: "María González", correo: "maria.gonzalez@universidad.edu", estado: "Vigente" }
+        ],
+        sec2: [
+            { nombre: "Carlos Soto", correo: "carlos.soto@universidad.edu", estado: "Vigente" },
+            { nombre: "Lucía Alarcón", correo: "lucia.alarcon@universidad.edu", estado: "Vigente" }
+        ]
+    };
+
+    function actualizarNomina() {
+        const seccion = document.getElementById('selectorSeccion').value;
+        const tbody = document.getElementById('cuerpoNomina');
+        tbody.innerHTML = "";
+        document.getElementById('mensajeNomina').textContent = `Se han cargado ${datosSecciones[seccion].length} estudiantes para la sección seleccionada.`;
+
+        datosSecciones[seccion].forEach(est => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${est.nombre}</td>
+                <td>${est.correo}</td>
+                <td><span class="badge">${est.estado}</span></td>
+            `;
+            tbody.appendChild(fila);
+        });
+    }
+
+    // Cargar la primera sección por defecto al iniciar
+    window.onload = actualizarNomina;
+</script>
+
+</body>
+</html>
