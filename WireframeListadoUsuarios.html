@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Usuarios - Gestión Académica (RF1)</title>
+
+    <!--
+    ============================================================================
+    WIREFRAME FUNCIONAL: LISTADO DE USUARIOS
+    Sistema Web de Gestión Académica - Instituto Universitario Nueva Formación
+    Trazabilidad: RF1 / CU1 (administrar usuarios), con apoyo a RF5, RF9, RF10 y RF11.
+
+    El archivo está dividido en TRES zonas, todas dentro del mismo documento:
+      1) <style>  -> la apariencia (CSS).
+      2) <body>   -> la estructura de la pantalla (HTML).
+      3) <script> -> el comportamiento (JavaScript).
+
+    Nota sobre el lenguaje: el navegador no ejecuta Java. El lenguaje que corre
+    dentro de una página web es JavaScript, que a pesar del nombre parecido es
+    un lenguaje distinto. Java se usa del lado del servidor (como en la versión
+    de tres archivos de este mismo proyecto).
+    ============================================================================
+    -->
+
+    <style>
+        /* ====================================================================
+           1. ESTILOS BASE
+           Tipografía, color de fondo y la "tarjeta" blanca que contiene todo.
+           ==================================================================== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1220px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #1a365d;
+            margin: 0;
+        }
+        h3 {
+            color: #1a365d;
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        /* ====================================================================
+           2. ENCABEZADO DE LA PANTALLA
+           Título a la izquierda y acciones generales a la derecha.
+           ==================================================================== */
+        .encabezado {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .encabezado-subtitulo {
+            margin: 4px 0 0;
+            color: #718096;
+            font-size: 13px;
+        }
+        .encabezado-acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* ====================================================================
+           3. FORMULARIOS Y BOTONES
+           ==================================================================== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2b6cb0;
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.15);
+        }
+        /* Campo con error de validación */
+        input.invalido, select.invalido {
+            border-color: #e53e3e;
+            background-color: #fff5f5;
+        }
+        .mensaje-error {
+            display: block;
+            margin-top: 4px;
+            color: #c53030;
+            font-size: 12px;
+            font-weight: 600;
+            min-height: 16px;
+        }
+        .ayuda-campo {
+            display: block;
+            margin-top: 4px;
+            color: #718096;
+            font-size: 12px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover {
+            background-color: #2c5282;
+        }
+        button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+        .btn-secundario {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #ffffff;
+            color: #2b6cb0;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-secundario:hover {
+            border-color: #2b6cb0;
+            background-color: #ebf4ff;
+        }
+        .acciones-filtro {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* ====================================================================
+           4. CHIPS DE FILTROS ACTIVOS
+           Muestran qué filtros están aplicados y permiten quitarlos uno a uno.
+           ==================================================================== */
+        .barra-estado {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        .chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #ebf4ff;
+            color: #2b6cb0;
+            border: 1px solid #bee3f8;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .chip button {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 15px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+        }
+        .chip button:hover {
+            background: none;
+            color: #1a365d;
+        }
+
+        /* ====================================================================
+           5. BARRA DE ACCIONES MASIVAS
+           Aparece solo cuando hay filas seleccionadas con las casillas.
+           ==================================================================== */
+        .barra-seleccion {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #ebf4ff;
+            border: 1px solid #bee3f8;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #2c5282;
+            font-weight: 600;
+        }
+        .barra-seleccion-acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .barra-seleccion button {
+            padding: 7px 12px;
+            font-size: 13px;
+        }
+
+        /* ====================================================================
+           6. TABLA DEL LISTADO
+           ==================================================================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        th {
+            background-color: #edf2f7;
+            color: #2d3748;
+        }
+        tbody tr:hover {
+            background-color: #f7fafc;
+        }
+        tbody tr.fila-seleccionada {
+            background-color: #ebf4ff;
+        }
+        /* Encabezados sobre los que se puede hacer clic para ordenar */
+        th.ordenable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+        th.ordenable:hover {
+            background-color: #e2e8f0;
+        }
+        th .indicador-orden {
+            color: #2b6cb0;
+            font-size: 11px;
+        }
+        .col-check {
+            width: 34px;
+            text-align: center;
+        }
+        .col-check input {
+            width: auto;
+            cursor: pointer;
+        }
+        .usuario-nombre {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .usuario-rut {
+            display: block;
+            color: #718096;
+            font-size: 12px;
+        }
+
+        /* Etiquetas de color para perfil y estado */
+        .badge, .estado {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-administrador { background-color: #fed7e2; color: #97266d; }
+        .badge-coordinador   { background-color: #feebc8; color: #975a16; }
+        .badge-docente       { background-color: #bee3f8; color: #2c5282; }
+        .badge-estudiante    { background-color: #c6f6d5; color: #276749; }
+        .estado-activo       { background-color: #c6f6d5; color: #276749; }
+        .estado-inactivo     { background-color: #fed7d7; color: #9b2c2c; }
+
+        /* Botones de acción de cada fila */
+        .celda-acciones {
+            white-space: nowrap;
+        }
+        .actions-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .btn-edit     { background-color: #d69e2e; }
+        .btn-edit:hover { background-color: #b7791f; }
+        .btn-delete   { background-color: #e53e3e; }
+        .btn-delete:hover { background-color: #c53030; }
+        .btn-activar  { background-color: #38a169; }
+        .btn-activar:hover { background-color: #2f855a; }
+        .btn-academico { background-color: #4c51bf; }
+        .btn-academico:hover { background-color: #434190; }
+        .btn-eliminar { background-color: #ffffff; color: #c53030; border: 1px solid #fc8181; }
+        .btn-eliminar:hover { background-color: #fff5f5; }
+
+        /* ====================================================================
+           7. ESTADO VACÍO (cuando ningún usuario coincide con los filtros)
+           ==================================================================== */
+        .sin-resultados {
+            text-align: center;
+            padding: 45px 15px;
+            color: #718096;
+        }
+        .sin-resultados strong {
+            display: block;
+            color: #2d3748;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        /* ====================================================================
+           8. PAGINACIÓN
+           ==================================================================== */
+        .paginacion {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #718096;
+        }
+        .paginacion-controles {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-pagina {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            background-color: #ffffff;
+            color: #2b6cb0;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .btn-pagina:hover:not(:disabled) {
+            border-color: #2b6cb0;
+            background-color: #ebf4ff;
+        }
+        .btn-pagina:disabled {
+            color: #a0aec0;
+            background-color: #f7fafc;
+            cursor: not-allowed;
+        }
+        .pagina-actual {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .selector-filas {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selector-filas select {
+            width: auto;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        /* ====================================================================
+           9. VENTANAS MODALES (formulario, inscripción y confirmación)
+           Se muestran encima de la página con un fondo semitransparente.
+           ==================================================================== */
+        .modal-fondo {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(26, 32, 44, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+        .modal-fondo[hidden] {
+            display: none;
+        }
+        .modal {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+        }
+        .modal-ancho {
+            max-width: 900px;
+        }
+        .modal-titulo {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .modal-titulo h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .modal-titulo p {
+            margin: 4px 0 0;
+            color: #718096;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .btn-cerrar {
+            background: none;
+            color: #718096;
+            font-size: 22px;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .btn-cerrar:hover {
+            background: none;
+            color: #2d3748;
+        }
+        .modal-acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        /* Aviso informativo dentro de una modal */
+        .aviso {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            color: #2c5282;
+            padding: 12px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+        .aviso-peligro {
+            background-color: #fff5f5;
+            border-left-color: #e53e3e;
+            color: #9b2c2c;
+        }
+        .cupos {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .cupos-disponible { color: #276749; }
+        .cupos-limitado   { color: #975a16; }
+        .cupos-lleno      { color: #9b2c2c; }
+        .lista-inscripciones {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+        .lista-inscripciones li {
+            margin-bottom: 6px;
+        }
+
+        /* ====================================================================
+           10. NOTIFICACIONES (mensajes breves de confirmación o error)
+           ==================================================================== */
+        .contenedor-avisos {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 200;
+        }
+        .aviso-flotante {
+            min-width: 260px;
+            max-width: 360px;
+            padding: 13px 16px;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+        .aviso-exito { background-color: #2f855a; }
+        .aviso-error { background-color: #c53030; }
+        .aviso-info  { background-color: #2b6cb0; }
+
+        /* ====================================================================
+           11. DISEÑO RESPONSIVE (tablets y teléfonos)
+           ==================================================================== */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 18px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .encabezado { flex-direction: column; align-items: stretch; }
+            .encabezado-acciones button, .encabezado-acciones .btn-secundario { width: 100%; }
+            .tabla-scroll { overflow-x: auto; }
+            table { min-width: 900px; }
+            .contenedor-avisos { left: 10px; right: 10px; bottom: 10px; }
+            .aviso-flotante { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ================================================================
+             ENCABEZADO: título de la pantalla y acciones generales
+             ================================================================ -->
+        <div class="encabezado">
+            <div>
+                <!-- Trazabilidad: RF1 / CU1 - Administrar usuarios (perfiles y estados) -->
+                <h2>Listado de Usuarios</h2>
+                <p class="encabezado-subtitulo">Administración de usuarios por perfil y estado (RF1 / CU1)</p>
+            </div>
+            <div class="encabezado-acciones">
+                <button type="button" id="btnNuevoUsuario">+ Nuevo usuario</button>
+                <button type="button" class="btn-secundario" id="btnExportar">Exportar CSV</button>
+                <button type="button" class="btn-secundario" id="btnRestablecer">Restablecer datos</button>
+            </div>
+        </div>
+
+        <!-- ================================================================
+             FILTROS: búsqueda libre, perfil y estado.
+             Filtran en el momento, sin recargar la página.
+             ================================================================ -->
+        <form id="formFiltros" autocomplete="off">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="busqueda">Buscar</label>
+                    <input type="search" id="busqueda" placeholder="Nombre, correo o RUT">
+                </div>
+
+                <div class="form-group">
+                    <label for="filtroPerfil">Perfil</label>
+                    <select id="filtroPerfil">
+                        <option value="todos">Todos los perfiles</option>
+                        <option value="administrador">Administrador</option>
+                        <option value="coordinador">Coordinador Académico</option>
+                        <option value="docente">Docente</option>
+                        <option value="estudiante">Estudiante</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="filtroEstado">Estado</label>
+                    <select id="filtroEstado">
+                        <option value="todos">Todos los estados</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width acciones-filtro">
+                    <button type="submit">Filtrar</button>
+                    <button type="button" class="btn-secundario" id="btnLimpiarFiltros">Limpiar filtros</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- ================================================================
+             RESUMEN Y CHIPS: cuántos resultados hay y qué filtros están puestos
+             ================================================================ -->
+        <div class="barra-estado">
+            <span id="resumenResultados"></span>
+            <span class="chips" id="chipsFiltros"></span>
+        </div>
+
+        <!-- ================================================================
+             ACCIONES MASIVAS: se muestra solo si hay filas seleccionadas
+             ================================================================ -->
+        <div class="barra-seleccion" id="barraSeleccion" hidden>
+            <span id="textoSeleccion"></span>
+            <span class="barra-seleccion-acciones">
+                <button type="button" class="btn-activar" id="btnActivarSeleccion">Activar seleccionados</button>
+                <button type="button" class="btn-delete" id="btnDesactivarSeleccion">Desactivar seleccionados</button>
+                <button type="button" class="btn-secundario" id="btnQuitarSeleccion">Quitar selección</button>
+            </span>
+        </div>
+
+        <!-- ================================================================
+             TABLA: los encabezados con clase "ordenable" permiten ordenar
+             ================================================================ -->
+        <div class="tabla-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-check">
+                            <input type="checkbox" id="checkTodos" title="Seleccionar todos los de esta página">
+                        </th>
+                        <th class="ordenable" data-campo="nombre">Usuario <span class="indicador-orden"></span></th>
+                        <th class="ordenable" data-campo="correo">Correo institucional <span class="indicador-orden"></span></th>
+                        <th class="ordenable" data-campo="perfil">Perfil <span class="indicador-orden"></span></th>
+                        <th class="ordenable" data-campo="sede">Sede <span class="indicador-orden"></span></th>
+                        <th class="ordenable" data-campo="estado">Estado <span class="indicador-orden"></span></th>
+                        <th class="ordenable" data-campo="ultimoAcceso">Último acceso <span class="indicador-orden"></span></th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios">
+                    <!-- Las filas se generan desde JavaScript, al final del archivo -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================================================================
+             PAGINACIÓN
+             ================================================================ -->
+        <div class="paginacion">
+            <span class="selector-filas">
+                <label for="filasPorPagina" style="margin: 0;">Filas por página</label>
+                <select id="filasPorPagina">
+                    <option value="5">5</option>
+                    <option value="8" selected>8</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                </select>
+            </span>
+            <span id="infoPaginacion"></span>
+            <span class="paginacion-controles">
+                <button type="button" class="btn-pagina" id="btnAnterior">&larr; Anterior</button>
+                <span class="pagina-actual" id="paginaActual">1 / 1</span>
+                <button type="button" class="btn-pagina" id="btnSiguiente">Siguiente &rarr;</button>
+            </span>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 1: formulario de alta y modificación de usuarios
+         ==================================================================== -->
+    <div class="modal-fondo" id="modalUsuario" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloModalUsuario">
+            <div class="modal-titulo">
+                <div>
+                    <h3 id="tituloModalUsuario">Nuevo usuario</h3>
+                    <p>Los datos se validan antes de guardar (RF1).</p>
+                </div>
+                <button type="button" class="btn-cerrar" data-cerrar-modal="modalUsuario" aria-label="Cerrar">&times;</button>
+            </div>
+
+            <form id="formUsuario" novalidate>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="campoNombre">Nombre completo</label>
+                        <input type="text" id="campoNombre" placeholder="Ej. Camila Herrera">
+                        <span class="mensaje-error" id="errorNombre"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campoRut">RUT</label>
+                        <input type="text" id="campoRut" placeholder="Ej. 12.345.678-5" maxlength="12">
+                        <span class="mensaje-error" id="errorRut"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campoPerfil">Perfil</label>
+                        <select id="campoPerfil">
+                            <option value="administrador">Administrador</option>
+                            <option value="coordinador">Coordinador Académico</option>
+                            <option value="docente">Docente</option>
+                            <option value="estudiante">Estudiante</option>
+                        </select>
+                        <span class="mensaje-error" id="errorPerfil"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="campoSede">Sede</label>
+                        <select id="campoSede">
+                            <option value="Sede Central">Sede Central</option>
+                            <option value="Sede Norte">Sede Norte</option>
+                            <option value="Sede Sur">Sede Sur</option>
+                        </select>
+                        <span class="mensaje-error" id="errorSede"></span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="campoCorreo">Correo institucional</label>
+                        <input type="email" id="campoCorreo" placeholder="nombre.apellido@nuevaformacion.cl">
+                        <span class="ayuda-campo" id="ayudaCorreo"></span>
+                        <span class="mensaje-error" id="errorCorreo"></span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="campoEstado">Estado</label>
+                        <select id="campoEstado">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                        <span class="ayuda-campo">
+                            Los usuarios no se eliminan cuando tienen historial académico: se desactivan.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="modal-acciones">
+                    <button type="button" class="btn-secundario" data-cerrar-modal="modalUsuario">Cancelar</button>
+                    <button type="submit" id="btnGuardarUsuario">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 2: inscripción en secciones (estudiantes) y secciones asignadas (docentes)
+         ==================================================================== -->
+    <div class="modal-fondo" id="modalAcademico" hidden>
+        <div class="modal modal-ancho" role="dialog" aria-modal="true" aria-labelledby="tituloModalAcademico">
+            <div class="modal-titulo">
+                <div>
+                    <h3 id="tituloModalAcademico">Inscripción de asignaturas</h3>
+                    <p id="subtituloModalAcademico"></p>
+                </div>
+                <button type="button" class="btn-cerrar" data-cerrar-modal="modalAcademico" aria-label="Cerrar">&times;</button>
+            </div>
+
+            <div id="contenidoAcademico"></div>
+
+            <div class="modal-acciones">
+                <button type="button" class="btn-secundario" data-cerrar-modal="modalAcademico">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 3: confirmación reutilizable (antes de acciones delicadas)
+         ==================================================================== -->
+    <div class="modal-fondo" id="modalConfirmacion" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloConfirmacion" style="max-width: 460px;">
+            <div class="modal-titulo">
+                <div>
+                    <h3 id="tituloConfirmacion">¿Confirmar acción?</h3>
+                </div>
+            </div>
+            <div id="textoConfirmacion" style="font-size: 14px; color: #4a5568;"></div>
+            <div class="modal-acciones">
+                <button type="button" class="btn-secundario" id="btnCancelarConfirmacion">Cancelar</button>
+                <button type="button" id="btnAceptarConfirmacion">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aquí se apilan los mensajes breves de confirmación o error -->
+    <div class="contenedor-avisos" id="contenedorAvisos"></div>
+
+<script>
+/* ============================================================================
+   COMPORTAMIENTO DE LA PANTALLA (JavaScript)
+
+   Organización del código:
+     1.  Configuración
+     2.  Datos de prueba (usuarios y secciones)
+     3.  Estado de la aplicación
+     4.  Persistencia en el navegador
+     5.  Utilidades generales
+     6.  Validaciones
+     7.  Filtrado, ordenamiento y paginación
+     8.  Dibujado de la pantalla (render)
+     9.  Alta y modificación de usuarios
+     10. Cambio de estado y eliminación
+     11. Acciones masivas
+     12. Inscripción en secciones y secciones asignadas
+     13. Ventanas modales y notificaciones
+     14. Exportación a CSV
+     15. Conexión de eventos e inicio
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. CONFIGURACIÓN
+   Valores que puedes cambiar sin tocar el resto del código.
+   ============================================================================ */
+const CONFIG = {
+    // Si lo dejas en true, el RUT se valida con el dígito verificador real
+    // (módulo 11). Ponlo en false si quieres probar con RUT inventados.
+    validarDigitoVerificador: true,
+
+    // Máximo de asignaturas que un estudiante puede inscribir (regla del RF10).
+    maximoAsignaturasPorEstudiante: 6,
+
+    // Dominios de correo institucional según el perfil.
+    dominioEstudiantes: 'alumnos.nuevaformacion.cl',
+    dominioFuncionarios: 'nuevaformacion.cl',
+
+    // Nombre con el que se guardan los cambios en el navegador.
+    claveAlmacenamiento: 'wireframe-listado-usuarios-v1'
+};
+
+// Nombre visible de cada perfil y clase CSS de su etiqueta de color.
+const PERFILES = {
+    administrador: { etiqueta: 'Administrador',         clase: 'badge-administrador' },
+    coordinador:   { etiqueta: 'Coordinador Académico', clase: 'badge-coordinador' },
+    docente:       { etiqueta: 'Docente',               clase: 'badge-docente' },
+    estudiante:    { etiqueta: 'Estudiante',            clase: 'badge-estudiante' }
+};
+
+const ESTADOS = {
+    activo:   { etiqueta: 'Activo' },
+    inactivo: { etiqueta: 'Inactivo' }
+};
+
+
+/* ============================================================================
+   2. DATOS DE PRUEBA
+   En el sistema real estos datos vendrían de la base de datos a través de la
+   API. Aquí están escritos en el archivo para que el wireframe funcione solo.
+   ============================================================================ */
+const USUARIOS_INICIALES = [
+    { id: 1,  nombre: 'Ana Contreras',     rut: '12.345.678-5', correo: 'ana.contreras@nuevaformacion.cl',              perfil: 'administrador', sede: 'Sede Central', estado: 'activo',   ultimoAcceso: '26-08-2026 09:12' },
+    { id: 2,  nombre: 'Marcelo Fuentes',   rut: '13.221.904-4', correo: 'marcelo.fuentes@nuevaformacion.cl',            perfil: 'coordinador',   sede: 'Sede Norte',   estado: 'activo',   ultimoAcceso: '26-08-2026 08:47' },
+    { id: 3,  nombre: 'Bárbara Soto',      rut: '14.556.732-7', correo: 'barbara.soto@nuevaformacion.cl',               perfil: 'coordinador',   sede: 'Sede Central', estado: 'inactivo', ultimoAcceso: '02-07-2026 17:20' },
+    { id: 4,  nombre: 'Ignacio Rojas',     rut: '15.902.341-9', correo: 'ignacio.rojas@nuevaformacion.cl',              perfil: 'docente',       sede: 'Sede Sur',     estado: 'activo',   ultimoAcceso: '25-08-2026 19:05' },
+    { id: 5,  nombre: 'Camila Herrera',    rut: '16.114.552-1', correo: 'camila.herrera@nuevaformacion.cl',             perfil: 'docente',       sede: 'Sede Central', estado: 'activo',   ultimoAcceso: '26-08-2026 07:58' },
+    { id: 6,  nombre: 'Diego Pizarro',     rut: '17.778.019-7', correo: 'diego.pizarro@nuevaformacion.cl',              perfil: 'docente',       sede: 'Sede Norte',   estado: 'inactivo', ultimoAcceso: '14-05-2026 11:30' },
+    { id: 7,  nombre: 'Fernanda Muñoz',    rut: '20.334.221-7', correo: 'fernanda.munoz@alumnos.nuevaformacion.cl',     perfil: 'estudiante',    sede: 'Sede Central', estado: 'activo',   ultimoAcceso: '26-08-2026 10:02' },
+    { id: 8,  nombre: 'Tomás Álvarez',     rut: '20.556.998-7', correo: 'tomas.alvarez@alumnos.nuevaformacion.cl',      perfil: 'estudiante',    sede: 'Sede Sur',     estado: 'activo',   ultimoAcceso: '26-08-2026 09:41' },
+    { id: 9,  nombre: 'Javiera Bravo',     rut: '21.002.114-0', correo: 'javiera.bravo@alumnos.nuevaformacion.cl',      perfil: 'estudiante',    sede: 'Sede Norte',   estado: 'inactivo', ultimoAcceso: '30-03-2026 13:15' },
+    { id: 10, nombre: 'Sebastián Torres',  rut: '21.445.678-8', correo: 'sebastian.torres@alumnos.nuevaformacion.cl',   perfil: 'estudiante',    sede: 'Sede Central', estado: 'activo',   ultimoAcceso: '26-08-2026 06:33' },
+    { id: 11, nombre: 'Valentina Reyes',   rut: '18.229.410-1', correo: 'valentina.reyes@nuevaformacion.cl',            perfil: 'coordinador',   sede: 'Sede Sur',     estado: 'activo',   ultimoAcceso: '25-08-2026 16:48' },
+    { id: 12, nombre: 'Rodrigo Espinoza',  rut: '19.887.203-2', correo: 'rodrigo.espinoza@nuevaformacion.cl',           perfil: 'docente',       sede: 'Sede Sur',     estado: 'activo',   ultimoAcceso: '24-08-2026 20:11' },
+    { id: 13, nombre: 'Paula Vergara',     rut: '22.110.334-3', correo: 'paula.vergara@alumnos.nuevaformacion.cl',      perfil: 'estudiante',    sede: 'Sede Norte',   estado: 'activo',   ultimoAcceso: '26-08-2026 08:03' },
+    { id: 14, nombre: 'Nicolás Castillo',  rut: '22.667.882-4', correo: 'nicolas.castillo@alumnos.nuevaformacion.cl',   perfil: 'estudiante',    sede: 'Sede Central', estado: 'inactivo', ultimoAcceso: '11-01-2026 09:26' },
+    { id: 15, nombre: 'Antonia Sepúlveda', rut: '13.998.201-0', correo: 'antonia.sepulveda@nuevaformacion.cl',          perfil: 'administrador', sede: 'Sede Central', estado: 'activo',   ultimoAcceso: '26-08-2026 11:00' }
+];
+
+/* Secciones de la oferta académica (RF7). Se usan para demostrar la
+   inscripción de asignaturas y sus reglas de negocio (RF10).
+     - cupoMaximo:    capacidad total de la sección.
+     - inscritosBase: alumnos ya inscritos antes de abrir este wireframe.
+     - inscritos:     ids de usuarios inscritos durante esta demostración. */
+const SECCIONES_INICIALES = [
+    { id: 'SEC-01', codigo: 'INF-101', asignatura: 'Programación I',        docente: 'Ignacio Rojas',    sede: 'Sede Central', jornada: 'Diurna',     modalidad: 'Presencial',     dias: ['Lun', 'Mié'], inicio: '08:30', fin: '10:00', cupoMaximo: 30, inscritosBase: 24, inscritos: [] },
+    { id: 'SEC-02', codigo: 'INF-102', asignatura: 'Bases de Datos',        docente: 'Camila Herrera',   sede: 'Sede Central', jornada: 'Vespertina', modalidad: 'Presencial',     dias: ['Mar', 'Jue'], inicio: '19:00', fin: '20:30', cupoMaximo: 25, inscritosBase: 25, inscritos: [] },
+    { id: 'SEC-03', codigo: 'MAT-201', asignatura: 'Cálculo I',             docente: 'Rodrigo Espinoza', sede: 'Sede Sur',     jornada: 'Diurna',     modalidad: 'Presencial',     dias: ['Lun', 'Vie'], inicio: '10:15', fin: '11:45', cupoMaximo: 40, inscritosBase: 31, inscritos: [] },
+    { id: 'SEC-04', codigo: 'INF-205', asignatura: 'Desarrollo Web',        docente: 'Camila Herrera',   sede: 'Sede Central', jornada: 'Diurna',     modalidad: 'Semipresencial', dias: ['Mié'],        inicio: '09:00', fin: '12:00', cupoMaximo: 28, inscritosBase: 27, inscritos: [] },
+    { id: 'SEC-05', codigo: 'ADM-110', asignatura: 'Gestión de Proyectos',  docente: 'Diego Pizarro',    sede: 'Sede Norte',   jornada: 'Vespertina', modalidad: 'Online',         dias: ['Jue'],        inicio: '19:00', fin: '21:00', cupoMaximo: 35, inscritosBase: 20, inscritos: [] },
+    { id: 'SEC-06', codigo: 'INF-330', asignatura: 'Redes de Computadores', docente: 'Ignacio Rojas',    sede: 'Sede Sur',     jornada: 'Diurna',     modalidad: 'Presencial',     dias: ['Mar', 'Jue'], inicio: '08:30', fin: '10:00', cupoMaximo: 30, inscritosBase: 12, inscritos: [] }
+];
+
+
+/* ============================================================================
+   3. ESTADO DE LA APLICACIÓN
+   Un solo objeto guarda "cómo está la pantalla en este momento". Cada vez que
+   algo cambia, se actualiza este objeto y se vuelve a dibujar la tabla.
+   ============================================================================ */
+const estado = {
+    usuarios: [],
+    secciones: [],
+    filtros: { busqueda: '', perfil: 'todos', estado: 'todos' },
+    orden: { campo: 'nombre', direccion: 'asc' },
+    pagina: 1,
+    filasPorPagina: 8,
+    seleccionados: new Set(),   // ids de los usuarios con la casilla marcada
+    idEnEdicion: null,          // null = estamos creando; un id = estamos editando
+    correoEditadoManualmente: false
+};
+
+
+/* ============================================================================
+   4. PERSISTENCIA EN EL NAVEGADOR
+   Los cambios se guardan en localStorage para que no se pierdan al recargar.
+   Si el navegador no lo permite (puede ocurrir al abrir el archivo desde el
+   disco), el wireframe sigue funcionando solo en memoria.
+   ============================================================================ */
+function guardarDatos() {
+    try {
+        const datos = JSON.stringify({ usuarios: estado.usuarios, secciones: estado.secciones });
+        localStorage.setItem(CONFIG.claveAlmacenamiento, datos);
+    } catch (error) {
+        // Sin almacenamiento disponible: los cambios duran mientras la página esté abierta.
+    }
+}
+
+function cargarDatos() {
+    try {
+        const guardado = localStorage.getItem(CONFIG.claveAlmacenamiento);
+        if (guardado) {
+            const datos = JSON.parse(guardado);
+            if (Array.isArray(datos.usuarios) && Array.isArray(datos.secciones)) {
+                estado.usuarios = datos.usuarios;
+                estado.secciones = datos.secciones;
+                return;
+            }
+        }
+    } catch (error) {
+        // Datos corruptos o sin permiso: se usan los datos de prueba.
+    }
+    // copiaProfunda evita modificar los datos originales por accidente.
+    estado.usuarios = copiaProfunda(USUARIOS_INICIALES);
+    estado.secciones = copiaProfunda(SECCIONES_INICIALES);
+}
+
+function copiaProfunda(valor) {
+    return JSON.parse(JSON.stringify(valor));
+}
+
+
+/* ============================================================================
+   5. UTILIDADES GENERALES
+   ============================================================================ */
+
+/* Convierte texto a minúsculas y le quita los acentos, para que al buscar
+   "barbara" también aparezca "Bárbara". */
+function normalizarTexto(texto) {
+    return String(texto).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+/* Neutraliza los caracteres especiales antes de insertar texto en el HTML.
+   Evita que un nombre con "<" rompa la página o inyecte código. */
+function escaparHtml(texto) {
+    return String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/* Devuelve la fecha y hora actual con el formato usado en la tabla. */
+function fechaHoraActual() {
+    const ahora = new Date();
+    const dos = (numero) => String(numero).padStart(2, '0');
+    return dos(ahora.getDate()) + '-' + dos(ahora.getMonth() + 1) + '-' + ahora.getFullYear()
+        + ' ' + dos(ahora.getHours()) + ':' + dos(ahora.getMinutes());
+}
+
+/* Convierte "26-08-2026 09:12" en "2026-08-26 09:12" para poder ordenar por fecha. */
+function fechaOrdenable(texto) {
+    const partes = String(texto).match(/^(\d{2})-(\d{2})-(\d{4})\s+(\d{2}):(\d{2})$/);
+    if (!partes) return '';
+    return partes[3] + '-' + partes[2] + '-' + partes[1] + ' ' + partes[4] + ':' + partes[5];
+}
+
+/* Texto legible del horario de una sección: "Lun y Mié 08:30-10:00". */
+function horarioLegible(seccion) {
+    return seccion.dias.join(' y ') + ' ' + seccion.inicio + '-' + seccion.fin;
+}
+
+/* Cupos ya ocupados de una sección. */
+function cuposOcupados(seccion) {
+    return seccion.inscritosBase + seccion.inscritos.length;
+}
+
+/* Busca un usuario por su id. */
+function buscarUsuario(id) {
+    return estado.usuarios.find((usuario) => usuario.id === Number(id));
+}
+
+
+/* ============================================================================
+   6. VALIDACIONES
+   Las reglas se comprueban antes de guardar. En el sistema real estas mismas
+   validaciones deben repetirse en el backend, porque el navegador se puede
+   manipular.
+   ============================================================================ */
+
+/* Da formato al RUT mientras se escribe: "123456785" -> "12.345.678-5". */
+function formatearRut(valor) {
+    const limpio = String(valor).replace(/[^0-9kK]/g, '').toUpperCase();
+    if (limpio.length <= 1) return limpio;
+
+    const cuerpo = limpio.slice(0, -1);
+    const digito = limpio.slice(-1);
+    const conPuntos = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return conPuntos + '-' + digito;
+}
+
+/* Calcula el dígito verificador de un RUT chileno con el método módulo 11. */
+function calcularDigitoVerificador(numero) {
+    let suma = 0;
+    let multiplicador = 2;
+
+    // Se recorre el número de derecha a izquierda multiplicando por 2,3,4,5,6,7 y volviendo a 2.
+    for (let i = String(numero).length - 1; i >= 0; i--) {
+        suma += Number(String(numero)[i]) * multiplicador;
+        multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+    }
+
+    const resto = 11 - (suma % 11);
+    if (resto === 11) return '0';
+    if (resto === 10) return 'K';
+    return String(resto);
+}
+
+function rutEsValido(rut) {
+    const limpio = String(rut).replace(/[^0-9kK]/g, '').toUpperCase();
+    if (limpio.length < 8 || limpio.length > 9) return false;
+
+    if (!CONFIG.validarDigitoVerificador) return true;
+
+    const cuerpo = limpio.slice(0, -1);
+    const digito = limpio.slice(-1);
+    return calcularDigitoVerificador(cuerpo) === digito;
+}
+
+function correoTieneFormatoValido(correo) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+}
+
+/* Dominio de correo que corresponde según el perfil. */
+function dominioSegunPerfil(perfil) {
+    return perfil === 'estudiante' ? CONFIG.dominioEstudiantes : CONFIG.dominioFuncionarios;
+}
+
+/* Propone un correo a partir del nombre: "Camila Herrera" -> camila.herrera@... */
+function sugerirCorreo(nombre, perfil) {
+    const partes = normalizarTexto(nombre).trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return '';
+    const usuario = partes.slice(0, 2).join('.').replace(/[^a-z.]/g, '');
+    return usuario + '@' + dominioSegunPerfil(perfil);
+}
+
+/* Comprueba que el RUT o el correo no estén ya usados por otro usuario. */
+function estaDuplicado(campo, valor, idExcluido) {
+    const objetivo = normalizarTexto(valor);
+    return estado.usuarios.some((usuario) =>
+        usuario.id !== idExcluido && normalizarTexto(usuario[campo]) === objetivo);
+}
+
+
+/* ============================================================================
+   7. FILTRADO, ORDENAMIENTO Y PAGINACIÓN
+   ============================================================================ */
+
+/* Aplica los tres filtros a la vez: perfil, estado y texto de búsqueda. */
+function obtenerUsuariosFiltrados() {
+    const texto = normalizarTexto(estado.filtros.busqueda.trim());
+
+    return estado.usuarios.filter((usuario) => {
+        const coincidePerfil = estado.filtros.perfil === 'todos' || usuario.perfil === estado.filtros.perfil;
+        const coincideEstado = estado.filtros.estado === 'todos' || usuario.estado === estado.filtros.estado;
+        const coincideTexto = texto === ''
+            || normalizarTexto(usuario.nombre).includes(texto)
+            || normalizarTexto(usuario.correo).includes(texto)
+            || normalizarTexto(usuario.rut).includes(texto);
+
+        return coincidePerfil && coincideEstado && coincideTexto;
+    });
+}
+
+/* Valor que se usa para comparar al ordenar por una columna. */
+function valorParaOrdenar(usuario, campo) {
+    if (campo === 'perfil') return PERFILES[usuario.perfil].etiqueta;
+    if (campo === 'estado') return ESTADOS[usuario.estado].etiqueta;
+    if (campo === 'ultimoAcceso') return fechaOrdenable(usuario.ultimoAcceso);
+    return normalizarTexto(usuario[campo] || '');
+}
+
+function ordenarUsuarios(usuarios) {
+    const { campo, direccion } = estado.orden;
+    const factor = direccion === 'asc' ? 1 : -1;
+
+    // Se ordena una copia con [...usuarios] para no alterar el arreglo original.
+    return [...usuarios].sort((a, b) => {
+        const valorA = valorParaOrdenar(a, campo);
+        const valorB = valorParaOrdenar(b, campo);
+        if (valorA < valorB) return -1 * factor;
+        if (valorA > valorB) return 1 * factor;
+        return 0;
+    });
+}
+
+
+/* ============================================================================
+   8. DIBUJADO DE LA PANTALLA
+   Una sola función, render(), se encarga de actualizar todo lo visible.
+   Se llama después de cualquier cambio: filtrar, guardar, eliminar, etc.
+   ============================================================================ */
+function render() {
+    const filtrados = ordenarUsuarios(obtenerUsuariosFiltrados());
+
+    const totalPaginas = Math.max(1, Math.ceil(filtrados.length / estado.filasPorPagina));
+    if (estado.pagina > totalPaginas) estado.pagina = totalPaginas;
+
+    const desde = (estado.pagina - 1) * estado.filasPorPagina;
+    const hasta = Math.min(desde + estado.filasPorPagina, filtrados.length);
+    const visibles = filtrados.slice(desde, hasta);
+
+    dibujarTabla(visibles);
+    dibujarResumen(filtrados.length);
+    dibujarChips();
+    dibujarPaginacion(desde, hasta, filtrados.length, totalPaginas);
+    dibujarBarraSeleccion(visibles);
+    dibujarIndicadoresOrden();
+}
+
+function dibujarTabla(usuarios) {
+    const cuerpo = document.getElementById('tablaUsuarios');
+
+    // Caso sin resultados: se muestra un mensaje que ocupa toda la fila.
+    if (usuarios.length === 0) {
+        cuerpo.innerHTML =
+            '<tr><td colspan="8" class="sin-resultados">' +
+            '<strong>No se encontraron usuarios</strong>' +
+            'Ajusta los filtros de perfil, estado o el término de búsqueda para ver más resultados.' +
+            '</td></tr>';
+        return;
+    }
+
+    cuerpo.innerHTML = usuarios.map((usuario) => {
+        const perfil = PERFILES[usuario.perfil];
+        const activo = usuario.estado === 'activo';
+        const seleccionada = estado.seleccionados.has(usuario.id);
+
+        // Botón académico: los estudiantes inscriben asignaturas (RF10),
+        // los docentes consultan las secciones que tienen asignadas (RF11).
+        let botonAcademico = '';
+        if (usuario.perfil === 'estudiante') {
+            botonAcademico = '<button class="actions-btn btn-academico" data-accion="academico" data-id="' + usuario.id + '">Inscribir</button>';
+        } else if (usuario.perfil === 'docente') {
+            botonAcademico = '<button class="actions-btn btn-academico" data-accion="academico" data-id="' + usuario.id + '">Secciones</button>';
+        }
+
+        return '<tr class="' + (seleccionada ? 'fila-seleccionada' : '') + '">' +
+            '<td class="col-check">' +
+                '<input type="checkbox" class="check-fila" data-id="' + usuario.id + '"' + (seleccionada ? ' checked' : '') + '>' +
+            '</td>' +
+            '<td>' +
+                '<span class="usuario-nombre">' + escaparHtml(usuario.nombre) + '</span>' +
+                '<span class="usuario-rut">' + escaparHtml(usuario.rut) + '</span>' +
+            '</td>' +
+            '<td>' + escaparHtml(usuario.correo) + '</td>' +
+            '<td><span class="badge ' + perfil.clase + '">' + perfil.etiqueta + '</span></td>' +
+            '<td>' + escaparHtml(usuario.sede) + '</td>' +
+            '<td><span class="estado estado-' + usuario.estado + '">' + ESTADOS[usuario.estado].etiqueta + '</span></td>' +
+            '<td>' + escaparHtml(usuario.ultimoAcceso) + '</td>' +
+            '<td class="celda-acciones">' +
+                '<button class="actions-btn btn-edit" data-accion="modificar" data-id="' + usuario.id + '">Modificar</button>' +
+                (activo
+                    ? '<button class="actions-btn btn-delete" data-accion="estado" data-id="' + usuario.id + '">Desactivar</button>'
+                    : '<button class="actions-btn btn-activar" data-accion="estado" data-id="' + usuario.id + '">Activar</button>') +
+                botonAcademico +
+                '<button class="actions-btn btn-eliminar" data-accion="eliminar" data-id="' + usuario.id + '">Eliminar</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
+}
+
+function dibujarResumen(encontrados) {
+    document.getElementById('resumenResultados').innerHTML =
+        'Mostrando <strong>' + encontrados + '</strong> de <strong>' + estado.usuarios.length + '</strong> usuarios';
+}
+
+/* Dibuja un "chip" por cada filtro aplicado, con una X para quitarlo. */
+function dibujarChips() {
+    const contenedor = document.getElementById('chipsFiltros');
+    const chips = [];
+
+    if (estado.filtros.perfil !== 'todos') {
+        chips.push({ clave: 'perfil', texto: 'Perfil: ' + PERFILES[estado.filtros.perfil].etiqueta });
+    }
+    if (estado.filtros.estado !== 'todos') {
+        chips.push({ clave: 'estado', texto: 'Estado: ' + ESTADOS[estado.filtros.estado].etiqueta });
+    }
+    if (estado.filtros.busqueda.trim() !== '') {
+        chips.push({ clave: 'busqueda', texto: 'Búsqueda: "' + estado.filtros.busqueda.trim() + '"' });
+    }
+
+    contenedor.innerHTML = chips.map((chip) =>
+        '<span class="chip">' + escaparHtml(chip.texto) +
+        '<button type="button" data-quitar-filtro="' + chip.clave + '" aria-label="Quitar filtro">&times;</button></span>'
+    ).join('');
+}
+
+function dibujarPaginacion(desde, hasta, total, totalPaginas) {
+    document.getElementById('infoPaginacion').textContent =
+        total === 0 ? 'Sin resultados' : 'Mostrando ' + (desde + 1) + '\u2013' + hasta + ' de ' + total;
+
+    document.getElementById('paginaActual').textContent = estado.pagina + ' / ' + totalPaginas;
+    document.getElementById('btnAnterior').disabled = estado.pagina <= 1;
+    document.getElementById('btnSiguiente').disabled = estado.pagina >= totalPaginas;
+}
+
+/* La barra de acciones masivas solo se muestra si hay algo seleccionado. */
+function dibujarBarraSeleccion(visibles) {
+    const barra = document.getElementById('barraSeleccion');
+    const cantidad = estado.seleccionados.size;
+
+    barra.hidden = cantidad === 0;
+    document.getElementById('textoSeleccion').textContent =
+        cantidad === 1 ? '1 usuario seleccionado' : cantidad + ' usuarios seleccionados';
+
+    // La casilla del encabezado se marca solo si todas las filas visibles están marcadas.
+    const check = document.getElementById('checkTodos');
+    const todasMarcadas = visibles.length > 0 && visibles.every((u) => estado.seleccionados.has(u.id));
+    check.checked = todasMarcadas;
+    check.indeterminate = !todasMarcadas && visibles.some((u) => estado.seleccionados.has(u.id));
+}
+
+/* Muestra la flecha ▲ o ▼ en la columna por la que se está ordenando. */
+function dibujarIndicadoresOrden() {
+    document.querySelectorAll('th.ordenable').forEach((encabezado) => {
+        const indicador = encabezado.querySelector('.indicador-orden');
+        if (encabezado.dataset.campo === estado.orden.campo) {
+            indicador.textContent = estado.orden.direccion === 'asc' ? '\u25B2' : '\u25BC';
+        } else {
+            indicador.textContent = '';
+        }
+    });
+}
+
+
+/* ============================================================================
+   9. ALTA Y MODIFICACIÓN DE USUARIOS
+   El mismo formulario sirve para crear y para editar: si estado.idEnEdicion
+   tiene un valor, se está editando; si es null, se está creando.
+   ============================================================================ */
+function abrirFormularioUsuario(id) {
+    estado.idEnEdicion = id ? Number(id) : null;
+    estado.correoEditadoManualmente = false;
+    limpiarErroresFormulario();
+
+    const titulo = document.getElementById('tituloModalUsuario');
+
+    if (estado.idEnEdicion) {
+        const usuario = buscarUsuario(estado.idEnEdicion);
+        titulo.textContent = 'Modificar usuario';
+        document.getElementById('campoNombre').value = usuario.nombre;
+        document.getElementById('campoRut').value = usuario.rut;
+        document.getElementById('campoCorreo').value = usuario.correo;
+        document.getElementById('campoPerfil').value = usuario.perfil;
+        document.getElementById('campoSede').value = usuario.sede;
+        document.getElementById('campoEstado').value = usuario.estado;
+        estado.correoEditadoManualmente = true;  // no sobrescribir el correo existente
+    } else {
+        titulo.textContent = 'Nuevo usuario';
+        document.getElementById('formUsuario').reset();
+        document.getElementById('campoPerfil').value = 'estudiante';
+        document.getElementById('campoEstado').value = 'activo';
+    }
+
+    actualizarAyudaCorreo();
+    abrirModal('modalUsuario');
+    document.getElementById('campoNombre').focus();
+}
+
+/* Lee el formulario, valida cada campo y devuelve los datos o null si hay errores. */
+function leerYValidarFormulario() {
+    limpiarErroresFormulario();
+
+    const nombre = document.getElementById('campoNombre').value.trim();
+    const rut = document.getElementById('campoRut').value.trim();
+    const correo = document.getElementById('campoCorreo').value.trim().toLowerCase();
+    const perfil = document.getElementById('campoPerfil').value;
+    const sede = document.getElementById('campoSede').value;
+    const estadoUsuario = document.getElementById('campoEstado').value;
+    const id = estado.idEnEdicion;
+
+    let hayErrores = false;
+
+    if (nombre.length < 5) {
+        marcarError('Nombre', 'Escribe el nombre y el apellido (mínimo 5 caracteres).');
+        hayErrores = true;
+    }
+
+    if (!rutEsValido(rut)) {
+        marcarError('Rut', CONFIG.validarDigitoVerificador
+            ? 'RUT inválido: el dígito verificador no corresponde. Ejemplo válido: 12.345.678-5'
+            : 'RUT inválido. Usa el formato 12.345.678-5');
+        hayErrores = true;
+    } else if (estaDuplicado('rut', rut, id)) {
+        marcarError('Rut', 'Ya existe un usuario registrado con este RUT.');
+        hayErrores = true;
+    }
+
+    if (!correoTieneFormatoValido(correo)) {
+        marcarError('Correo', 'Escribe un correo válido, con formato nombre@dominio.cl');
+        hayErrores = true;
+    } else if (!correo.endsWith('@' + dominioSegunPerfil(perfil))) {
+        marcarError('Correo', 'Para el perfil ' + PERFILES[perfil].etiqueta +
+            ' el correo debe terminar en @' + dominioSegunPerfil(perfil));
+        hayErrores = true;
+    } else if (estaDuplicado('correo', correo, id)) {
+        marcarError('Correo', 'Este correo ya está asignado a otro usuario.');
+        hayErrores = true;
+    }
+
+    if (hayErrores) return null;
+    return { nombre, rut, correo, perfil, sede, estado: estadoUsuario };
+}
+
+function guardarUsuario(evento) {
+    evento.preventDefault();   // evita que el navegador recargue la página
+
+    const datos = leerYValidarFormulario();
+    if (!datos) {
+        mostrarAviso('Revisa los campos marcados en rojo.', 'error');
+        return;
+    }
+
+    if (estado.idEnEdicion) {
+        // Modificación: se reemplazan los datos conservando id y último acceso.
+        const usuario = buscarUsuario(estado.idEnEdicion);
+        Object.assign(usuario, datos);
+        mostrarAviso('Usuario "' + usuario.nombre + '" actualizado correctamente.', 'exito');
+    } else {
+        // Alta: se calcula el siguiente id disponible.
+        const nuevoId = estado.usuarios.reduce((maximo, u) => Math.max(maximo, u.id), 0) + 1;
+        estado.usuarios.push({
+            id: nuevoId,
+            ...datos,
+            ultimoAcceso: 'Sin ingresos'
+        });
+        mostrarAviso('Usuario "' + datos.nombre + '" registrado correctamente.', 'exito');
+    }
+
+    guardarDatos();
+    cerrarModal('modalUsuario');
+    render();
+}
+
+/* Marca un campo con error: borde rojo y mensaje debajo. */
+function marcarError(campo, mensaje) {
+    document.getElementById('campo' + campo).classList.add('invalido');
+    document.getElementById('error' + campo).textContent = mensaje;
+}
+
+function limpiarErroresFormulario() {
+    ['Nombre', 'Rut', 'Correo', 'Perfil', 'Sede'].forEach((campo) => {
+        const entrada = document.getElementById('campo' + campo);
+        const error = document.getElementById('error' + campo);
+        if (entrada) entrada.classList.remove('invalido');
+        if (error) error.textContent = '';
+    });
+}
+
+function actualizarAyudaCorreo() {
+    const perfil = document.getElementById('campoPerfil').value;
+    document.getElementById('ayudaCorreo').textContent =
+        'Debe terminar en @' + dominioSegunPerfil(perfil) + ' según el perfil seleccionado.';
+}
+
+
+/* ============================================================================
+   10. CAMBIO DE ESTADO Y ELIMINACIÓN
+   Los requerimientos no funcionales piden no borrar registros con historial
+   académico. Por eso la acción principal es activar/desactivar, y la
+   eliminación definitiva avisa antes y se bloquea si hay inscripciones.
+   ============================================================================ */
+async function cambiarEstadoUsuario(id) {
+    const usuario = buscarUsuario(id);
+    const desactivando = usuario.estado === 'activo';
+
+    const confirmado = await confirmar({
+        titulo: desactivando ? '¿Desactivar usuario?' : '¿Activar usuario?',
+        mensaje: desactivando
+            ? 'El usuario <strong>' + escaparHtml(usuario.nombre) + '</strong> no podrá iniciar sesión, ' +
+              'pero se conserva su historial académico.'
+            : 'El usuario <strong>' + escaparHtml(usuario.nombre) + '</strong> volverá a tener acceso al sistema.',
+        textoAceptar: desactivando ? 'Desactivar' : 'Activar',
+        peligro: desactivando
+    });
+    if (!confirmado) return;
+
+    usuario.estado = desactivando ? 'inactivo' : 'activo';
+    guardarDatos();
+    render();
+    mostrarAviso(usuario.nombre + ' ahora está ' + ESTADOS[usuario.estado].etiqueta.toLowerCase() + '.', 'exito');
+}
+
+async function eliminarUsuario(id) {
+    const usuario = buscarUsuario(id);
+
+    // Regla de trazabilidad: si tiene inscripciones registradas, no se elimina.
+    const inscripciones = estado.secciones.filter((seccion) => seccion.inscritos.includes(usuario.id));
+    if (inscripciones.length > 0) {
+        mostrarAviso('No se puede eliminar: ' + usuario.nombre + ' tiene ' + inscripciones.length +
+            ' inscripción(es) vigente(s). Desactívalo en lugar de eliminarlo.', 'error');
+        return;
+    }
+
+    const confirmado = await confirmar({
+        titulo: '¿Eliminar definitivamente?',
+        mensaje: 'Se eliminará el registro de <strong>' + escaparHtml(usuario.nombre) + '</strong>. ' +
+                 'Esta acción no se puede deshacer. Si el usuario tiene historial académico, ' +
+                 'lo recomendado es desactivarlo.',
+        textoAceptar: 'Eliminar',
+        peligro: true
+    });
+    if (!confirmado) return;
+
+    estado.usuarios = estado.usuarios.filter((u) => u.id !== usuario.id);
+    estado.seleccionados.delete(usuario.id);
+    guardarDatos();
+    render();
+    mostrarAviso('Usuario "' + usuario.nombre + '" eliminado del listado.', 'info');
+}
+
+
+/* ============================================================================
+   11. ACCIONES MASIVAS
+   Permiten activar o desactivar varios usuarios a la vez.
+   ============================================================================ */
+async function cambiarEstadoSeleccionados(nuevoEstado) {
+    const cantidad = estado.seleccionados.size;
+    if (cantidad === 0) return;
+
+    const confirmado = await confirmar({
+        titulo: nuevoEstado === 'activo' ? '¿Activar seleccionados?' : '¿Desactivar seleccionados?',
+        mensaje: 'Se cambiará el estado de <strong>' + cantidad + '</strong> usuario(s) a ' +
+                 ESTADOS[nuevoEstado].etiqueta.toLowerCase() + '.',
+        textoAceptar: 'Aplicar',
+        peligro: nuevoEstado === 'inactivo'
+    });
+    if (!confirmado) return;
+
+    estado.usuarios.forEach((usuario) => {
+        if (estado.seleccionados.has(usuario.id)) usuario.estado = nuevoEstado;
+    });
+
+    estado.seleccionados.clear();
+    guardarDatos();
+    render();
+    mostrarAviso(cantidad + ' usuario(s) actualizados a ' + ESTADOS[nuevoEstado].etiqueta.toLowerCase() + '.', 'exito');
+}
+
+
+/* ============================================================================
+   12. INSCRIPCIÓN EN SECCIONES Y SECCIONES ASIGNADAS
+   Para estudiantes: inscribir asignaturas validando las reglas del RF10.
+   Para docentes: consultar las secciones asignadas (RF11).
+   ============================================================================ */
+function abrirVistaAcademica(id) {
+    const usuario = buscarUsuario(id);
+
+    if (usuario.perfil === 'estudiante') {
+        document.getElementById('tituloModalAcademico').textContent = 'Inscripción de asignaturas';
+        document.getElementById('subtituloModalAcademico').textContent =
+            usuario.nombre + ' · ' + usuario.sede + ' (RF10 / CU8)';
+        dibujarInscripcionEstudiante(usuario);
+    } else {
+        document.getElementById('tituloModalAcademico').textContent = 'Secciones asignadas';
+        document.getElementById('subtituloModalAcademico').textContent =
+            usuario.nombre + ' · ' + usuario.sede + ' (RF11 / CU9)';
+        dibujarSeccionesDocente(usuario);
+    }
+
+    abrirModal('modalAcademico');
+}
+
+/* Clase CSS del texto de cupos según cuántos queden. */
+function claseCupos(seccion) {
+    const disponibles = seccion.cupoMaximo - cuposOcupados(seccion);
+    if (disponibles <= 0) return 'cupos-lleno';
+    if (disponibles <= 3) return 'cupos-limitado';
+    return 'cupos-disponible';
+}
+
+/* Detecta si dos secciones se cruzan: comparten día y sus horas se solapan. */
+function hayConflictoHorario(seccionA, seccionB) {
+    const compartenDia = seccionA.dias.some((dia) => seccionB.dias.includes(dia));
+    if (!compartenDia) return false;
+    // Como las horas están en formato "HH:MM", se pueden comparar como texto.
+    return seccionA.inicio < seccionB.fin && seccionB.inicio < seccionA.fin;
+}
+
+function dibujarInscripcionEstudiante(usuario) {
+    const inscritas = estado.secciones.filter((seccion) => seccion.inscritos.includes(usuario.id));
+
+    let html = '';
+
+    // Aviso cuando el estudiante está inactivo: no puede inscribir (matrícula no vigente).
+    if (usuario.estado === 'inactivo') {
+        html += '<div class="aviso aviso-peligro">' +
+            'Este estudiante está <strong>inactivo</strong>. Según el RF10, se requiere matrícula ' +
+            'vigente para inscribir asignaturas, por lo que la inscripción está bloqueada.' +
+            '</div>';
+    } else {
+        html += '<div class="aviso">' +
+            'Al inscribir se validan: cupos disponibles, tope de ' + CONFIG.maximoAsignaturasPorEstudiante +
+            ' asignaturas, asignatura no repetida y ausencia de choques de horario.' +
+            '</div>';
+    }
+
+    // Resumen de lo que ya tiene inscrito, con opción de anular.
+    html += '<h3>Inscripciones actuales (' + inscritas.length + ' de ' + CONFIG.maximoAsignaturasPorEstudiante + ')</h3>';
+    if (inscritas.length === 0) {
+        html += '<p style="font-size:13px;color:#718096;margin:0 0 18px;">Todavía no tiene asignaturas inscritas en esta demostración.</p>';
+    } else {
+        html += '<ul class="lista-inscripciones">';
+        inscritas.forEach((seccion) => {
+            html += '<li>' +
+                '<strong>' + escaparHtml(seccion.codigo) + '</strong> ' + escaparHtml(seccion.asignatura) +
+                ' · ' + horarioLegible(seccion) +
+                ' <button class="actions-btn btn-eliminar" data-anular="' + seccion.id + '" data-usuario="' + usuario.id + '">Anular</button>' +
+            '</li>';
+        });
+        html += '</ul>';
+    }
+
+    // Oferta académica disponible.
+    html += '<h3 style="margin-top:20px;">Oferta académica del período</h3>';
+    html += '<table><thead><tr>' +
+        '<th>Asignatura</th><th>Docente</th><th>Horario</th><th>Modalidad</th><th>Cupos</th><th>Acción</th>' +
+        '</tr></thead><tbody>';
+
+    estado.secciones.forEach((seccion) => {
+        const yaInscrita = seccion.inscritos.includes(usuario.id);
+        const sinCupos = cuposOcupados(seccion) >= seccion.cupoMaximo;
+        const choque = inscritas.find((otra) => otra.id !== seccion.id && hayConflictoHorario(otra, seccion));
+
+        // Se decide qué mostrar en la columna Acción según las reglas de negocio.
+        let accion;
+        if (usuario.estado === 'inactivo') {
+            accion = '<span style="font-size:12px;color:#9b2c2c;">Matrícula no vigente</span>';
+        } else if (yaInscrita) {
+            accion = '<span style="font-size:12px;color:#276749;font-weight:600;">Inscrita</span>';
+        } else if (sinCupos) {
+            accion = '<span style="font-size:12px;color:#9b2c2c;">Sin cupos</span>';
+        } else if (choque) {
+            accion = '<span style="font-size:12px;color:#975a16;" title="Choca con ' +
+                escaparHtml(choque.codigo) + '">Choque de horario</span>';
+        } else {
+            accion = '<button class="actions-btn btn-activar" data-inscribir="' + seccion.id +
+                '" data-usuario="' + usuario.id + '">Inscribir</button>';
+        }
+
+        html += '<tr>' +
+            '<td><strong>' + escaparHtml(seccion.codigo) + '</strong><br>' + escaparHtml(seccion.asignatura) + '</td>' +
+            '<td>' + escaparHtml(seccion.docente) + '</td>' +
+            '<td>' + horarioLegible(seccion) + '</td>' +
+            '<td>' + escaparHtml(seccion.modalidad) + '</td>' +
+            '<td class="cupos ' + claseCupos(seccion) + '">' + cuposOcupados(seccion) + '/' + seccion.cupoMaximo + '</td>' +
+            '<td>' + accion + '</td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('contenidoAcademico').innerHTML = html;
+}
+
+function dibujarSeccionesDocente(usuario) {
+    const asignadas = estado.secciones.filter((seccion) => seccion.docente === usuario.nombre);
+
+    let html = '<div class="aviso">' +
+        'Vista de consulta: el docente revisa las secciones que tiene asignadas y cuántos ' +
+        'estudiantes hay inscritos en cada una (RF11).' +
+        '</div>';
+
+    if (asignadas.length === 0) {
+        html += '<p style="font-size:13px;color:#718096;">Este docente no tiene secciones asignadas en el período actual.</p>';
+        document.getElementById('contenidoAcademico').innerHTML = html;
+        return;
+    }
+
+    html += '<table><thead><tr>' +
+        '<th>Asignatura</th><th>Sede</th><th>Jornada</th><th>Horario</th><th>Inscritos</th>' +
+        '</tr></thead><tbody>';
+
+    asignadas.forEach((seccion) => {
+        html += '<tr>' +
+            '<td><strong>' + escaparHtml(seccion.codigo) + '</strong><br>' + escaparHtml(seccion.asignatura) + '</td>' +
+            '<td>' + escaparHtml(seccion.sede) + '</td>' +
+            '<td>' + escaparHtml(seccion.jornada) + '</td>' +
+            '<td>' + horarioLegible(seccion) + '</td>' +
+            '<td class="cupos ' + claseCupos(seccion) + '">' + cuposOcupados(seccion) + '/' + seccion.cupoMaximo + '</td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('contenidoAcademico').innerHTML = html;
+}
+
+/* Inscribe al estudiante volviendo a comprobar todas las reglas.
+   La validación se repite aquí, y no solo al dibujar el botón, porque nunca
+   hay que confiar únicamente en lo que muestra la interfaz. */
+function inscribirEnSeccion(idUsuario, idSeccion) {
+    const usuario = buscarUsuario(idUsuario);
+    const seccion = estado.secciones.find((s) => s.id === idSeccion);
+    const inscritas = estado.secciones.filter((s) => s.inscritos.includes(usuario.id));
+
+    if (usuario.estado !== 'activo') {
+        mostrarAviso('No se puede inscribir: el estudiante no tiene matrícula vigente.', 'error');
+        return;
+    }
+    if (seccion.inscritos.includes(usuario.id)) {
+        mostrarAviso('El estudiante ya está inscrito en esta sección.', 'error');
+        return;
+    }
+    if (cuposOcupados(seccion) >= seccion.cupoMaximo) {
+        mostrarAviso('La sección ' + seccion.codigo + ' no tiene cupos disponibles.', 'error');
+        return;
+    }
+    if (inscritas.length >= CONFIG.maximoAsignaturasPorEstudiante) {
+        mostrarAviso('Alcanzó el máximo de ' + CONFIG.maximoAsignaturasPorEstudiante + ' asignaturas inscritas.', 'error');
+        return;
+    }
+    const choque = inscritas.find((otra) => hayConflictoHorario(otra, seccion));
+    if (choque) {
+        mostrarAviso('Choque de horario con ' + choque.codigo + ' (' + horarioLegible(choque) + ').', 'error');
+        return;
+    }
+
+    seccion.inscritos.push(usuario.id);
+    guardarDatos();
+    dibujarInscripcionEstudiante(usuario);   // refresca la modal con los datos nuevos
+    mostrarAviso('Inscripción registrada en ' + seccion.codigo + ' - ' + seccion.asignatura + '.', 'exito');
+}
+
+function anularInscripcion(idUsuario, idSeccion) {
+    const usuario = buscarUsuario(idUsuario);
+    const seccion = estado.secciones.find((s) => s.id === idSeccion);
+
+    seccion.inscritos = seccion.inscritos.filter((id) => id !== usuario.id);
+    guardarDatos();
+    dibujarInscripcionEstudiante(usuario);
+    mostrarAviso('Inscripción anulada en ' + seccion.codigo + '. Se libera un cupo.', 'info');
+}
+
+
+/* ============================================================================
+   13. VENTANAS MODALES Y NOTIFICACIONES
+   ============================================================================ */
+function abrirModal(id) {
+    document.getElementById(id).hidden = false;
+}
+
+function cerrarModal(id) {
+    document.getElementById(id).hidden = true;
+}
+
+/* Modal de confirmación reutilizable.
+   Devuelve una promesa que se resuelve en true (confirmó) o false (canceló),
+   lo que permite escribir:  if (await confirmar({...})) { ... } */
+function confirmar(opciones) {
+    return new Promise((resolver) => {
+        document.getElementById('tituloConfirmacion').textContent = opciones.titulo || '¿Confirmar acción?';
+        document.getElementById('textoConfirmacion').innerHTML = opciones.mensaje || '';
+
+        const botonAceptar = document.getElementById('btnAceptarConfirmacion');
+        const botonCancelar = document.getElementById('btnCancelarConfirmacion');
+        botonAceptar.textContent = opciones.textoAceptar || 'Confirmar';
+        botonAceptar.className = opciones.peligro ? 'btn-delete' : '';
+
+        // Se limpian los eventos anteriores reemplazando los botones por copias.
+        const nuevoAceptar = botonAceptar.cloneNode(true);
+        const nuevoCancelar = botonCancelar.cloneNode(true);
+        botonAceptar.replaceWith(nuevoAceptar);
+        botonCancelar.replaceWith(nuevoCancelar);
+
+        const cerrar = (respuesta) => {
+            cerrarModal('modalConfirmacion');
+            resolver(respuesta);
+        };
+
+        nuevoAceptar.addEventListener('click', () => cerrar(true));
+        nuevoCancelar.addEventListener('click', () => cerrar(false));
+
+        abrirModal('modalConfirmacion');
+        nuevoAceptar.focus();
+    });
+}
+
+/* Muestra un mensaje breve abajo a la derecha y lo retira solo. */
+function mostrarAviso(mensaje, tipo) {
+    const contenedor = document.getElementById('contenedorAvisos');
+    const aviso = document.createElement('div');
+    aviso.className = 'aviso-flotante aviso-' + (tipo || 'info');
+    aviso.textContent = mensaje;
+    contenedor.appendChild(aviso);
+
+    setTimeout(() => aviso.remove(), 4000);
+}
+
+
+/* ============================================================================
+   14. EXPORTACIÓN A CSV
+   Descarga los usuarios que se están viendo (con los filtros aplicados),
+   para poder abrirlos en Excel.
+   ============================================================================ */
+function exportarCsv() {
+    const usuarios = ordenarUsuarios(obtenerUsuariosFiltrados());
+    if (usuarios.length === 0) {
+        mostrarAviso('No hay usuarios para exportar con los filtros actuales.', 'error');
+        return;
+    }
+
+    const encabezados = ['Nombre', 'RUT', 'Correo', 'Perfil', 'Sede', 'Estado', 'Ultimo acceso'];
+    const filas = usuarios.map((u) => [
+        u.nombre, u.rut, u.correo, PERFILES[u.perfil].etiqueta, u.sede, ESTADOS[u.estado].etiqueta, u.ultimoAcceso
+    ]);
+
+    // Cada campo se encierra en comillas para que las comas no rompan las columnas.
+    const contenido = [encabezados, ...filas]
+        .map((fila) => fila.map((campo) => '"' + String(campo).replace(/"/g, '""') + '"').join(';'))
+        .join('\n');
+
+    // El "\ufeff" del inicio le indica a Excel que el archivo está en UTF-8.
+    const archivo = new Blob(['\ufeff' + contenido], { type: 'text/csv;charset=utf-8;' });
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(archivo);
+    enlace.download = 'usuarios.csv';
+    enlace.click();
+    URL.revokeObjectURL(enlace.href);
+
+    mostrarAviso(usuarios.length + ' usuario(s) exportados a usuarios.csv', 'exito');
+}
+
+
+/* ============================================================================
+   15. CONEXIÓN DE EVENTOS E INICIO
+   Aquí se le dice a cada elemento de la pantalla qué función debe ejecutar.
+   ============================================================================ */
+
+/* --- Filtros --- */
+document.getElementById('busqueda').addEventListener('input', (evento) => {
+    estado.filtros.busqueda = evento.target.value;
+    estado.pagina = 1;
+    render();
+});
+
+document.getElementById('filtroPerfil').addEventListener('change', (evento) => {
+    estado.filtros.perfil = evento.target.value;
+    estado.pagina = 1;
+    render();
+});
+
+document.getElementById('filtroEstado').addEventListener('change', (evento) => {
+    estado.filtros.estado = evento.target.value;
+    estado.pagina = 1;
+    render();
+});
+
+// El formulario de filtros no recarga la página: ya se filtra al escribir.
+document.getElementById('formFiltros').addEventListener('submit', (evento) => {
+    evento.preventDefault();
+    render();
+});
+
+document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
+
+function limpiarFiltros() {
+    estado.filtros = { busqueda: '', perfil: 'todos', estado: 'todos' };
+    estado.pagina = 1;
+    document.getElementById('busqueda').value = '';
+    document.getElementById('filtroPerfil').value = 'todos';
+    document.getElementById('filtroEstado').value = 'todos';
+    render();
+}
+
+/* Quitar un filtro desde su chip. */
+document.getElementById('chipsFiltros').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-quitar-filtro]');
+    if (!boton) return;
+
+    const clave = boton.dataset.quitarFiltro;
+    if (clave === 'busqueda') {
+        estado.filtros.busqueda = '';
+        document.getElementById('busqueda').value = '';
+    } else {
+        estado.filtros[clave] = 'todos';
+        document.getElementById(clave === 'perfil' ? 'filtroPerfil' : 'filtroEstado').value = 'todos';
+    }
+    estado.pagina = 1;
+    render();
+});
+
+/* --- Ordenamiento al hacer clic en los encabezados --- */
+document.querySelectorAll('th.ordenable').forEach((encabezado) => {
+    encabezado.addEventListener('click', () => {
+        const campo = encabezado.dataset.campo;
+        // Si se hace clic en la misma columna, se invierte el sentido del orden.
+        if (estado.orden.campo === campo) {
+            estado.orden.direccion = estado.orden.direccion === 'asc' ? 'desc' : 'asc';
+        } else {
+            estado.orden = { campo: campo, direccion: 'asc' };
+        }
+        render();
+    });
+});
+
+/* --- Botones de cada fila (delegación de eventos) ---
+   En lugar de poner un evento por botón, se escucha un solo clic en la tabla
+   y se revisa cuál botón lo originó. Así funciona también para las filas que
+   se dibujan después. */
+document.getElementById('tablaUsuarios').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-accion]');
+    if (!boton) return;
+
+    const id = boton.dataset.id;
+    switch (boton.dataset.accion) {
+        case 'modificar': abrirFormularioUsuario(id); break;
+        case 'estado':    cambiarEstadoUsuario(id);   break;
+        case 'eliminar':  eliminarUsuario(id);        break;
+        case 'academico': abrirVistaAcademica(id);    break;
+    }
+});
+
+/* --- Casillas de selección --- */
+document.getElementById('tablaUsuarios').addEventListener('change', (evento) => {
+    const casilla = evento.target.closest('.check-fila');
+    if (!casilla) return;
+
+    const id = Number(casilla.dataset.id);
+    if (casilla.checked) {
+        estado.seleccionados.add(id);
+    } else {
+        estado.seleccionados.delete(id);
+    }
+    render();
+});
+
+document.getElementById('checkTodos').addEventListener('change', (evento) => {
+    // Afecta solo a las filas visibles en la página actual.
+    document.querySelectorAll('.check-fila').forEach((casilla) => {
+        const id = Number(casilla.dataset.id);
+        if (evento.target.checked) {
+            estado.seleccionados.add(id);
+        } else {
+            estado.seleccionados.delete(id);
+        }
+    });
+    render();
+});
+
+document.getElementById('btnActivarSeleccion').addEventListener('click', () => cambiarEstadoSeleccionados('activo'));
+document.getElementById('btnDesactivarSeleccion').addEventListener('click', () => cambiarEstadoSeleccionados('inactivo'));
+document.getElementById('btnQuitarSeleccion').addEventListener('click', () => {
+    estado.seleccionados.clear();
+    render();
+});
+
+/* --- Paginación --- */
+document.getElementById('btnAnterior').addEventListener('click', () => {
+    if (estado.pagina > 1) { estado.pagina--; render(); }
+});
+
+document.getElementById('btnSiguiente').addEventListener('click', () => {
+    estado.pagina++;
+    render();
+});
+
+document.getElementById('filasPorPagina').addEventListener('change', (evento) => {
+    estado.filasPorPagina = Number(evento.target.value);
+    estado.pagina = 1;
+    render();
+});
+
+/* --- Acciones generales del encabezado --- */
+document.getElementById('btnNuevoUsuario').addEventListener('click', () => abrirFormularioUsuario(null));
+document.getElementById('btnExportar').addEventListener('click', exportarCsv);
+
+document.getElementById('btnRestablecer').addEventListener('click', async () => {
+    const confirmado = await confirmar({
+        titulo: '¿Restablecer los datos de prueba?',
+        mensaje: 'Se descartarán todos los cambios hechos en esta demostración y se volverá ' +
+                 'a los 15 usuarios originales.',
+        textoAceptar: 'Restablecer',
+        peligro: true
+    });
+    if (!confirmado) return;
+
+    estado.usuarios = copiaProfunda(USUARIOS_INICIALES);
+    estado.secciones = copiaProfunda(SECCIONES_INICIALES);
+    estado.seleccionados.clear();
+    limpiarFiltros();
+    guardarDatos();
+    mostrarAviso('Datos de prueba restablecidos.', 'info');
+});
+
+/* --- Formulario de usuario --- */
+document.getElementById('formUsuario').addEventListener('submit', guardarUsuario);
+
+// El RUT se va formateando mientras se escribe.
+document.getElementById('campoRut').addEventListener('input', (evento) => {
+    evento.target.value = formatearRut(evento.target.value);
+});
+
+// Al escribir el nombre se propone un correo, mientras no se haya editado a mano.
+document.getElementById('campoNombre').addEventListener('input', (evento) => {
+    if (estado.correoEditadoManualmente) return;
+    const perfil = document.getElementById('campoPerfil').value;
+    document.getElementById('campoCorreo').value = sugerirCorreo(evento.target.value, perfil);
+});
+
+document.getElementById('campoCorreo').addEventListener('input', () => {
+    estado.correoEditadoManualmente = true;
+});
+
+// Al cambiar el perfil se actualiza el dominio esperado del correo.
+document.getElementById('campoPerfil').addEventListener('change', () => {
+    actualizarAyudaCorreo();
+    if (!estado.correoEditadoManualmente) {
+        const nombre = document.getElementById('campoNombre').value;
+        const perfil = document.getElementById('campoPerfil').value;
+        document.getElementById('campoCorreo').value = sugerirCorreo(nombre, perfil);
+    }
+});
+
+/* --- Modal académica: inscribir y anular --- */
+document.getElementById('contenidoAcademico').addEventListener('click', (evento) => {
+    const botonInscribir = evento.target.closest('[data-inscribir]');
+    if (botonInscribir) {
+        inscribirEnSeccion(botonInscribir.dataset.usuario, botonInscribir.dataset.inscribir);
+        return;
+    }
+
+    const botonAnular = evento.target.closest('[data-anular]');
+    if (botonAnular) {
+        anularInscripcion(botonAnular.dataset.usuario, botonAnular.dataset.anular);
+    }
+});
+
+/* --- Cierre de modales: botón X, botón Cancelar, clic en el fondo y tecla Escape --- */
+document.querySelectorAll('[data-cerrar-modal]').forEach((boton) => {
+    boton.addEventListener('click', () => cerrarModal(boton.dataset.cerrarModal));
+});
+
+document.querySelectorAll('.modal-fondo').forEach((fondo) => {
+    fondo.addEventListener('click', (evento) => {
+        // Solo cierra si el clic fue en el fondo oscuro, no dentro de la ventana.
+        if (evento.target === fondo && fondo.id !== 'modalConfirmacion') {
+            cerrarModal(fondo.id);
+        }
+    });
+});
+
+document.addEventListener('keydown', (evento) => {
+    if (evento.key !== 'Escape') return;
+    ['modalUsuario', 'modalAcademico'].forEach((id) => {
+        if (!document.getElementById(id).hidden) cerrarModal(id);
+    });
+});
+
+/* --- Arranque --- */
+cargarDatos();
+render();
+</script>
+
+</body>
+</html>
