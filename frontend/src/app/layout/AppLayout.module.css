@@ -1,0 +1,17 @@
+.userButton {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  padding: rem(4px) rem(8px);
+  cursor: default;
+  color: inherit;
+}
+
+.navLink {
+  border-radius: var(--mantine-radius-md);
+  font-weight: 500;
+
+  &[data-active] {
+    font-weight: 600;
+  }
+}
