@@ -84,12 +84,26 @@ Registros con historia no se borran físicamente: se marcan con estado (`activo`
 
 ## Cómo levantar el proyecto
 
+### Frontend (mock UI local)
+
+Ya existe un mock React del estudiante (oferta, inscripción y horario) en [`frontend/`](frontend/):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Detalle de estructura, componentes y rúbrica: [`frontend/README.md`](frontend/README.md).
+
+### Backend y base de datos
+
 Pendiente del bootstrap (E0-2 / E0-3). Cuando existan las carpetas, este apartado tendrá:
 
 1. Requisitos (Node.js, MongoDB / Atlas)
 2. Variables de entorno (nunca commitear secretos)
 3. Seed de datos de prueba
-4. Cómo arrancar frontend y backend
+4. Cómo arrancar el backend
 
 **Seed mínimo previsto:** 3 sedes, 4 carreras, 2 planes, 40 asignaturas, 20 docentes, 200 alumnos, 2 períodos y historial de asignaturas aprobadas (sin eso no se demuestran prerrequisitos ni «ya aprobó»).
 
