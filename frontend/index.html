@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2e4a95" />
+    <meta name="description" content="Portal de gestión académica universitaria." />
+    <script>
+      try {
+        var storedColorScheme = window.localStorage.getItem('mantine-color-scheme-value')
+        var colorScheme = ['light', 'dark', 'auto'].includes(storedColorScheme) ? storedColorScheme : 'auto'
+        var computedColorScheme = colorScheme !== 'auto'
+          ? colorScheme
+          : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.setAttribute('data-mantine-color-scheme', computedColorScheme)
+      } catch (error) {
+        document.documentElement.setAttribute('data-mantine-color-scheme', 'light')
+      }
+    </script>
+    <title>Gestión Académica | UNAB</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
