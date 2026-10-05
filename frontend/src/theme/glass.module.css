@@ -1,0 +1,104 @@
+/* ------------------------------------------------------------------
+   Liquid Glass — superficies translúcidas del SGA
+   Uso: import classes from '@/theme/glass.module.css'
+        <Paper className={classes.glass} />
+   ------------------------------------------------------------------ */
+
+.glass {
+  position: relative;
+  background: var(--sga-glass-bg);
+  -webkit-backdrop-filter: blur(var(--sga-glass-blur)) saturate(var(--sga-glass-saturate));
+  backdrop-filter: blur(var(--sga-glass-blur)) saturate(var(--sga-glass-saturate));
+  border: 1px solid var(--sga-glass-border);
+  border-radius: var(--mantine-radius-md);
+  box-shadow:
+    var(--sga-glass-shadow),
+    inset 0 1px 0 0 var(--sga-glass-highlight);
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+/* Variante más opaca: Drawers, Modales, Login. Prioriza legibilidad. */
+.glassStrong {
+  composes: glass;
+  background: var(--sga-glass-bg-strong);
+}
+
+/* Header: pegado arriba, sin radio, solo borde inferior. */
+.glassHeader {
+  composes: glass;
+  border-radius: 0;
+  border-width: 0 0 1px 0;
+  box-shadow: 0 1px 0 0 var(--sga-glass-border);
+}
+
+/* Navbar: pegada a la izquierda, sin radio, solo borde derecho. */
+.glassNavbar {
+  composes: glass;
+  border-radius: 0;
+  border-width: 0 1px 0 0;
+  box-shadow: none;
+}
+
+/* Cards glass interactivas (KPI clicables) */
+.glassInteractive {
+  composes: glass;
+  cursor: pointer;
+
+  @mixin hover {
+    transform: translateY(-2px);
+    box-shadow:
+      var(--mantine-shadow-md),
+      inset 0 1px 0 0 var(--sga-glass-highlight);
+  }
+}
+
+/* Fondo de página con «aurora» sutil para que el vidrio tenga qué desenfocar. */
+.pageBackground {
+  min-height: 100dvh;
+  background-color: var(--sga-page-bg);
+  background-image:
+    radial-gradient(at 0% 0%, var(--sga-aurora-1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, var(--sga-aurora-2) 0, transparent 50%),
+    radial-gradient(at 50% 100%, var(--sga-aurora-3) 0, transparent 55%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* ---------- Fallbacks y accesibilidad ---------- */
+
+/* Navegadores sin backdrop-filter: superficie casi opaca. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass,
+  .glassStrong,
+  .glassHeader,
+  .glassNavbar,
+  .glassInteractive {
+    background: var(--sga-glass-bg-fallback);
+  }
+}
+
+/* Usuario pidió menos transparencia (macOS / iOS / Windows). */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glassStrong,
+  .glassHeader,
+  .glassNavbar,
+  .glassInteractive {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--sga-glass-bg-fallback);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass,
+  .glassInteractive {
+    transition: none;
+  }
+
+  .glassInteractive {
+    @mixin hover {
+      transform: none;
+    }
+  }
+}
