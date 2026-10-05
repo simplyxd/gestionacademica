@@ -36,6 +36,10 @@ const MatrizPermisosPage = lazy(() =>
   import('@/features/permisos/MatrizPermisosPage').then((m) => ({ default: m.MatrizPermisosPage })),
 );
 
+const AdminHomePage = lazy(() => import('@/features/admin/AdminHomePage').then((m) => ({ default: m.AdminHomePage })));
+const ParametrosPage = lazy(() => import('@/features/admin/ParametrosPage').then((m) => ({ default: m.ParametrosPage })));
+const ReportesPage = lazy(() => import('@/features/reportes/ReportesPage').then((m) => ({ default: m.ReportesPage })));
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -63,6 +67,10 @@ export const router = createBrowserRouter([
       { path: 'docente/secciones', element: <RoleGuard allow={['docente']}><SeccionesDocentePage /></RoleGuard> },
       { path: 'docente/horario', element: <RoleGuard allow={['docente']}><HorarioDocentePage /></RoleGuard> },
       // Administrador: permisos por perfil (RF1).
+      { path: 'admin', element: <RoleGuard allow={['admin']}><AdminHomePage /></RoleGuard> },
+      { path: 'admin/parametros', element: <RoleGuard allow={['admin']}><ParametrosPage /></RoleGuard> },
+      // RF12 / CU10: consultas de solo lectura para Administrador y Coordinador.
+      { path: 'reportes', element: <RoleGuard allow={['admin', 'coordinador']}><ReportesPage /></RoleGuard> },
       { path: 'admin/permisos', element: <RoleGuard allow={['admin']}><MatrizPermisosPage /></RoleGuard> },
       { path: '*', element: <ComingSoonPage /> },
     ],

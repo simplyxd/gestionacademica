@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
+import { ParametrosProvider } from './app/parametros/ParametrosContext';
 import { SgaProvider } from './app/SgaContext';
 import { SedesProvider } from './features/estructura/SedesContext';
 import { OfertaProvider } from './features/oferta/OfertaContext';
@@ -11,6 +12,7 @@ import { MatriculaProvider } from './features/matricula/MatriculaContext';
 export function App() {
   return (
     <AuthProvider>
+      <ParametrosProvider>
       <PermisosProvider>
         <PeriodosProvider>
           <SedesProvider>
@@ -24,6 +26,7 @@ export function App() {
           </SedesProvider>
         </PeriodosProvider>
       </PermisosProvider>
+      </ParametrosProvider>
     </AuthProvider>
   );
 }

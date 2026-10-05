@@ -24,6 +24,7 @@ import { useSga } from '@/app/SgaContext';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SiteFooter } from '@/components/layout/SiteFooter';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
+import { useParametros } from '@/app/parametros/ParametrosContext';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ESCENARIOS } from '@/features/inscripcion/reglas';
 import { PERIODO_ACTUAL as PERIODO_SGA } from '@/mocks/sga';
@@ -47,6 +48,7 @@ export function AppLayout() {
   const { usuario, cambiarRol } = useAuth();
   const { escenario, setEscenario } = useSga();
   const { periodoActual } = usePeriodos();
+  const { parametros } = useParametros();
   const esEstudiante = usuario.rol === 'estudiante';
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
   const [desktopCollapsed, { toggle: toggleDesktop }] = useDisclosure(false);
@@ -91,9 +93,9 @@ export function AppLayout() {
             <Group gap="sm" wrap="nowrap">
               <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" aria-label="Abrir menú" />
               <Burger opened={!desktopCollapsed} onClick={toggleDesktop} visibleFrom="lg" size="sm" aria-label="Contraer menú" />
-              <BrandLogo size={30} />
+              <BrandLogo size={30} wordmark={parametros.siglasPortal} />
               <Text c="dimmed" fz="sm" visibleFrom="md" component="span">
-                Instituto Universitario Nueva Formación
+                {parametros.nombreInstitucion}
               </Text>
             </Group>
 

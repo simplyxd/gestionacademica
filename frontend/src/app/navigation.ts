@@ -36,7 +36,7 @@ export interface NavItem {
 
 export const NAV_BY_ROLE: Record<Rol, NavItem[]> = {
   admin: [
-    { label: 'Inicio', to: '/', icon: IconHome },
+    { label: 'Inicio', to: '/admin', icon: IconHome },
     { label: 'Usuarios', to: '/admin/usuarios', icon: IconUsers, group: 'Administración' },
     { label: 'Parámetros', to: '/admin/parametros', icon: IconSettings, group: 'Administración' },
     { label: 'Permisos', to: '/admin/permisos', icon: IconShieldCheck, group: 'Administración' },

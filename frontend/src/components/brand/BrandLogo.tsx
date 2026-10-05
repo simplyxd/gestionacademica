@@ -4,6 +4,8 @@ import classes from './BrandLogo.module.css';
 interface BrandLogoProps {
   /** Mostrar el nombre institucional junto al monograma. */
   showWordmark?: boolean;
+  /** Texto junto al monograma (p. ej. las siglas del portal, que el administrador puede cambiar). */
+  wordmark?: string;
   /** Tamaño del monograma en px. */
   size?: number;
 }
@@ -12,7 +14,7 @@ interface BrandLogoProps {
  * Monograma SGA — azul marino + acento ámbar institucional.
  * Reutilizable en header, footer y favicon embebido via props.
  */
-export function BrandLogo({ showWordmark = true, size = 32 }: BrandLogoProps) {
+export function BrandLogo({ showWordmark = true, wordmark = 'SGA', size = 32 }: BrandLogoProps) {
   return (
     <Group gap="sm" wrap="nowrap" align="center">
       <svg
@@ -31,7 +33,7 @@ export function BrandLogo({ showWordmark = true, size = 32 }: BrandLogoProps) {
       </svg>
       {showWordmark && (
         <Text fw={700} fz="lg" className={classes.wordmark} component="span" lh={1.1}>
-          SGA
+          {wordmark}
         </Text>
       )}
     </Group>

@@ -1,5 +1,6 @@
 import { Group, Stack, Text, UnstyledButton } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+import { useParametros } from '@/app/parametros/ParametrosContext';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import glass from '@/theme/glass.module.css';
 import classes from './SiteFooter.module.css';
@@ -31,12 +32,13 @@ export function SiteFooter({
   year = CURRENT_YEAR,
 }: SiteFooterProps) {
   const navigate = useNavigate();
+  const { parametros } = useParametros();
 
   return (
     <footer className={`${glass.glass} ${classes.footer}`} aria-label="Pie de página">
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="lg">
         <Stack gap={6}>
-          <BrandLogo size={28} />
+          <BrandLogo size={28} wordmark={parametros.siglasPortal} />
           <Text size="sm" c="dimmed" maw={360}>
             Sistema Web de Gestión Académica — Instituto Universitario Nueva Formación.
             Prototipo frontend con datos de ejemplo.

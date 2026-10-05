@@ -19,8 +19,8 @@ La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) de
 
 | Perfil | Pantallas disponibles |
 |---|---|
-| Administrador | `/admin/permisos` (RF1) |
-| Coordinador académico | `/matricula` (RF6), `/periodos` (RF3), `/estructura/sedes` (RF2), `/coordinador/oferta` (RF9) |
+| Administrador | `/admin` (panel), `/admin/parametros`, `/admin/permisos` (RF1), `/reportes` (RF12) |
+| Coordinador académico | `/matricula` (RF6), `/periodos` (RF3), `/estructura/sedes` (RF2), `/coordinador/oferta` (RF9), `/reportes` (RF12) |
 | Docente | `/docente/secciones` (con nómina), `/docente/horario` |
 | Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
 
@@ -31,7 +31,8 @@ El resto de rutas muestran «Próximamente».
 La **Oferta de secciones** del coordinador es la fuente única de secciones (`features/oferta/OfertaContext.tsx`):
 lo que se programa ahí lo ven el Estudiante (en el período «en curso») y el Docente asignado. Los **Períodos** y las
 **Sedes** que crea el coordinador alimentan los selectores de Matrícula y de la oferta. Todo vive en memoria: al
-recargar vuelve el seed.
+recargar vuelve el seed (excepto los **Parámetros institucionales**, que se guardan en `localStorage`: siglas y nombre de la
+institución se leen en el encabezado y el pie).
 
 ### Datos para probar
 
