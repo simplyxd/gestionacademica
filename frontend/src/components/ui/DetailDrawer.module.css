@@ -1,0 +1,33 @@
+/* El cuerpo ocupa todo el alto del drawer; el pie queda pegado abajo aunque el contenido sea corto. */
+/* `:is(section, div)` sube la especificidad: la regla base de Mantine (Paper) fija display:block. */
+.content:is(section, div) {
+  display: flex;
+  flex-direction: column;
+
+  /* El defaultProps de Paper (p="lg") se filtra como estilo inline al contenido del Drawer y duplica
+     el padding del cuerpo. Solo se puede anular desde CSS, por eso el !important (acotado a esta regla). */
+  padding: 0 !important;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+.main {
+  flex: 1;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: var(--mantine-spacing-lg);
+  margin-inline: calc(var(--mantine-spacing-lg) * -1);
+  margin-bottom: calc(var(--mantine-spacing-lg) * -1);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: var(--sga-glass-bg-strong);
+}

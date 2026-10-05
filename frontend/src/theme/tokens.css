@@ -1,0 +1,43 @@
+/* Se importa una vez en ThemeProvider.tsx, después de los estilos de Mantine. */
+
+/* No se fija `color-scheme` aquí: Mantine lo define según data-mantine-color-scheme, y declararlo
+   en :root haría que light-dark() siguiera al sistema operativo en vez del toggle del Header. */
+
+body {
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Números tabulares en tablas, horarios y KPIs */
+.sga-tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Código de asignatura (INF-201) */
+.sga-code {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Foco visible coherente (Mantine ya lo hace; esto cubre elementos propios) */
+.sga-focusable:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* Oculta visualmente, mantiene para lectores de pantalla */
+.sga-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
