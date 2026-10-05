@@ -43,12 +43,12 @@ export function PorTomarList({ items, onElegir }: PorTomarListProps) {
             <Group justify="space-between" wrap="nowrap" align="flex-start">
               <Stack gap={4} align="flex-start">
                 <Group gap="xs">
-                  <Text className="sga-code" c="indigo">{asignatura.codigo}</Text>
+                  <Text className="sga-code sga-code-indigo">{asignatura.codigo}</Text>
                   {fueAnulada && (
                     <Badge color="crimson" variant="outline" size="sm">Anulada</Badge>
                   )}
                   {prerrequisitosPendientes.length > 0 && (
-                    <Badge color="crimson" variant="light" size="sm" leftSection={<IconLock size={12} />}>
+                    <Badge color="crimson" variant="light" size="sm" leftSection={<IconLock size={12} stroke={2} />}>
                       Prerrequisito
                     </Badge>
                   )}

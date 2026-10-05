@@ -1,12 +1,23 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RoleGuard } from '@/features/auth/RoleGuard';
-import { HorarioPage } from '@/features/horario/HorarioPage';
-import { InscripcionPage } from '@/features/inscripcion/InscripcionPage';
-import { MatriculaPage } from '@/features/matricula/MatriculaPage';
-import { OfertaPage } from '@/features/oferta/OfertaPage';
 import { AppLayout } from './layout/AppLayout';
 import { ComingSoonPage } from './pages/ComingSoonPage';
 import { InicioPage } from './pages/InicioPage';
+
+// Una pantalla por chunk: el bundle inicial no carga las features de otros perfiles.
+const MatriculaPage = lazy(() =>
+  import('@/features/matricula/MatriculaPage').then((m) => ({ default: m.MatriculaPage })),
+);
+const OfertaPage = lazy(() =>
+  import('@/features/oferta/OfertaPage').then((m) => ({ default: m.OfertaPage })),
+);
+const InscripcionPage = lazy(() =>
+  import('@/features/inscripcion/InscripcionPage').then((m) => ({ default: m.InscripcionPage })),
+);
+const HorarioPage = lazy(() =>
+  import('@/features/horario/HorarioPage').then((m) => ({ default: m.HorarioPage })),
+);
 
 export const router = createBrowserRouter([
   {

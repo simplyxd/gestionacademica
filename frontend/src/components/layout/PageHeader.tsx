@@ -17,7 +17,7 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
         <Breadcrumbs separatorMargin="xs" fz="sm">
           {breadcrumbs.map((b) =>
             b.to ? (
-              <Anchor key={b.label} component={Link} to={b.to} c="dimmed" fz="sm">
+              <Anchor key={b.label} component={Link} to={b.to} c="dimmed" fz="sm" display="inline-block" py={6}>
                 {b.label}
               </Anchor>
             ) : (
@@ -29,7 +29,7 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
         </Breadcrumbs>
       )}
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
-        <Stack gap={4} style={{ flex: 1, minWidth: 240 }}>
+        <Stack gap={4} flex={1} miw={240}>
           <Title order={1}>{title}</Title>
           {description && (
             <Text c="dimmed" fz="md" maw={720}>

@@ -122,7 +122,7 @@ export function MatriculasTable({ rows, destacadaId, onCambiarEstado }: Matricul
                     )}
                   </Table.Td>
                   <Table.Td>
-                    <Text component="span" className="sga-code sga-tnum" c="indigo">
+                    <Text component="span" className="sga-code sga-tnum sga-code-indigo">
                       {row.periodo.codigo}
                     </Text>
                   </Table.Td>
@@ -163,7 +163,7 @@ export function MatriculasTable({ rows, destacadaId, onCambiarEstado }: Matricul
                 <AccionesMenu row={row} onCambiarEstado={onCambiarEstado} />
               </Group>
               <Group justify="space-between" mt="sm">
-                <Text component="span" className="sga-code sga-tnum" c="indigo">
+                <Text component="span" className="sga-code sga-tnum sga-code-indigo">
                   {row.periodo.codigo}
                 </Text>
                 <EstadoMatriculaBadge estado={row.matricula.estado} />

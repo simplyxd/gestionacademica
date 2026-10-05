@@ -219,7 +219,22 @@ export const theme = createTheme({
       defaultProps: { radius: 'xl', size: 'sm', transitionDuration: 200 },
     }),
     Pagination: Pagination.extend({
-      defaultProps: { radius: 'md', size: 'md', withEdges: false, siblings: 1 },
+      defaultProps: {
+        radius: 'md',
+        size: 'md',
+        withEdges: false,
+        siblings: 1,
+        // Los controles solo tienen icono: sin esto un lector de pantalla anuncia «botón» a secas.
+        getControlProps: (control) => ({
+          'aria-label': {
+            first: 'Primera página',
+            previous: 'Página anterior',
+            next: 'Página siguiente',
+            last: 'Última página',
+          }[control],
+        }),
+        getItemProps: (page) => ({ 'aria-label': `Página ${page}` }),
+      },
     }),
     Tabs: Tabs.extend({
       defaultProps: { variant: 'default', radius: 'md', keepMounted: false },

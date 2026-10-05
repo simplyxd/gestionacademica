@@ -27,7 +27,7 @@ export function AnuladasList({ anuladas }: AnuladasListProps) {
         return (
           <Group key={inscripcion.id} justify="space-between" wrap="nowrap" gap="md">
             <Group gap="sm" wrap="nowrap">
-              <Text component="span" className="sga-code" c="indigo">
+              <Text component="span" className="sga-code sga-code-indigo">
                 {seccion.codigoAsignatura}
               </Text>
               <Stack gap={0}>

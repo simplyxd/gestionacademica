@@ -66,7 +66,7 @@ export function HorarioPage() {
 
         <Card>
           <Card.Section inheritPadding withBorder py="sm">
-            <Title order={3}>Inscripciones anuladas</Title>
+            <Title order={2} size="h3">Inscripciones anuladas</Title>
           </Card.Section>
           <Card.Section inheritPadding py="md">
             <AnuladasList anuladas={anuladas} />

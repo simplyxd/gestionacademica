@@ -22,6 +22,12 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* Código académico en índigo: indigo-6 en claro (≈6.8:1) y indigo-3 en oscuro (≈6.4:1).
+   `c="indigo"` usa un solo tono para ambos esquemas y en oscuro queda en ≈3.8:1. */
+.sga-code-indigo {
+  color: light-dark(var(--mantine-color-indigo-6), var(--mantine-color-indigo-3));
+}
+
 /* Foco visible coherente (Mantine ya lo hace; esto cubre elementos propios) */
 .sga-focusable:focus-visible {
   outline: 2px solid var(--mantine-primary-color-filled);

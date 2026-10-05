@@ -21,6 +21,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
   },
 
   light: {
+    /* Texto atenuado AA: slate-6 sobre blanco ≈ 7.6:1 (el gris por defecto de Mantine da ≈ 3.9:1). */
+    '--mantine-color-dimmed': theme.colors.slate[6],
+
     '--sga-page-bg': theme.colors.slate[0],
     '--sga-aurora-1': 'rgba(46, 74, 149, 0.08)',
     '--sga-aurora-2': 'rgba(67, 81, 184, 0.07)',
@@ -44,6 +47,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
   },
 
   dark: {
+    /* slate-4 sobre slate-8/9 ≈ 5.5–7:1 */
+    '--mantine-color-dimmed': theme.colors.slate[4],
+
     '--sga-page-bg': theme.colors.slate[9],
     '--sga-aurora-1': 'rgba(100, 128, 196, 0.16)',
     '--sga-aurora-2': 'rgba(117, 131, 218, 0.14)',

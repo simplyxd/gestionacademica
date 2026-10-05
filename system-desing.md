@@ -1,6 +1,6 @@
 # Sistema de Diseño SGA — Instituto Universitario Nueva Formación
 
-> **Versión:** 1.0 · **Estado:** vigente · **Owner:** equipo SGA (6 devs) · **Actualizado:** 2026-09-06
+> **Versión:** 1.1 · **Estado:** vigente · **Owner:** equipo SGA (6 devs) · **Actualizado:** 2026-10-05
 > **Stack UI:** React 18 + TypeScript + Mantine UI v7 (`@mantine/core`, `@mantine/hooks`, `@mantine/dates`, `@mantine/notifications`) + `@tabler/icons-react`
 > **Alcance:** todo el frontend del SGA (`/frontend`). Este documento es la fuente de verdad visual, técnica y de UX. Si algo no está aquí y hace falta, se propone en PR contra este archivo antes de implementarlo dos veces de forma distinta.
 
@@ -54,7 +54,7 @@ El SGA adopta la postura contraria. Cada pantalla debe responder tres preguntas 
 - **CSS Modules** + variables de Mantine para estilos propios. Nada de `style={{}}` inline salvo valores dinámicos calculados (p. ej. posición de un bloque horario).
 - **Modo claro y oscuro** soportados desde el día uno vía `MantineProvider` (`defaultColorScheme="auto"`). Todo color propio se define en ambos esquemas.
 - **Idioma de la UI: español**, tono cercano y directo (tuteo), sin jerga técnica hacia el usuario final.
-- **Iconografía:** exclusivamente `@tabler/icons-react`, `stroke={1.5}`, tamaños 16 / 18 / 20 px.
+- **Iconografía:** exclusivamente `@tabler/icons-react`, `stroke={1.5}`, tamaños 16 / 18 / 20 px. Excepción documentada: dentro de `Badge`, `ThemeIcon` pequeños, bullets de `List`/`Timeline` y marcadores de horario se usan 12 / 14 px con `stroke={2}` (a ese tamaño 1.5 se pierde); así están los snippets de este documento.
 
 ---
 
@@ -460,7 +460,17 @@ export const sky: MantineColorsTuple = [
   '#2496E0', '#0E6FB3', '#0F5A91', '#124B76', '#10395A',
 ];
 
-export const sgaColors = { navy, indigo, amber, slate, teal, crimson, orange, sky } as const;
+/**
+ * Escala `dark` de Mantine reasignada a la pizarra. Mantine la usa en modo oscuro para texto (0),
+ * `dimmed` (2), bordes (4), hover (5), controles (6) y fondo de card/body (7). Sin esto las superficies
+ * salen en gris neutro (#242424) en lugar de pizarra.
+ */
+export const dark: MantineColorsTuple = [
+  '#F1F5F9', '#E2E8F0', '#94A3B8', '#64748B', '#334155',
+  '#2B3A4F', '#243046', '#1E293B', '#172033', '#0F172A',
+];
+
+export const sgaColors = { navy, indigo, amber, slate, teal, crimson, orange, sky, dark } as const;
 ```
 
 ### 3.3 `src/theme/mantine.d.ts` — tipado de colores y `theme.other`
@@ -744,7 +754,22 @@ export const theme = createTheme({
       defaultProps: { radius: 'xl', size: 'sm', transitionDuration: 200 },
     }),
     Pagination: Pagination.extend({
-      defaultProps: { radius: 'md', size: 'md', withEdges: false, siblings: 1 },
+      defaultProps: {
+        radius: 'md',
+        size: 'md',
+        withEdges: false,
+        siblings: 1,
+        // Los controles solo tienen icono: sin aria-label un lector de pantalla anuncia «botón» a secas.
+        getControlProps: (control) => ({
+          'aria-label': {
+            first: 'Primera página',
+            previous: 'Página anterior',
+            next: 'Página siguiente',
+            last: 'Última página',
+          }[control],
+        }),
+        getItemProps: (page) => ({ 'aria-label': `Página ${page}` }),
+      },
     }),
     Tabs: Tabs.extend({
       defaultProps: { variant: 'default', radius: 'md', keepMounted: false },
@@ -854,6 +879,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
   },
 
   light: {
+    /* Texto atenuado AA: slate-6 sobre blanco ≈ 7.6:1. Sin esto Mantine usa un gris (#868e96 ≈ 3.5:1). */
+    '--mantine-color-dimmed': theme.colors.slate[6],
+
     '--sga-page-bg': theme.colors.slate[0],
     '--sga-aurora-1': 'rgba(46, 74, 149, 0.08)',
     '--sga-aurora-2': 'rgba(67, 81, 184, 0.07)',
@@ -877,6 +905,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
   },
 
   dark: {
+    /* slate-4 sobre slate-8/9 ≈ 5.5–7:1 */
+    '--mantine-color-dimmed': theme.colors.slate[4],
+
     '--sga-page-bg': theme.colors.slate[9],
     '--sga-aurora-1': 'rgba(100, 128, 196, 0.16)',
     '--sga-aurora-2': 'rgba(117, 131, 218, 0.14)',
@@ -1013,9 +1044,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (theme) => ({
 ```css
 /* Se importa una vez en ThemeProvider.tsx, después de los estilos de Mantine. */
 
-:root {
-  color-scheme: light dark;
-}
+/* No se fija `color-scheme` en :root: Mantine lo define según data-mantine-color-scheme; declararlo aquí
+   haría que light-dark() siguiera al sistema operativo en vez del toggle del Header. */
 
 body {
   font-feature-settings: 'cv11', 'ss01', 'tnum';
@@ -1034,6 +1064,12 @@ body {
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
   letter-spacing: 0.01em;
+}
+
+/* Código académico en índigo: indigo-6 en claro (≈6.8:1) e indigo-3 en oscuro (≈6.4:1).
+   `c="indigo"` usa un solo tono para ambos esquemas y en oscuro queda en ≈3.8:1. */
+.sga-code-indigo {
+  color: light-dark(var(--mantine-color-indigo-6), var(--mantine-color-indigo-3));
 }
 
 /* Foco visible coherente (Mantine ya lo hace; esto cubre elementos propios) */
@@ -3081,6 +3117,12 @@ Checklist por pantalla:
 8. **Anuncios dinámicos:** el conteo de choques usa `role="status"`; las notificaciones de Mantine ya son `role="alert"`.
 9. **Zoom 200 %:** las vistas deben seguir operables; probar con `Ctrl/Cmd +` hasta 200 % (las tablas pasan a `ScrollContainer`, no se rompen).
 10. **Idioma:** `<html lang="es">`.
+11. **Landmarks y saltos:** un solo `<main>` por página (`AppShell.Main`, con `id="contenido-principal"`); enlace «Saltar al contenido» como primer elemento enfocable.
+12. **Jerarquía de títulos:** h1 → h2 → h3 sin saltos. Si el diseño pide el tamaño de h3 en una sección, se usa `<Title order={2} size="h3">`.
+13. **Cambio de ruta:** el foco se mueve al `<main>` para que teclado y lector de pantalla empiecen en la página nueva.
+14. **Objetivos táctiles/puntero:** mínimo 24×24 px (WCAG 2.2 AA); enlaces de una sola línea llevan `py` para alcanzarlo.
+15. **Controles solo-icono** (incluidos los de `Pagination`): nombre accesible en español.
+16. **Carga:** rutas por pantalla con `React.lazy` y `Suspense` + `Skeleton` con la forma de la página (§7.4).
 
 ### 7.3 Modo claro / modo oscuro
 
@@ -3162,7 +3204,7 @@ frontend/src/
 <Text c="dimmed" fz="sm">…</Text>
 
 // Código de asignatura
-<Text component="span" className="sga-code" c="indigo">INF-201</Text>
+<Text component="span" className="sga-code sga-code-indigo">INF-201</Text>
 
 // Card glass de KPI
 <StatCard label="Inscritos" value={1284} icon={IconUsers} />
@@ -3196,3 +3238,4 @@ notify.success({ title: 'Sección creada', message: 'INF-201 sección C ya está
 | Versión | Fecha | Cambio |
 |---|---|---|
 | 1.0 | 2026-09-06 | Versión inicial: tokens, tema Mantine v7, glass, layout, catálogo, reglas CU8/RF10, guía de estilo. |
+| 1.1 | 2026-10-05 | `dimmed` por esquema y escala `dark` en el tema (el código de 1.0 no los implementaba y el texto atenuado salía a ≈3.9:1); `color-scheme` fuera de `tokens.css`; `.sga-code-indigo`; `Pagination` accesible; excepción de iconos 12/14 px; §7.2 puntos 11–16. |

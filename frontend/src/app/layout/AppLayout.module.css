@@ -24,3 +24,27 @@
     font-weight: 600;
   }
 }
+
+/* Enlace «Saltar al contenido»: oculto hasta recibir foco con teclado (WCAG 2.4.1). */
+.skipLink {
+  position: fixed;
+  top: var(--mantine-spacing-xs);
+  left: var(--mantine-spacing-xs);
+  z-index: 1100;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  font-weight: 600;
+  color: var(--mantine-color-text);
+  background: var(--mantine-color-body);
+  border: 2px solid var(--mantine-primary-color-filled);
+  border-radius: var(--mantine-radius-md);
+  transform: translateY(-200%);
+
+  &:focus-visible {
+    transform: none;
+  }
+}
+
+/* El <main> recibe foco por código al cambiar de ruta; no es interactivo, no lleva anillo. */
+.main:focus {
+  outline: none;
+}
