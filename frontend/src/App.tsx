@@ -5,6 +5,7 @@ import { SedesProvider } from './features/estructura/SedesContext';
 import { OfertaProvider } from './features/oferta/OfertaContext';
 import { PeriodosProvider } from './features/periodos/PeriodosContext';
 import { PermisosProvider } from './features/permisos/PermisosContext';
+import { PersonasProvider } from './features/personas/PersonasContext';
 import { router } from './app/router';
 import { AuthProvider } from './features/auth/AuthContext';
 import { MatriculaProvider } from './features/matricula/MatriculaContext';
@@ -14,6 +15,7 @@ export function App() {
     <AuthProvider>
       <ParametrosProvider>
       <PermisosProvider>
+      <PersonasProvider>
         <PeriodosProvider>
           <SedesProvider>
             <OfertaProvider>
@@ -25,6 +27,7 @@ export function App() {
             </OfertaProvider>
           </SedesProvider>
         </PeriodosProvider>
+      </PersonasProvider>
       </PermisosProvider>
       </ParametrosProvider>
     </AuthProvider>

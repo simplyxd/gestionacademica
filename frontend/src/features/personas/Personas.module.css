@@ -1,0 +1,4 @@
+/* Correos y textos largos no deben desbordar la card ni el panel. */
+.largo {
+  overflow-wrap: anywhere;
+}

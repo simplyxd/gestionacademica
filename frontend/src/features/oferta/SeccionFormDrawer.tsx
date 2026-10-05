@@ -8,7 +8,9 @@ import { useSedes } from '@/features/estructura/SedesContext';
 import { usePeriodos } from '@/features/periodos/PeriodosContext';
 import { aMinutos, DIAS_LARGOS, fmt } from '@/lib/horas';
 import { notify } from '@/lib/notify';
-import { DOCENTES, SALAS } from '@/mock/docentes';
+import { usePersonas } from '@/features/personas/PersonasContext';
+import { nombreCompleto } from '@/mock/personas';
+import { SALAS } from '@/mock/docentes';
 import { asignaturas } from '@/mocks/sga';
 import { mensajeConflicto } from './conflictos';
 import { useOfertaStore } from './OfertaContext';
@@ -59,6 +61,7 @@ export function SeccionFormDrawer({ opened, onClose, seccion, periodoInicial }: 
   const { secciones, guardar } = useOfertaStore();
   const { periodos } = usePeriodos();
   const { sedes } = useSedes();
+  const { docentesActivos } = usePersonas();
   const theme = useMantineTheme();
   const editando = seccion !== null;
   const [intentoBloqueado, setIntentoBloqueado] = useState(false);
@@ -186,9 +189,10 @@ export function SeccionFormDrawer({ opened, onClose, seccion, periodoInicial }: 
               <Select
                 label="Docente"
                 placeholder="Selecciona un docente"
+                description="Solo docentes activos"
                 withAsterisk
                 allowDeselect={false}
-                data={DOCENTES.map((d) => d.nombre)}
+                data={[...new Set([...docentesActivos.map((d) => nombreCompleto(d)), ...(seccion ? [seccion.docente] : [])])]}
                 {...form.getInputProps('docente')}
               />
             </Grid.Col>

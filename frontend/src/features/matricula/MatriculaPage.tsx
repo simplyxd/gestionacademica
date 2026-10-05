@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { notify } from '@/lib/notify';
 import { usePeriodos } from '@/features/periodos/PeriodosContext';
+import { usePersonas } from '@/features/personas/PersonasContext';
 import { nombreCompleto } from '@/mock/personas';
 import { resolver, type MatriculaRow } from './catalogos';
 import { useMatriculas } from './MatriculaContext';
@@ -61,6 +62,7 @@ const PASADO: Record<EstadoDestino, string> = {
 export function MatriculaPage() {
   const { matriculas, cambiarEstado } = useMatriculas();
   const { periodos } = usePeriodos();
+  const { estudiantes: personas } = usePersonas();
   const [drawerAbierto, drawer] = useDisclosure(false);
 
   const [busqueda, setBusqueda] = useState('');
@@ -83,9 +85,9 @@ export function MatriculaPage() {
     () =>
       [...matriculas]
         .sort((a, b) => b.creadaEn.localeCompare(a.creadaEn))
-        .map((m) => resolver(m, periodos))
+        .map((m) => resolver(m, periodos, personas))
         .filter((r): r is MatriculaRow => r !== null),
-    [matriculas, periodos],
+    [matriculas, periodos, personas],
   );
 
   const filtradas = useMemo(() => {

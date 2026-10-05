@@ -5,7 +5,6 @@ import type { Matricula } from './types';
 
 const porId = <T extends { id: string }>(xs: readonly T[]) => new Map(xs.map((x) => [x.id, x]));
 
-const estudiantes = porId(ESTUDIANTES);
 const carreras = porId(CARRERAS);
 const planes = porId(PLANES);
 
@@ -19,8 +18,12 @@ export interface MatriculaRow {
 }
 
 /** `periodos` viene del store (puede incluir períodos creados por el coordinador); por defecto, el seed. */
-export function resolver(m: Matricula, periodos: readonly Periodo[] = PERIODOS): MatriculaRow | null {
-  const estudiante = estudiantes.get(m.estudianteId);
+export function resolver(
+  m: Matricula,
+  periodos: readonly Periodo[] = PERIODOS,
+  estudiantes: readonly Estudiante[] = ESTUDIANTES,
+): MatriculaRow | null {
+  const estudiante = estudiantes.find((e) => e.id === m.estudianteId);
   const carrera = carreras.get(m.carreraId);
   const plan = planes.get(m.planId);
   const periodo = periodos.find((p) => p.id === m.periodoId);

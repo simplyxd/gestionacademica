@@ -6,6 +6,7 @@
  * Todo vive en memoria: al recargar la página vuelve el seed.
  */
 import type { SedeInput } from '@/features/estructura/rules';
+import type { PersonaInput, RolPersona } from '@/features/personas/types';
 import type { SeccionInput } from '@/features/oferta/reglasOferta';
 import type { PeriodoInput } from '@/features/periodos/rules';
 
@@ -207,6 +208,59 @@ export const CASOS_SEDE: CasoSede[] = [
   { id: 'sede-editar-misma', titulo: 'Editar Sede Norte conservando su nombre: no es duplicado', perfil: 'coordinador', ruta: '/estructura/sedes', editaSedeId: 'sede-norte', datos: { nombre: 'Sede Norte', direccion: 'Camino Costero 800', comuna: 'Antofagasta', estado: 'en mantenimiento' }, camposConError: [] },
 ];
 
+export interface CasoPersona {
+  id: string;
+  titulo: string;
+  perfil: 'coordinador';
+  ruta: '/personas';
+  rol: RolPersona;
+  /** Si se indica, es una edición de esa persona del seed; si no, es «Nuevo». */
+  editaPersonaId?: string;
+  datos: PersonaInput;
+  camposConError: (keyof PersonaInput)[];
+}
+
+const VACIOS = { especialidad: '', tipoVinculo: '', codigoEstudiante: '', contactoEmergencia: '', nivelCursando: '' };
+
+const DOCENTE_VALIDO: PersonaInput = {
+  rut: '14.567.891-9',
+  nombres: 'Sofía',
+  apellidos: 'Lagos',
+  email: 'sofia.lagos@nuevaformacion.cl',
+  telefono: '+56 9 5500 0300',
+  incorporacion: '2026-03-02',
+  ...VACIOS,
+  especialidad: 'Informática',
+  tipoVinculo: 'Por horas',
+};
+
+const ESTUDIANTE_VALIDO: PersonaInput = {
+  rut: '21.111.222-0',
+  nombres: 'Pablo',
+  apellidos: 'Soto',
+  email: 'pablo.soto@alumnos.nuevaformacion.cl',
+  telefono: '+56 9 5600 0400',
+  incorporacion: '2026-03-02',
+  ...VACIOS,
+  codigoEstudiante: 'EST-2026-050',
+  contactoEmergencia: 'Ana Soto · +56 9 5700 0400',
+  nivelCursando: 'Nivel 1',
+};
+
+const P = { perfil: 'coordinador', ruta: '/personas' } as const;
+
+export const CASOS_PERSONA: CasoPersona[] = [
+  { id: 'docente-ok', titulo: 'Docente válido: queda activo y aparece al asignar docentes en la oferta', ...P, rol: 'docente', datos: DOCENTE_VALIDO, camposConError: [] },
+  { id: 'docente-rut-invalido', titulo: 'RUT con dígito verificador incorrecto', ...P, rol: 'docente', datos: { ...DOCENTE_VALIDO, rut: '14.567.891-K' }, camposConError: ['rut'] },
+  { id: 'docente-rut-repetido', titulo: 'RUT de un docente que ya existe (Rodrigo Fuentes)', ...P, rol: 'docente', datos: { ...DOCENTE_VALIDO, rut: '12.300.000-9' }, camposConError: ['rut'] },
+  { id: 'docente-sin-vinculo', titulo: 'Docente sin especialidad y con vínculo inválido', ...P, rol: 'docente', datos: { ...DOCENTE_VALIDO, especialidad: '', tipoVinculo: 'Otro' }, camposConError: ['especialidad', 'tipoVinculo'] },
+  { id: 'estudiante-ok', titulo: 'Estudiante válido: queda activo y aparece al matricular', ...P, rol: 'estudiante', datos: ESTUDIANTE_VALIDO, camposConError: [] },
+  { id: 'estudiante-codigo-repetido', titulo: 'Código de estudiante que ya existe (EST-2025-001)', ...P, rol: 'estudiante', datos: { ...ESTUDIANTE_VALIDO, codigoEstudiante: 'EST-2025-001' }, camposConError: ['codigoEstudiante'] },
+  { id: 'estudiante-codigo-formato', titulo: 'Código con formato incorrecto', ...P, rol: 'estudiante', datos: { ...ESTUDIANTE_VALIDO, codigoEstudiante: 'A-1' }, camposConError: ['codigoEstudiante'] },
+  { id: 'persona-incorporacion-futura', titulo: 'Fecha de incorporación en el futuro', ...P, rol: 'estudiante', datos: { ...ESTUDIANTE_VALIDO, incorporacion: '2999-01-01' }, camposConError: ['incorporacion'] },
+  { id: 'persona-telefono-corto', titulo: 'Teléfono con menos de 7 dígitos', ...P, rol: 'docente', datos: { ...DOCENTE_VALIDO, telefono: '12345' }, camposConError: ['telefono'] },
+];
+
 /** Recorridos manuales entre pantallas (no son datos de formulario): qué hacer y qué debería verse. */
 export interface Recorrido {
   perfil: 'admin' | 'coordinador' | 'docente' | 'estudiante';
@@ -216,6 +270,24 @@ export interface Recorrido {
 }
 
 export const RECORRIDOS: Recorrido[] = [
+  {
+    perfil: 'coordinador',
+    ruta: '/personas',
+    pasos: 'Desactiva a «Rodrigo Fuentes» (docente) y abre «Nueva sección» en /coordinador/oferta.',
+    esperado: 'El aviso de baja menciona sus secciones en el período en curso, y ya no se ofrece al asignar un docente (las secciones que tenía siguen asignadas).',
+  },
+  {
+    perfil: 'coordinador',
+    ruta: '/personas',
+    pasos: 'Pestaña Estudiantes: desactiva a «Valentina Rojas Medina» y abre /matricula → «Matricular estudiante».',
+    esperado: 'Ya no aparece en el selector de estudiantes; su matrícula existente sigue en la lista. «Reactivar» la devuelve al selector.',
+  },
+  {
+    perfil: 'coordinador',
+    ruta: '/personas',
+    pasos: 'Crea el estudiante «estudiante-ok» y luego matricúlalo desde /matricula.',
+    esperado: 'Aparece en el selector; al abrir su ficha se ven sus matrículas.',
+  },
   {
     perfil: 'coordinador',
     ruta: '/coordinador/oferta',

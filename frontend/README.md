@@ -20,8 +20,8 @@ La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) de
 | Perfil | Pantallas disponibles |
 |---|---|
 | Administrador | `/admin` (panel), `/admin/usuarios` (ABM, RF1), `/admin/parametros`, `/admin/permisos` (RF1), `/reportes` (RF12) |
-| Coordinador académico | `/matricula` (RF6), `/periodos` (RF3), `/estructura/sedes` (RF2), `/coordinador/oferta` (RF9), `/reportes` (RF12) |
-| Docente | `/docente/secciones` (con nómina), `/docente/horario` |
+| Coordinador académico | `/matricula` (RF6), `/periodos` (RF4), `/estructura/sedes` (RF2), `/personas` (RF5), `/coordinador/oferta` (RF7–RF8), `/reportes` (RF12) |
+| Docente | `/docente/secciones` (con nómina), `/docente/horario` (RF11) |
 | Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
 
 El resto de rutas muestran «Próximamente».
@@ -30,7 +30,9 @@ El resto de rutas muestran «Próximamente».
 
 La **Oferta de secciones** del coordinador es la fuente única de secciones (`features/oferta/OfertaContext.tsx`):
 lo que se programa ahí lo ven el Estudiante (en el período «en curso») y el Docente asignado. Los **Períodos** y las
-**Sedes** que crea el coordinador alimentan los selectores de Matrícula y de la oferta. Todo vive en memoria: al
+**Sedes** que crea el coordinador alimentan los selectores de Matrícula y de la oferta. En
+**Docentes y estudiantes** la baja lógica importa: solo los *activos* se ofrecen al asignar docentes en la oferta y al
+matricular (la ficha del docente calcula su carga académica desde la oferta). Todo vive en memoria: al
 recargar vuelve el seed (excepto los **Parámetros institucionales**, que se guardan en `localStorage`: siglas y nombre de la
 institución se leen en el encabezado y el pie).
 
@@ -57,6 +59,6 @@ con el mensaje de la regla que falló.
 
 - `src/app/` — router, layout (header, navegación por rol, footer), navegación
 - `src/components/` — `BrandLogo`, `PageHeader`, `SiteFooter`, `EmptyState`, `ConfirmModal`, `DetailDrawer`
-- `src/features/` — `auth`, `matricula`, `periodos`, `estructura` (sedes), `oferta`, `inscripcion`, `horario`, `docente`, `permisos`
+- `src/features/` — `auth`, `personas`, `matricula`, `periodos`, `estructura` (sedes), `oferta`, `inscripcion`, `horario`, `docente`, `permisos`
 - `src/theme/` — tema Mantine + tokens (glass, colores, modo claro/oscuro)
 - `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ siguen siendo dos carpetas: `mocks/sga.ts` es el catálogo del Estudiante y alimenta el seed de `mock/oferta.ts`)

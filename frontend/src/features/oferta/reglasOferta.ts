@@ -23,7 +23,7 @@ export const HORA_MIN = 8 * 60;
 export const HORA_MAX = 22 * 60;
 
 /**
- * Reglas de una sección (RF9): todo obligatorio, sala física salvo online, cupo entero que no baje de los ya
+ * Reglas de una sección (RF7): todo obligatorio, sala física salvo online, cupo entero que no baje de los ya
  * inscritos, al menos un bloque válido dentro de la grilla. No incluye los choques: esos se calculan aparte
  * con `detectarConflictos` porque se muestran en vivo mientras se edita.
  */

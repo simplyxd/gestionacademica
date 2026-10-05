@@ -12,7 +12,7 @@ function dv(cuerpo: number): string {
   return resto === 11 ? '0' : resto === 10 ? 'K' : String(resto);
 }
 
-function rut(cuerpo: number): string {
+export function rut(cuerpo: number): string {
   const miles = String(cuerpo).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return `${miles}-${dv(cuerpo)}`;
 }

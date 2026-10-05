@@ -42,6 +42,8 @@ const ReportesPage = lazy(() => import('@/features/reportes/ReportesPage').then(
 
 const UsuariosPage = lazy(() => import('@/features/usuarios/UsuariosPage').then((m) => ({ default: m.UsuariosPage })));
 
+const PersonasPage = lazy(() => import('@/features/personas/PersonasPage').then((m) => ({ default: m.PersonasPage })));
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -63,6 +65,8 @@ export const router = createBrowserRouter([
       { path: 'horario', element: <RoleGuard allow={['estudiante']}><HorarioPage /></RoleGuard> },
       // Coordinador académico: estructura, ciclo y oferta.
       { path: 'periodos', element: <RoleGuard allow={['coordinador']}><PeriodosPage /></RoleGuard> },
+      // RF5 / CU4: docentes y estudiantes (alta, ficha y baja lógica).
+      { path: 'personas', element: <RoleGuard allow={['coordinador']}><PersonasPage /></RoleGuard> },
       { path: 'estructura/sedes', element: <RoleGuard allow={['coordinador']}><SedesPage /></RoleGuard> },
       { path: 'coordinador/oferta', element: <RoleGuard allow={['coordinador']}><OfertaCoordinadorPage /></RoleGuard> },
       // Docente: sus secciones (con nómina) y su horario.

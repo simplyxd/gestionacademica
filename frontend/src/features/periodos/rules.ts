@@ -16,7 +16,7 @@ export type ErroresPeriodo = Partial<Record<keyof PeriodoInput, string>>;
 export const ESTADOS_PERIODO: EstadoPeriodo[] = ['planificación', 'inscripción abierta', 'en curso', 'cerrado'];
 
 /**
- * Reglas de un período (RF3): código `AAAA-S` único, fechas ordenadas, ventana de inscripción propia
+ * Reglas de un período (RF4): código `AAAA-S` único, fechas ordenadas, ventana de inscripción propia
  * (puede empezar antes del inicio académico) y un solo período «en curso» a la vez.
  * Devuelve un mensaje por campo; vacío = válido.
  */

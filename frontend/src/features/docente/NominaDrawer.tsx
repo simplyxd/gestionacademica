@@ -3,7 +3,8 @@ import { IconUsers } from '@tabler/icons-react';
 import { DetailDrawer } from '@/components/ui/DetailDrawer';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { textoBloques } from '@/lib/horas';
-import { ESTUDIANTES, nombreCompleto } from '@/mock/personas';
+import { usePersonas } from '@/features/personas/PersonasContext';
+import { nombreCompleto } from '@/mock/personas';
 import type { SeccionOfertada } from '@/features/oferta/types';
 
 interface NominaDrawerProps {
@@ -17,8 +18,9 @@ interface NominaDrawerProps {
  */
 export function NominaDrawer({ seccion, onClose }: NominaDrawerProps) {
   const theme = useMantineTheme();
+  const { estudiantesActivos } = usePersonas();
   const total = seccion?.inscritosOtros ?? 0;
-  const lista = ESTUDIANTES.slice(0, Math.min(total, ESTUDIANTES.length));
+  const lista = estudiantesActivos.slice(0, Math.min(total, estudiantesActivos.length));
 
   return (
     <DetailDrawer

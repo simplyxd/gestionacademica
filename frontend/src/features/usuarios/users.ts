@@ -1,4 +1,5 @@
 import { CARRERAS as CARRERAS_SEED } from '@/mock/estructura';
+import { formatRut, isValidRut, rutKey } from '@/lib/rut';
 import { SEDES as SEDES_SEED } from '@/mock/sedes';
 
 export const ROLES = {
@@ -31,27 +32,7 @@ export const emptyDraft = (): UserDraft => ({
   nombre: '', rut: '', rol: 'admin', sedes: [], carreras: [], departamentos: [], correo: '', telefono: '',
 });
 
-function rutKey(rut: string) {
-  return rut.replace(/[.\s-]/g, '').toUpperCase();
-}
-
-export function isValidRut(rut: string) {
-  const key = rutKey(rut);
-  if (!/^[1-9]\d{0,7}[\dK]$/.test(key)) return false;
-  let sum = 0;
-  let factor = 2;
-  for (const digit of key.slice(0, -1).split('').reverse()) {
-    sum += Number(digit) * factor;
-    factor = factor === 7 ? 2 : factor + 1;
-  }
-  const check = 11 - (sum % 11);
-  return key.at(-1) === (check === 11 ? '0' : check === 10 ? 'K' : String(check));
-}
-
-export function formatRut(rut: string) {
-  const key = rutKey(rut);
-  return `${key.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${key.at(-1)}`;
-}
+export { isValidRut };
 
 const INITIAL_USERS: User[] = [
   { id: '1', nombre: 'Camila Soto', rut: '12.345.678-5', rol: 'admin', sedes: [...SEDES], carreras: [], departamentos: [], correo: 'camila.soto@instituto.example', telefono: '+56 9 5555 0101', estado: 'activo' },
