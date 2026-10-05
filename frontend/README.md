@@ -1,68 +1,46 @@
-# Frontend SGA — Mock UI (React)
+# SGA · Frontend (prototipo)
 
-Mock local del **Sistema Web de Gestión Académica** para el rol estudiante:
-consulta de oferta, inscripción con las 7 reglas y horario semanal (RF9–RF10 / CU7–CU8).
-
-Diseño institucional: azul marino, índigo académico, acento ámbar y superficies glass.
-Sin backend: los datos viven en `src/mocks/sga.ts`.
-
-## Requisitos
-
-- Node.js 20+ (recomendado 22)
-- npm 10+
-
-## Instalación y ejecución
+Solo frontend, en `localhost`, con datos mock (sin API, base de datos ni persistencia: al recargar vuelve el seed).
+Stack y reglas visuales: [`../system-desing.md`](../system-desing.md) — React 18 + TypeScript + Vite + Mantine 7 + React Router 6.
 
 ```bash
-cd frontend
 npm install
-npm run dev
+npm run dev        # http://localhost:5173
+npm run typecheck
+npm run lint
+npm test           # reglas de matrícula (vitest)
+npm run build
 ```
 
-Abre la URL que muestra Vite (por defecto `http://localhost:5173`).
+## Perfiles
 
-### Otros scripts
+El menú de usuario (arriba a la derecha) permite «Probar como…» Coordinador, Estudiante, Docente o Administrador.
+La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) dependen del perfil.
 
-| Comando | Descripción |
+| Perfil | Pantallas disponibles |
 |---|---|
-| `npm run build` | Compila TypeScript y genera el build de producción |
-| `npm run preview` | Sirve el build localmente |
-| `npm run lint` | Ejecuta Oxlint |
+| Coordinador académico | `/matricula` (RF6 / CU5) |
+| Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
 
-## Estructura de la interfaz
+El resto de rutas muestran «Próximamente».
 
-Cumple la rúbrica de frontend React:
+### Matrícula (`/matricula`)
 
-| Zona | Dónde |
-|---|---|
-| Encabezado | Logo SGA, período, escenario de prueba, tema claro/oscuro, usuario |
-| Navegación | Sidebar (Oferta, Inscripción, Mi horario) — colapsable / menú móvil |
-| Sección principal | Páginas de feature con `PageHeader` + contenido |
-| Pie de página | `SiteFooter` con marca, enlaces y créditos |
+- Alta en Drawer: estudiante + carrera + plan de esa carrera + período.
+- Una sola matrícula `vigente` por estudiante y período. Estados `vigente | suspendida | egresada | retirada`;
+  `egresada` y `retirada` son finales; `suspendida` solo puede pasar a `retirada`.
+- Reglas en `src/features/matricula/rules.ts` (funciones puras, con tests).
 
-## Componentes y reutilización
+### Oferta · Inscripción · Horario (Estudiante)
 
-- `BrandLogo`, `PageHeader`, `SiteFooter` — layout compartido con **props**
-- `EmptyState`, `ConfirmModal`, `DetailDrawer`, `CupoIndicator` — UI reutilizable
-- Features: `oferta/`, `inscripcion/`, `horario/` con estado (`useState`) y eventos
+Consulta de oferta, inscripción con las 7 reglas y horario semanal. Para el Estudiante, el encabezado muestra el
+selector **Escenario de prueba** (inscripción normal, sin matrícula, ventana futura / cerrada) para ver el rechazo
+con el mensaje de la regla que falló.
 
-## Interactividad de demo
+## Estructura
 
-En el encabezado, el selector **Escenario de prueba** cambia las reglas de inscripción:
-
-- inscripción normal
-- sin matrícula
-- ventana futura / cerrada
-
-Así se demuestra rechazo con mensaje de la regla que falló.
-
-## Stack
-
-- React 18 + TypeScript + Vite
-- Mantine 7 + CSS Modules (tema SGA en `src/theme/`)
-- React Router 6
-- Tabler Icons
-
-## Nota
-
-Este directorio es solo el frontend mock. El backend Express y MongoDB se integran en épicas posteriores del monorepo.
+- `src/app/` — router, layout (header, navegación por rol, footer), navegación
+- `src/components/` — `BrandLogo`, `PageHeader`, `SiteFooter`, `EmptyState`, `ConfirmModal`, `DetailDrawer`
+- `src/features/` — `auth`, `matricula`, `oferta`, `inscripcion`, `horario`
+- `src/theme/` — tema Mantine + tokens (glass, colores, modo claro/oscuro)
+- `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ hoy hay dos modelos de mock; ver nota de integración)

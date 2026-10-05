@@ -39,7 +39,7 @@ export function SiteFooter({
           <BrandLogo size={28} />
           <Text size="sm" c="dimmed" maw={360}>
             Sistema Web de Gestión Académica — Instituto Universitario Nueva Formación.
-            Mock UI local de oferta, inscripción y horario (RF9–RF10).
+            Prototipo frontend con datos de ejemplo.
           </Text>
         </Stack>
 

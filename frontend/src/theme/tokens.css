@@ -1,8 +1,7 @@
 /* Se importa una vez en ThemeProvider.tsx, después de los estilos de Mantine. */
 
-:root {
-  color-scheme: light dark;
-}
+/* No se fija `color-scheme` aquí: Mantine lo define según data-mantine-color-scheme, y declararlo
+   en :root haría que light-dark() siguiera al sistema operativo en vez del toggle del Header. */
 
 body {
   font-feature-settings: 'cv11', 'ss01', 'tnum';

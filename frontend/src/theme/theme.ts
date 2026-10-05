@@ -73,9 +73,9 @@ export const theme = createTheme({
 
   /* ---------- Tipografía ---------- */
   fontFamily:
-    "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
   fontFamilyMonospace:
-    "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    "'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
   fontSmoothing: true,
   fontSizes: {
     xs: rem(12),
@@ -93,7 +93,7 @@ export const theme = createTheme({
   },
   headings: {
     fontFamily:
-      "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      "'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
     fontWeight: '600',
     textWrap: 'balance',
     sizes: {

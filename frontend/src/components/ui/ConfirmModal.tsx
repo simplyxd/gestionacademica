@@ -1,9 +1,10 @@
 import { Button, Group, Modal, Stack, Text } from '@mantine/core';
+import type { ReactNode } from 'react';
 
 interface ConfirmModalProps {
   opened: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel: string;
   destructive?: boolean;
   loading?: boolean;
@@ -11,7 +12,16 @@ interface ConfirmModalProps {
   onClose: () => void;
 }
 
-export function ConfirmModal({ opened, title, message, confirmLabel, destructive, loading, onConfirm, onClose }: ConfirmModalProps) {
+export function ConfirmModal({
+  opened,
+  title,
+  message,
+  confirmLabel,
+  destructive,
+  loading,
+  onConfirm,
+  onClose,
+}: ConfirmModalProps) {
   return (
     /* Por encima del Drawer (z-index 200 de Mantine): un Drawer puede abrir esta
        confirmación y debe quedar debajo. Las notificaciones siguen arriba (1000). */

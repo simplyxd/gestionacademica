@@ -1,0 +1,24 @@
+/* Resalta la matrícula recién registrada y se desvanece.
+   El color va en una variable: light-dark() no es fiable dentro de @keyframes. */
+.rowNueva {
+  --destacado: light-dark(var(--mantine-color-teal-1), var(--mantine-color-teal-9));
+
+  animation: destacar 3200ms ease-out 1;
+}
+
+@keyframes destacar {
+  from {
+    background-color: var(--destacado);
+  }
+
+  to {
+    background-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowNueva {
+    animation: none;
+    background-color: var(--destacado);
+  }
+}

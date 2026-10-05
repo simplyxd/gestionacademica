@@ -6,6 +6,7 @@ import {
   Box,
   Burger,
   Group,
+  Menu,
   NavLink,
   ScrollArea,
   Select,
@@ -16,17 +17,28 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconFlask, IconMoon, IconSun } from '@tabler/icons-react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { NAV_ESTUDIANTE } from '@/app/navigation';
+import { IconChevronDown, IconFlask, IconMoon, IconSun, IconUserCheck } from '@tabler/icons-react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useSga } from '@/app/SgaContext';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { useAuth } from '@/features/auth/AuthContext';
 import { ESCENARIOS } from '@/features/inscripcion/reglas';
-import { estudiante, PERIODO_ACTUAL } from '@/mocks/sga';
+import { PERIODO_ACTUAL } from '@/mock/estructura';
+import { PERIODO_ACTUAL as PERIODO_SGA } from '@/mocks/sga';
+import type { EstadoPeriodo } from '@/mock/types';
 import glass from '@/theme/glass.module.css';
+import { NAV_BY_ROLE, ROL_LABEL, type Rol } from '../navigation';
 import classes from './AppLayout.module.css';
 
+const ESTADO_PERIODO_COLOR: Record<EstadoPeriodo, string> = {
+  planificación: 'sky',
+  'inscripción abierta': 'teal',
+  'en curso': 'orange',
+  cerrado: 'slate',
+};
+
+/** Estado del período para el Estudiante: lo dicta el «escenario de prueba» de la inscripción. */
 const ESTADO_POR_ESCENARIO = {
   normal: { label: 'inscripción abierta', color: 'teal' },
   'sin-matricula': { label: 'inscripción abierta', color: 'teal' },
@@ -34,18 +46,21 @@ const ESTADO_POR_ESCENARIO = {
   'ventana-cerrada': { label: 'cerrado', color: 'slate' },
 } as const;
 
+const ROLES: Rol[] = ['coordinador', 'estudiante', 'docente', 'admin'];
+
 export function AppLayout() {
+  const { usuario, cambiarRol } = useAuth();
+  const { escenario, setEscenario } = useSga();
+  const esEstudiante = usuario.rol === 'estudiante';
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
   const [desktopCollapsed, { toggle: toggleDesktop }] = useDisclosure(false);
-  const isTablet = useMediaQuery('(max-width: 75em)');
+  const isTablet = useMediaQuery('(max-width: 75em)'); // < lg → iconos
   const collapsed = desktopCollapsed || Boolean(isTablet);
 
   const { setColorScheme } = useMantineColorScheme();
   const scheme = useComputedColorScheme('light');
-  const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { escenario, setEscenario } = useSga();
-  const estado = ESTADO_POR_ESCENARIO[escenario];
+  const items = NAV_BY_ROLE[usuario.rol];
 
   return (
     <AppShell
@@ -59,17 +74,12 @@ export function AppLayout() {
       className={glass.pageBackground}
       styles={{ main: { backgroundColor: 'transparent' } }}
     >
+      {/* ---------- Header ---------- */}
       <AppShell.Header className={glass.glassHeader}>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group gap="sm" wrap="nowrap">
             <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" aria-label="Abrir menú" />
-            <Burger
-              opened={!desktopCollapsed}
-              onClick={toggleDesktop}
-              visibleFrom="lg"
-              size="sm"
-              aria-label="Contraer menú"
-            />
+            <Burger opened={!desktopCollapsed} onClick={toggleDesktop} visibleFrom="lg" size="sm" aria-label="Contraer menú" />
             <BrandLogo size={30} />
             <Text c="dimmed" fz="sm" visibleFrom="md" component="span">
               Instituto Universitario Nueva Formación
@@ -77,20 +87,27 @@ export function AppLayout() {
           </Group>
 
           <Group gap="sm" wrap="nowrap">
-            <Badge color={estado.color} size="lg" visibleFrom="xs">
-              {PERIODO_ACTUAL} · {estado.label}
-            </Badge>
-
-            <Select
-              aria-label="Escenario de prueba"
-              leftSection={<IconFlask size={16} stroke={1.5} />}
-              data={ESCENARIOS}
-              value={escenario}
-              onChange={(v) => v && setEscenario(v as typeof escenario)}
-              allowDeselect={false}
-              w={{ base: 44, sm: 260 }}
-              visibleFrom="sm"
-            />
+            {esEstudiante ? (
+              <>
+                <Badge color={ESTADO_POR_ESCENARIO[escenario].color} size="lg" visibleFrom="xs">
+                  {PERIODO_SGA} · {ESTADO_POR_ESCENARIO[escenario].label}
+                </Badge>
+                <Select
+                  aria-label="Escenario de prueba"
+                  leftSection={<IconFlask size={16} stroke={1.5} />}
+                  data={ESCENARIOS}
+                  value={escenario}
+                  onChange={(v) => v && setEscenario(v as typeof escenario)}
+                  allowDeselect={false}
+                  w={{ base: 44, sm: 260 }}
+                  visibleFrom="sm"
+                />
+              </>
+            ) : (
+              <Badge color={ESTADO_PERIODO_COLOR[PERIODO_ACTUAL.estado]} size="lg" visibleFrom="xs">
+                {PERIODO_ACTUAL.codigo} · {PERIODO_ACTUAL.estado}
+              </Badge>
+            )}
 
             <Tooltip label={scheme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
               <ActionIcon
@@ -101,50 +118,85 @@ export function AppLayout() {
               </ActionIcon>
             </Tooltip>
 
-            <Group gap="xs" className={classes.userButton}>
-              <Avatar color="navy" radius="xl" size="sm">JS</Avatar>
-              <Box visibleFrom="sm" ta="left">
-                <Text fz="sm" fw={600} lh={1.2}>{estudiante.nombre}</Text>
-                <Text fz="xs" c="dimmed" lh={1.2}>Estudiante</Text>
-              </Box>
-            </Group>
+            <Menu width={260}>
+              <Menu.Target>
+                <Group gap="xs" component="button" className={classes.userButton} aria-label="Menú de usuario">
+                  <Avatar color="navy" radius="xl" size="sm">
+                    {usuario.iniciales}
+                  </Avatar>
+                  <Box visibleFrom="sm" ta="left">
+                    <Text fz="sm" fw={600} lh={1.2}>
+                      {usuario.nombre}
+                    </Text>
+                    <Text fz="xs" c="dimmed" lh={1.2}>
+                      {ROL_LABEL[usuario.rol]}
+                    </Text>
+                  </Box>
+                  <IconChevronDown size={16} stroke={1.5} />
+                </Group>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>Probar como… (solo prototipo)</Menu.Label>
+                {ROLES.map((rol) => (
+                  <Menu.Item
+                    key={rol}
+                    leftSection={<IconUserCheck size={16} stroke={1.5} />}
+                    rightSection={rol === usuario.rol ? <Badge size="xs">Actual</Badge> : null}
+                    onClick={() => cambiarRol(rol)}
+                  >
+                    {ROL_LABEL[rol]}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar className={glass.glassNavbar} p="sm">
+      {/* ---------- Navbar ---------- */}
+      <AppShell.Navbar className={glass.glassNavbar} p="sm" aria-label="Navegación principal">
         <ScrollArea type="never" style={{ flex: 1 }}>
           <Stack gap={4}>
-            {NAV_ESTUDIANTE.map((item) => {
-              const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
+            {items.map((item, index) => {
+              const showGroupLabel = !collapsed && item.group && items[index - 1]?.group !== item.group;
+              const active = item.to === '/' ? pathname === '/' : pathname.startsWith(item.to);
               const link = (
                 <NavLink
-                  key={item.to}
+                  component={Link}
+                  to={item.to}
                   label={collapsed ? undefined : item.label}
                   leftSection={<item.icon size={20} stroke={1.5} />}
                   active={active}
                   variant="light"
                   color="navy"
-                  onClick={() => {
-                    navigate(item.to);
-                    closeMobile();
-                  }}
+                  onClick={closeMobile}
                   className={classes.navLink}
                   aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
                 />
               );
-              return collapsed ? (
-                <Tooltip key={item.to} label={item.label} position="right">
-                  {link}
-                </Tooltip>
-              ) : (
-                link
+              return (
+                <Box key={item.to}>
+                  {showGroupLabel && (
+                    <Text fz="xs" fw={600} c="dimmed" tt="uppercase" px="sm" pt="md" pb={4}>
+                      {item.group}
+                    </Text>
+                  )}
+                  {collapsed ? (
+                    <Tooltip label={item.label} position="right">
+                      {link}
+                    </Tooltip>
+                  ) : (
+                    link
+                  )}
+                </Box>
               );
             })}
           </Stack>
         </ScrollArea>
       </AppShell.Navbar>
 
+      {/* ---------- Main ---------- */}
       <AppShell.Main>
         <Box
           maw="var(--sga-content-max-width)"
@@ -154,9 +206,7 @@ export function AppLayout() {
           id="contenido-principal"
         >
           <Outlet />
-          <SiteFooter
-            links={NAV_ESTUDIANTE.map((item) => ({ label: item.label, href: item.to }))}
-          />
+          <SiteFooter links={items.map((item) => ({ label: item.label, href: item.to }))} />
         </Box>
       </AppShell.Main>
     </AppShell>
