@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { notify } from '@/lib/notify';
-import { PERIODOS } from '@/mock/estructura';
+import { usePeriodos } from '@/features/periodos/PeriodosContext';
 import { nombreCompleto } from '@/mock/personas';
 import { resolver, type MatriculaRow } from './catalogos';
 import { useMatriculas } from './MatriculaContext';
@@ -60,6 +60,7 @@ const PASADO: Record<EstadoDestino, string> = {
 
 export function MatriculaPage() {
   const { matriculas, cambiarEstado } = useMatriculas();
+  const { periodos } = usePeriodos();
   const [drawerAbierto, drawer] = useDisclosure(false);
 
   const [busqueda, setBusqueda] = useState('');
@@ -82,9 +83,9 @@ export function MatriculaPage() {
     () =>
       [...matriculas]
         .sort((a, b) => b.creadaEn.localeCompare(a.creadaEn))
-        .map(resolver)
+        .map((m) => resolver(m, periodos))
         .filter((r): r is MatriculaRow => r !== null),
-    [matriculas],
+    [matriculas, periodos],
   );
 
   const filtradas = useMemo(() => {
@@ -176,7 +177,7 @@ export function MatriculaPage() {
                   setPeriodoId(v);
                   setPage(1);
                 }}
-                data={PERIODOS.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` }))}
+                data={periodos.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` }))}
               />
             </Group>
             <Chip.Group

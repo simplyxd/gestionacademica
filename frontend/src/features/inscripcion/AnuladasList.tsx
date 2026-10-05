@@ -1,7 +1,7 @@
 import { Badge, Group, Stack, Text } from '@mantine/core';
 import { IconCircleMinus } from '@tabler/icons-react';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { seccionPorId } from './useInscripciones';
+import { useSga } from '@/app/SgaContext';
 import type { Inscripcion } from './types';
 
 interface AnuladasListProps {
@@ -9,6 +9,8 @@ interface AnuladasListProps {
 }
 
 export function AnuladasList({ anuladas }: AnuladasListProps) {
+  const { seccionPorId } = useSga();
+
   if (anuladas.length === 0) {
     return (
       <EmptyState

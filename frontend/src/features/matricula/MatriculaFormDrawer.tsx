@@ -3,7 +3,9 @@ import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DetailDrawer } from '@/components/ui/DetailDrawer';
-import { CARRERAS, PERIODO_ACTUAL, PERIODOS } from '@/mock/estructura';
+import { usePeriodos } from '@/features/periodos/PeriodosContext';
+import { CARRERAS } from '@/mock/estructura';
+import type { Periodo } from '@/mock/types';
 import { ESTUDIANTES, nombreCompleto } from '@/mock/personas';
 import { notify } from '@/lib/notify';
 import { planesDeCarrera, resolver } from './catalogos';
@@ -22,7 +24,7 @@ const INITIAL: NuevaMatricula = {
   estudianteId: '',
   carreraId: '',
   planId: '',
-  periodoId: PERIODO_ACTUAL.id,
+  periodoId: '',
 };
 
 const REQUERIDO: Record<keyof NuevaMatricula, string> = {
@@ -38,9 +40,9 @@ interface ErrorVista {
 }
 
 /** Copy del error de negocio: nombra la regla, da el dato concreto y una salida (system design §6.4). */
-function describir(error: ErrorMatricula): ErrorVista {
+function describir(error: ErrorMatricula, periodos: readonly Periodo[]): ErrorVista {
   if (error.code === 'MATRICULA_VIGENTE_EN_PERIODO' && error.existente) {
-    const fila = resolver(error.existente);
+    const fila = resolver(error.existente, periodos);
     if (fila) {
       return {
         title: 'Este estudiante ya tiene una matrícula vigente en el período',
@@ -62,6 +64,7 @@ function describir(error: ErrorMatricula): ErrorVista {
 
 export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: MatriculaFormDrawerProps) {
   const { registrar } = useMatriculas();
+  const { periodos: periodosStore, periodoActual } = usePeriodos();
   const theme = useMantineTheme();
   const [errorNegocio, setErrorNegocio] = useState<ErrorVista | null>(null);
   const alertRef = useRef<HTMLDivElement>(null);
@@ -80,6 +83,8 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
   useEffect(() => {
     if (opened) {
       form.reset();
+      // El período en curso viene preseleccionado.
+      form.setFieldValue('periodoId', periodoActual?.id ?? '');
       setErrorNegocio(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,7 +100,10 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
     [],
   );
   const carreras = useMemo(() => CARRERAS.map((c) => ({ value: c.id, label: c.nombre })), []);
-  const periodos = useMemo(() => PERIODOS.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` })), []);
+  const periodos = useMemo(
+    () => periodosStore.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` })),
+    [periodosStore],
+  );
   const planes = useMemo(
     () => planesDeCarrera(form.values.carreraId).map((p) => ({ value: p.id, label: `${p.nombre} · ${p.estado}` })),
     [form.values.carreraId],
@@ -123,7 +131,7 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
       setErrorNegocio(null);
       const r = registrar(values);
       if (r.ok) {
-        const fila = resolver(r.value);
+        const fila = resolver(r.value, periodosStore);
         notify.success({
           title: 'Matrícula registrada',
           message: fila
@@ -133,7 +141,7 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
         onRegistrada(r.value);
         return;
       }
-      const vista = describir(r.error);
+      const vista = describir(r.error, periodosStore);
       setErrorNegocio(vista);
       if (r.error.field) {
         form.setFieldError(

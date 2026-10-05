@@ -4,7 +4,6 @@ import { useSga } from '@/app/SgaContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { AnuladasList } from '@/features/inscripcion/AnuladasList';
 import { SeccionDrawer } from '@/features/inscripcion/SeccionDrawer';
-import { seccionPorId } from '@/features/inscripcion/useInscripciones';
 import { notify } from '@/lib/notify';
 import { HorarioSemanal } from './HorarioSemanal';
 import type { BloqueHorario } from './types';
@@ -20,6 +19,7 @@ export function HorarioPage() {
     ocupacionDe,
     filas,
     escenario,
+    seccionPorId,
   } = useSga();
   const [seleccionado, setSeleccionado] = useState<BloqueHorario | null>(null);
 

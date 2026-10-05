@@ -11,7 +11,7 @@ export interface Usuario {
 const USUARIOS: Record<Rol, Usuario> = {
   admin: { nombre: 'Andrés Valdés', rol: 'admin', iniciales: 'AV' },
   coordinador: { nombre: 'Carolina Muñoz', rol: 'coordinador', iniciales: 'CM' },
-  docente: { nombre: 'Rodrigo Pardo', rol: 'docente', iniciales: 'RP' },
+  docente: { nombre: 'Rodrigo Fuentes', rol: 'docente', iniciales: 'RF' },
   estudiante: { nombre: 'Valentina Rojas', rol: 'estudiante', iniciales: 'VR' },
 };
 

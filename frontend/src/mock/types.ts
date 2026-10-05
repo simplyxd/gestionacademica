@@ -26,6 +26,28 @@ export type EstadoPeriodo = 'planificación' | 'inscripción abierta' | 'en curs
 
 export interface Periodo {
   id: string;
+  /** «2026-2»: año y semestre. */
   codigo: string;
+  nombre: string;
+  /** ISO `YYYY-MM-DD`. La ventana de inscripción puede empezar antes del inicio académico. */
+  inicio: string;
+  termino: string;
+  inscripcionInicio: string;
+  inscripcionTermino: string;
   estado: EstadoPeriodo;
+}
+
+export type EstadoSede = 'activa' | 'en mantenimiento' | 'inactiva';
+
+export interface Sede {
+  id: string;
+  nombre: string;
+  direccion: string;
+  comuna: string;
+  estado: EstadoSede;
+}
+
+export interface Docente {
+  id: string;
+  nombre: string;
 }

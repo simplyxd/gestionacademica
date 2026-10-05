@@ -19,6 +19,23 @@ const HorarioPage = lazy(() =>
   import('@/features/horario/HorarioPage').then((m) => ({ default: m.HorarioPage })),
 );
 
+const PeriodosPage = lazy(() =>
+  import('@/features/periodos/PeriodosPage').then((m) => ({ default: m.PeriodosPage })),
+);
+const SedesPage = lazy(() => import('@/features/estructura/SedesPage').then((m) => ({ default: m.SedesPage })));
+const OfertaCoordinadorPage = lazy(() =>
+  import('@/features/oferta/OfertaCoordinadorPage').then((m) => ({ default: m.OfertaCoordinadorPage })),
+);
+const SeccionesDocentePage = lazy(() =>
+  import('@/features/docente/SeccionesDocentePage').then((m) => ({ default: m.SeccionesDocentePage })),
+);
+const HorarioDocentePage = lazy(() =>
+  import('@/features/docente/HorarioDocentePage').then((m) => ({ default: m.HorarioDocentePage })),
+);
+const MatrizPermisosPage = lazy(() =>
+  import('@/features/permisos/MatrizPermisosPage').then((m) => ({ default: m.MatrizPermisosPage })),
+);
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -38,6 +55,15 @@ export const router = createBrowserRouter([
       { path: 'oferta', element: <RoleGuard allow={['estudiante']}><OfertaPage /></RoleGuard> },
       { path: 'inscripcion', element: <RoleGuard allow={['estudiante']}><InscripcionPage /></RoleGuard> },
       { path: 'horario', element: <RoleGuard allow={['estudiante']}><HorarioPage /></RoleGuard> },
+      // Coordinador académico: estructura, ciclo y oferta.
+      { path: 'periodos', element: <RoleGuard allow={['coordinador']}><PeriodosPage /></RoleGuard> },
+      { path: 'estructura/sedes', element: <RoleGuard allow={['coordinador']}><SedesPage /></RoleGuard> },
+      { path: 'coordinador/oferta', element: <RoleGuard allow={['coordinador']}><OfertaCoordinadorPage /></RoleGuard> },
+      // Docente: sus secciones (con nómina) y su horario.
+      { path: 'docente/secciones', element: <RoleGuard allow={['docente']}><SeccionesDocentePage /></RoleGuard> },
+      { path: 'docente/horario', element: <RoleGuard allow={['docente']}><HorarioDocentePage /></RoleGuard> },
+      // Administrador: permisos por perfil (RF1).
+      { path: 'admin/permisos', element: <RoleGuard allow={['admin']}><MatrizPermisosPage /></RoleGuard> },
       { path: '*', element: <ComingSoonPage /> },
     ],
   },

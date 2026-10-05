@@ -19,10 +19,25 @@ La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) de
 
 | Perfil | Pantallas disponibles |
 |---|---|
-| Coordinador académico | `/matricula` (RF6 / CU5) |
+| Administrador | `/admin/permisos` (RF1) |
+| Coordinador académico | `/matricula` (RF6), `/periodos` (RF3), `/estructura/sedes` (RF2), `/coordinador/oferta` (RF9) |
+| Docente | `/docente/secciones` (con nómina), `/docente/horario` |
 | Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
 
 El resto de rutas muestran «Próximamente».
+
+### Cómo se conectan las pantallas
+
+La **Oferta de secciones** del coordinador es la fuente única de secciones (`features/oferta/OfertaContext.tsx`):
+lo que se programa ahí lo ven el Estudiante (en el período «en curso») y el Docente asignado. Los **Períodos** y las
+**Sedes** que crea el coordinador alimentan los selectores de Matrícula y de la oferta. Todo vive en memoria: al
+recargar vuelve el seed.
+
+### Datos para probar
+
+`src/mock/datos-de-prueba.ts` trae casos listos (datos de formulario y recorridos entre perfiles) con el resultado
+esperado: choque de docente o de sala, cupo menor a los inscritos, período duplicado o con dos «en curso», sede
+repetida, etc. `npm test` comprueba que cada caso se comporte como dice.
 
 ### Matrícula (`/matricula`)
 
@@ -41,6 +56,6 @@ con el mensaje de la regla que falló.
 
 - `src/app/` — router, layout (header, navegación por rol, footer), navegación
 - `src/components/` — `BrandLogo`, `PageHeader`, `SiteFooter`, `EmptyState`, `ConfirmModal`, `DetailDrawer`
-- `src/features/` — `auth`, `matricula`, `oferta`, `inscripcion`, `horario`
+- `src/features/` — `auth`, `matricula`, `periodos`, `estructura` (sedes), `oferta`, `inscripcion`, `horario`, `docente`, `permisos`
 - `src/theme/` — tema Mantine + tokens (glass, colores, modo claro/oscuro)
-- `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ hoy hay dos modelos de mock; ver nota de integración)
+- `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ siguen siendo dos carpetas: `mocks/sga.ts` es el catálogo del Estudiante y alimenta el seed de `mock/oferta.ts`)

@@ -26,19 +26,12 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { useAuth } from '@/features/auth/AuthContext';
 import { ESCENARIOS } from '@/features/inscripcion/reglas';
-import { PERIODO_ACTUAL } from '@/mock/estructura';
 import { PERIODO_ACTUAL as PERIODO_SGA } from '@/mocks/sga';
-import type { EstadoPeriodo } from '@/mock/types';
+import { ESTADO_PERIODO_COLOR } from '@/features/periodos/estado';
+import { usePeriodos } from '@/features/periodos/PeriodosContext';
 import glass from '@/theme/glass.module.css';
 import { NAV_BY_ROLE, ROL_LABEL, type Rol } from '../navigation';
 import classes from './AppLayout.module.css';
-
-const ESTADO_PERIODO_COLOR: Record<EstadoPeriodo, string> = {
-  planificación: 'sky',
-  'inscripción abierta': 'teal',
-  'en curso': 'orange',
-  cerrado: 'slate',
-};
 
 /** Estado del período para el Estudiante: lo dicta el «escenario de prueba» de la inscripción. */
 const ESTADO_POR_ESCENARIO = {
@@ -53,6 +46,7 @@ const ROLES: Rol[] = ['coordinador', 'estudiante', 'docente', 'admin'];
 export function AppLayout() {
   const { usuario, cambiarRol } = useAuth();
   const { escenario, setEscenario } = useSga();
+  const { periodoActual } = usePeriodos();
   const esEstudiante = usuario.rol === 'estudiante';
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
   const [desktopCollapsed, { toggle: toggleDesktop }] = useDisclosure(false);
@@ -107,7 +101,7 @@ export function AppLayout() {
               {esEstudiante ? (
                 <>
                   <Badge color={ESTADO_POR_ESCENARIO[escenario].color} size="lg" visibleFrom="xs">
-                    {PERIODO_SGA} · {ESTADO_POR_ESCENARIO[escenario].label}
+                    {periodoActual?.codigo ?? PERIODO_SGA} · {ESTADO_POR_ESCENARIO[escenario].label}
                   </Badge>
                   <Select
                     aria-label="Escenario de prueba"
@@ -121,9 +115,11 @@ export function AppLayout() {
                   />
                 </>
               ) : (
-                <Badge color={ESTADO_PERIODO_COLOR[PERIODO_ACTUAL.estado]} size="lg" visibleFrom="xs">
-                  {PERIODO_ACTUAL.codigo} · {PERIODO_ACTUAL.estado}
-                </Badge>
+                periodoActual && (
+                  <Badge color={ESTADO_PERIODO_COLOR[periodoActual.estado]} size="lg" visibleFrom="xs">
+                    {periodoActual.codigo} · {periodoActual.estado}
+                  </Badge>
+                )
               )}
 
               <Tooltip label={scheme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>

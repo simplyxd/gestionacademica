@@ -8,7 +8,6 @@ const porId = <T extends { id: string }>(xs: readonly T[]) => new Map(xs.map((x)
 const estudiantes = porId(ESTUDIANTES);
 const carreras = porId(CARRERAS);
 const planes = porId(PLANES);
-const periodos = porId(PERIODOS);
 
 /** Matrícula con sus catálogos resueltos, lista para mostrar. */
 export interface MatriculaRow {
@@ -19,11 +18,12 @@ export interface MatriculaRow {
   periodo: Periodo;
 }
 
-export function resolver(m: Matricula): MatriculaRow | null {
+/** `periodos` viene del store (puede incluir períodos creados por el coordinador); por defecto, el seed. */
+export function resolver(m: Matricula, periodos: readonly Periodo[] = PERIODOS): MatriculaRow | null {
   const estudiante = estudiantes.get(m.estudianteId);
   const carrera = carreras.get(m.carreraId);
   const plan = planes.get(m.planId);
-  const periodo = periodos.get(m.periodoId);
+  const periodo = periodos.find((p) => p.id === m.periodoId);
   if (!estudiante || !carrera || !plan || !periodo) return null;
   return { matricula: m, estudiante, carrera, plan, periodo };
 }

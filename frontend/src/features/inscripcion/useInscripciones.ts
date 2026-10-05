@@ -1,10 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { BloqueHorario, EstadoBloque } from '@/features/horario/types';
 import type { Seccion } from '@/features/oferta/types';
-import { inscripcionesIniciales, secciones } from '@/mocks/sga';
+import { inscripcionesIniciales } from '@/mocks/sga';
 import type { Inscripcion } from './types';
-
-const porId = new Map(secciones.map((s) => [s.id, s]));
 
 function bloquesDeSeccion(seccion: Seccion, estado: EstadoBloque): BloqueHorario[] {
   return seccion.bloques.map((b, i) => ({
@@ -26,7 +24,8 @@ function bloquesDeSeccion(seccion: Seccion, estado: EstadoBloque): BloqueHorario
  * no hay API. Anular cambia el estado a `anulada` y libera el cupo, sin borrar
  * el registro.
  */
-export function useInscripciones() {
+export function useInscripciones(secciones: readonly Seccion[]) {
+  const porId = useMemo(() => new Map(secciones.map((s) => [s.id, s])), [secciones]);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>(inscripcionesIniciales);
 
   /**
@@ -83,7 +82,7 @@ export function useInscripciones() {
         const seccion = porId.get(i.seccionId);
         return seccion ? bloquesDeSeccion(seccion, 'inscrita') : [];
       }),
-    [inscritas],
+    [inscritas, porId],
   );
 
   const estaInscrita = useCallback(
@@ -99,7 +98,7 @@ export function useInscripciones() {
       if (seccion) set.add(seccion.codigoAsignatura);
     }
     return set;
-  }, [inscritas]);
+  }, [inscritas, porId]);
 
   /**
    * Otra sección inscrita de la misma asignatura. Es el caso de «cambiar
@@ -110,7 +109,7 @@ export function useInscripciones() {
       inscritas
         .map((i) => porId.get(i.seccionId))
         .find((s) => s && s.codigoAsignatura === codigoAsignatura && s.id !== exceptoSeccionId),
-    [inscritas],
+    [inscritas, porId],
   );
 
   /** Ocupación actual de una sección: el estudiante cuenta solo si sigue inscrito. */
@@ -121,8 +120,10 @@ export function useInscripciones() {
       const propia = inscritas.some((i) => i.seccionId === seccionId) ? 1 : 0;
       return { inscritos: seccion.inscritosOtros + propia, cupo: seccion.cupo };
     },
-    [inscritas],
+    [inscritas, porId],
   );
+
+  const seccionPorId = useCallback((seccionId: string) => porId.get(seccionId), [porId]);
 
   return {
     inscripciones,
@@ -135,11 +136,8 @@ export function useInscripciones() {
     codigosInscritos,
     otraSeccionDeLaAsignatura,
     ocupacionDe,
+    seccionPorId,
   };
-}
-
-export function seccionPorId(seccionId: string) {
-  return porId.get(seccionId);
 }
 
 export { bloquesDeSeccion };

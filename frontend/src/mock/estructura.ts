@@ -17,9 +17,36 @@ export const PLANES: PlanEstudio[] = [
 ];
 
 export const PERIODOS: Periodo[] = [
-  { id: 'per-2026-1', codigo: '2026-1', estado: 'cerrado' },
-  { id: 'per-2026-2', codigo: '2026-2', estado: 'en curso' },
-  { id: 'per-2027-1', codigo: '2027-1', estado: 'planificación' },
+  {
+    id: 'per-2026-1',
+    codigo: '2026-1',
+    nombre: '2026 · Primer semestre',
+    inicio: '2026-03-02',
+    termino: '2026-07-18',
+    inscripcionInicio: '2026-01-05',
+    inscripcionTermino: '2026-02-20',
+    estado: 'cerrado',
+  },
+  {
+    id: 'per-2026-2',
+    codigo: '2026-2',
+    nombre: '2026 · Segundo semestre',
+    inicio: '2026-08-03',
+    termino: '2026-12-19',
+    inscripcionInicio: '2026-06-01',
+    inscripcionTermino: '2026-07-15',
+    estado: 'en curso',
+  },
+  {
+    id: 'per-2027-1',
+    codigo: '2027-1',
+    nombre: '2027 · Primer semestre',
+    inicio: '2027-03-01',
+    termino: '2027-07-17',
+    inscripcionInicio: '2027-01-04',
+    inscripcionTermino: '2027-02-19',
+    estado: 'planificación',
+  },
 ];
 
 /** Período «en curso»: el que muestra el Header (solo uno a la vez). */
