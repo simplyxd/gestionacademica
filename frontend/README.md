@@ -1,7 +1,9 @@
 # Frontend SGA — Mock UI (React)
 
-Mock local del **Sistema Web de Gestión Académica** para el rol estudiante:
-consulta de oferta, inscripción con las 7 reglas y horario semanal (RF9–RF10 / CU7–CU8).
+Mock local del **Sistema Web de Gestión Académica**:
+
+- **Estudiante:** oferta, inscripción con las 7 reglas y horario (RF9–RF10).
+- **Administrador:** parámetros institucionales y reportes de solo lectura (RF1 / RF12, issue #93).
 
 Diseño institucional: azul marino, índigo académico, acento ámbar y superficies glass.
 Sin backend: los datos viven en `src/mocks/sga.ts`.
@@ -20,6 +22,11 @@ npm run dev
 ```
 
 Abre la URL que muestra Vite (por defecto `http://localhost:5173`).
+
+| Ruta | Rol |
+|---|---|
+| `/oferta`, `/inscripcion`, `/horario` | Estudiante |
+| `/admin`, `/admin/parametros`, `/reportes` | Administrador |
 
 ### Otros scripts
 
@@ -44,7 +51,8 @@ Cumple la rúbrica de frontend React:
 
 - `BrandLogo`, `PageHeader`, `SiteFooter` — layout compartido con **props**
 - `EmptyState`, `ConfirmModal`, `DetailDrawer`, `CupoIndicator` — UI reutilizable
-- Features: `oferta/`, `inscripcion/`, `horario/` con estado (`useState`) y eventos
+- Features: `oferta/`, `inscripcion/`, `horario/`, `admin/`, `reportes/` con estado y eventos
+- `ParametrosProvider` persiste ajustes mock en `localStorage` (lectura en encabezado)
 
 ## Interactividad de demo
 

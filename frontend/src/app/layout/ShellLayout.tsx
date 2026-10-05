@@ -2,39 +2,54 @@ import {
   ActionIcon,
   AppShell,
   Avatar,
-  Badge,
   Box,
   Burger,
   Group,
   NavLink,
   ScrollArea,
-  Select,
   Stack,
   Text,
+  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconFlask, IconMoon, IconSun } from '@tabler/icons-react';
+import { IconMoon, IconSun } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { NAV_ESTUDIANTE } from '@/app/navigation';
-import { useSga } from '@/app/SgaContext';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SiteFooter } from '@/components/layout/SiteFooter';
-import { ESCENARIOS } from '@/features/inscripcion/reglas';
-import { estudiante, PERIODO_ACTUAL } from '@/mocks/sga';
+import type { NavItem } from '@/app/navigation';
+import { useParametros } from '@/app/parametros/ParametrosContext';
 import glass from '@/theme/glass.module.css';
 import classes from './AppLayout.module.css';
 
-const ESTADO_POR_ESCENARIO = {
-  normal: { label: 'inscripción abierta', color: 'teal' },
-  'sin-matricula': { label: 'inscripción abierta', color: 'teal' },
-  'ventana-futura': { label: 'planificación', color: 'sky' },
-  'ventana-cerrada': { label: 'cerrado', color: 'slate' },
-} as const;
+export interface ShellUsuario {
+  nombre: string;
+  rolLabel: string;
+  iniciales: string;
+}
 
-export function AppLayout() {
+interface ShellLayoutProps {
+  navItems: NavItem[];
+  usuario: ShellUsuario;
+  institucionNombre: string;
+  headerBadge?: ReactNode;
+  headerExtra?: ReactNode;
+  footerLinks: { label: string; href: string }[];
+  groupedNav?: boolean;
+}
+
+export function ShellLayout({
+  navItems,
+  usuario,
+  institucionNombre,
+  headerBadge,
+  headerExtra,
+  footerLinks,
+  groupedNav = false,
+}: ShellLayoutProps) {
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
   const [desktopCollapsed, { toggle: toggleDesktop }] = useDisclosure(false);
   const isTablet = useMediaQuery('(max-width: 75em)');
@@ -44,8 +59,7 @@ export function AppLayout() {
   const scheme = useComputedColorScheme('light');
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { escenario, setEscenario } = useSga();
-  const estado = ESTADO_POR_ESCENARIO[escenario];
+  const { parametros } = useParametros();
 
   return (
     <AppShell
@@ -70,27 +84,15 @@ export function AppLayout() {
               size="sm"
               aria-label="Contraer menú"
             />
-            <BrandLogo size={30} />
-            <Text c="dimmed" fz="sm" visibleFrom="md" component="span">
-              Instituto Universitario Nueva Formación
+            <BrandLogo size={30} wordmark={parametros.siglasPortal} />
+            <Text c="dimmed" fz="sm" visibleFrom="md" component="span" lineClamp={1}>
+              {institucionNombre}
             </Text>
           </Group>
 
           <Group gap="sm" wrap="nowrap">
-            <Badge color={estado.color} size="lg" visibleFrom="xs">
-              {PERIODO_ACTUAL} · {estado.label}
-            </Badge>
-
-            <Select
-              aria-label="Escenario de prueba"
-              leftSection={<IconFlask size={16} stroke={1.5} />}
-              data={ESCENARIOS}
-              value={escenario}
-              onChange={(v) => v && setEscenario(v as typeof escenario)}
-              allowDeselect={false}
-              w={{ base: 44, sm: 260 }}
-              visibleFrom="sm"
-            />
+            {headerBadge}
+            {headerExtra}
 
             <Tooltip label={scheme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
               <ActionIcon
@@ -102,10 +104,16 @@ export function AppLayout() {
             </Tooltip>
 
             <Group gap="xs" className={classes.userButton}>
-              <Avatar color="navy" radius="xl" size="sm">JS</Avatar>
+              <Avatar color="navy" radius="xl" size="sm">
+                {usuario.iniciales}
+              </Avatar>
               <Box visibleFrom="sm" ta="left">
-                <Text fz="sm" fw={600} lh={1.2}>{estudiante.nombre}</Text>
-                <Text fz="xs" c="dimmed" lh={1.2}>Estudiante</Text>
+                <Text fz="sm" fw={600} lh={1.2}>
+                  {usuario.nombre}
+                </Text>
+                <Text fz="xs" c="dimmed" lh={1.2}>
+                  {usuario.rolLabel}
+                </Text>
               </Box>
             </Group>
           </Group>
@@ -115,8 +123,16 @@ export function AppLayout() {
       <AppShell.Navbar className={glass.glassNavbar} p="sm">
         <ScrollArea type="never" style={{ flex: 1 }}>
           <Stack gap={4}>
-            {NAV_ESTUDIANTE.map((item) => {
-              const active = pathname === item.to || pathname.startsWith(`${item.to}/`);
+            {navItems.map((item, index) => {
+              const prev = navItems[index - 1];
+              const showGroup =
+                groupedNav && item.group && item.group !== prev?.group && !collapsed;
+
+              const active =
+                item.to === '/admin'
+                  ? pathname === '/admin'
+                  : pathname === item.to || pathname.startsWith(`${item.to}/`);
+
               const link = (
                 <NavLink
                   key={item.to}
@@ -133,12 +149,22 @@ export function AppLayout() {
                   aria-label={item.label}
                 />
               );
-              return collapsed ? (
-                <Tooltip key={item.to} label={item.label} position="right">
-                  {link}
-                </Tooltip>
-              ) : (
-                link
+
+              return (
+                <Box key={item.to}>
+                  {showGroup && (
+                    <Title order={6} c="dimmed" tt="uppercase" fz={10} fw={700} mb={4} mt="xs" px="sm">
+                      {item.group}
+                    </Title>
+                  )}
+                  {collapsed ? (
+                    <Tooltip label={item.label} position="right">
+                      {link}
+                    </Tooltip>
+                  ) : (
+                    link
+                  )}
+                </Box>
               );
             })}
           </Stack>
@@ -154,9 +180,7 @@ export function AppLayout() {
           id="contenido-principal"
         >
           <Outlet />
-          <SiteFooter
-            links={NAV_ESTUDIANTE.map((item) => ({ label: item.label, href: item.to }))}
-          />
+          <SiteFooter links={footerLinks} />
         </Box>
       </AppShell.Main>
     </AppShell>
