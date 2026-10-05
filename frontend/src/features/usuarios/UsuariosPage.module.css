@@ -1,0 +1,13 @@
+/* Cuenta desactivada: sigue visible en el listado, con la fila atenuada. */
+.inactiva {
+  background: var(--mantine-color-default-hover);
+}
+
+.card {
+  min-width: 0;
+}
+
+/* Correos y nombres largos no deben desbordar la card ni la celda. */
+.largo {
+  overflow-wrap: anywhere;
+}

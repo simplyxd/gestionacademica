@@ -19,7 +19,7 @@ La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) de
 
 | Perfil | Pantallas disponibles |
 |---|---|
-| Administrador | `/admin` (panel), `/admin/parametros`, `/admin/permisos` (RF1), `/reportes` (RF12) |
+| Administrador | `/admin` (panel), `/admin/usuarios` (ABM, RF1), `/admin/parametros`, `/admin/permisos` (RF1), `/reportes` (RF12) |
 | Coordinador académico | `/matricula` (RF6), `/periodos` (RF3), `/estructura/sedes` (RF2), `/coordinador/oferta` (RF9), `/reportes` (RF12) |
 | Docente | `/docente/secciones` (con nómina), `/docente/horario` |
 | Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
