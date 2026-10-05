@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { MATRICULAS_SEED } from '@/mock/matriculas';
-import { PLANES } from '@/mock/estructura';
+import { useEstructura } from '@/features/estructura/EstructuraContext';
 import { cambiarEstado, registrarMatricula } from './rules';
 import type { EstadoMatricula, Matricula, NuevaMatricula, Resultado } from './types';
 
@@ -18,6 +18,7 @@ const MatriculaContext = createContext<MatriculaStore | null>(null);
  * y la regla «una vigente por período» no dependa de cuándo React re-renderice.
  */
 export function MatriculaProvider({ children }: PropsWithChildren) {
+  const { planes } = useEstructura();
   const [matriculas, setMatriculas] = useState<Matricula[]>(MATRICULAS_SEED);
   const ref = useRef(matriculas);
   const secuencia = useRef(MATRICULAS_SEED.length);
@@ -30,14 +31,14 @@ export function MatriculaProvider({ children }: PropsWithChildren) {
   const registrar = useCallback<MatriculaStore['registrar']>(
     (input) => {
       const id = `MAT-${String(secuencia.current + 1).padStart(4, '0')}`;
-      const r = registrarMatricula(ref.current, input, PLANES, { id, ahora: new Date().toISOString() });
+      const r = registrarMatricula(ref.current, input, planes, { id, ahora: new Date().toISOString() });
       if (r.ok) {
         secuencia.current += 1;
         commit([r.value, ...ref.current]);
       }
       return r;
     },
-    [commit],
+    [commit, planes],
   );
 
   const cambiar = useCallback<MatriculaStore['cambiarEstado']>(

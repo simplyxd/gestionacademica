@@ -17,9 +17,9 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
-import { IconChevronDown, IconFlask, IconMoon, IconSun, IconUserCheck } from '@tabler/icons-react';
+import { IconChevronDown, IconFlask, IconLogout, IconMoon, IconSun, IconUserCheck } from '@tabler/icons-react';
 import { Suspense, useEffect, useRef } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSga } from '@/app/SgaContext';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { SiteFooter } from '@/components/layout/SiteFooter';
@@ -45,7 +45,8 @@ const ESTADO_POR_ESCENARIO = {
 const ROLES: Rol[] = ['coordinador', 'estudiante', 'docente', 'admin'];
 
 export function AppLayout() {
-  const { usuario, cambiarRol } = useAuth();
+  const { usuario, cambiarRol, sesion, cerrarSesion } = useAuth();
+  const navigate = useNavigate();
   const { escenario, setEscenario } = useSga();
   const { periodoActual } = usePeriodos();
   const { parametros } = useParametros();
@@ -162,6 +163,17 @@ export function AppLayout() {
                       {ROL_LABEL[rol]}
                     </Menu.Item>
                   ))}
+                  <Menu.Divider />
+                  {sesion && <Menu.Label>{sesion.correo}</Menu.Label>}
+                  <Menu.Item
+                    leftSection={<IconLogout size={16} stroke={1.5} />}
+                    onClick={() => {
+                      cerrarSesion();
+                      navigate('/login');
+                    }}
+                  >
+                    Cerrar sesión
+                  </Menu.Item>
                 </Menu.Dropdown>
               </Menu>
             </Group>

@@ -61,8 +61,8 @@ function Acciones({ user, onEditar, onDesactivar }: { user: User; onEditar: () =
   return (
     <Group gap="xs" wrap="nowrap">
       <Tooltip label={`Editar a ${user.nombre}`}>
-        <ActionIcon aria-label={`Editar a ${user.nombre}`} color="navy" variant="light" onClick={onEditar}>
-          <IconPencil size={18} stroke={1.5} />
+        <ActionIcon aria-label={`Editar a ${user.nombre}`} color="navy" variant="light" size={44} onClick={onEditar}>
+          <IconPencil size={18} stroke={1.5} aria-hidden />
         </ActionIcon>
       </Tooltip>
       <Tooltip label={user.estado === 'activo' ? `Desactivar a ${user.nombre}` : 'La cuenta ya está desactivada'}>
@@ -70,10 +70,11 @@ function Acciones({ user, onEditar, onDesactivar }: { user: User; onEditar: () =
           aria-label={`Desactivar a ${user.nombre}`}
           color="crimson"
           variant="light"
+          size={44}
           disabled={user.estado === 'inactivo'}
           onClick={onDesactivar}
         >
-          <IconUserOff size={18} stroke={1.5} />
+          <IconUserOff size={18} stroke={1.5} aria-hidden />
         </ActionIcon>
       </Tooltip>
     </Group>
@@ -195,8 +196,8 @@ export function UsuariosPage() {
                           <Table.Th>Sedes</Table.Th>
                           <Table.Th>Carreras / departamentos</Table.Th>
                           <Table.Th>Contacto</Table.Th>
+                          <Table.Th w={130} aria-label="Acciones" />
                           <Table.Th>Estado</Table.Th>
-                          <Table.Th w={110} aria-label="Acciones" />
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
@@ -213,10 +214,10 @@ export function UsuariosPage() {
                               <Text fz="sm" className={classes.largo}>{user.correo}</Text>
                               <Text fz="xs" c="dimmed">{user.telefono || '—'}</Text>
                             </Table.Td>
-                            <Table.Td><EstadoBadge user={user} /></Table.Td>
                             <Table.Td>
                               <Acciones user={user} onEditar={() => openForm(user)} onDesactivar={() => setPendingDeactivation(user)} />
                             </Table.Td>
+                            <Table.Td><EstadoBadge user={user} /></Table.Td>
                           </Table.Tr>
                         ))}
                       </Table.Tbody>

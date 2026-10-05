@@ -7,7 +7,10 @@ export interface Usuario {
   iniciales: string;
 }
 
-/** Usuarios mock, uno por perfil. No hay login ni API: el rol se cambia desde el menú de usuario. */
+/**
+ * Usuarios mock, uno por perfil. El login es simulado (cualquier correo válido y contraseña no vacía
+ * entran) y no hay API: el rol se sigue cambiando desde el menú de usuario.
+ */
 const USUARIOS: Record<Rol, Usuario> = {
   admin: { nombre: 'Andrés Valdés', rol: 'admin', iniciales: 'AV' },
   coordinador: { nombre: 'Carolina Muñoz', rol: 'coordinador', iniciales: 'CM' },
@@ -16,6 +19,12 @@ const USUARIOS: Record<Rol, Usuario> = {
 };
 
 const STORAGE_KEY = 'sga.mock.rol';
+const SESION_KEY = 'sga.mock.sesion';
+
+/** Sesión mock: solo el correo. La contraseña nunca se guarda. */
+export interface Sesion {
+  correo: string;
+}
 
 function rolInicial(): Rol {
   try {
@@ -27,16 +36,31 @@ function rolInicial(): Rol {
   return 'coordinador';
 }
 
+function sesionInicial(): Sesion | null {
+  try {
+    const correo = window.sessionStorage.getItem(SESION_KEY);
+    if (correo) return { correo };
+  } catch {
+    /* sessionStorage no disponible: se parte sin sesión */
+  }
+  return null;
+}
+
 interface AuthStore {
   usuario: Usuario;
   /** Solo prototipo: simula iniciar sesión con otro perfil. */
   cambiarRol: (rol: Rol) => void;
+  sesion: Sesion | null;
+  /** Mock: no valida credenciales; el SGA real autentica en el backend (JWT). */
+  iniciarSesion: (correo: string) => void;
+  cerrarSesion: () => void;
 }
 
 const AuthContext = createContext<AuthStore | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [rol, setRol] = useState<Rol>(rolInicial);
+  const [sesion, setSesion] = useState<Sesion | null>(sesionInicial);
 
   const cambiarRol = useCallback((nuevo: Rol) => {
     setRol(nuevo);
@@ -47,7 +71,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
     }
   }, []);
 
-  const value = useMemo(() => ({ usuario: USUARIOS[rol], cambiarRol }), [rol, cambiarRol]);
+  const iniciarSesion = useCallback((correo: string) => {
+    setSesion({ correo });
+    try {
+      window.sessionStorage.setItem(SESION_KEY, correo);
+    } catch {
+      /* sin persistencia: la sesión se pierde al recargar */
+    }
+  }, []);
+
+  const cerrarSesion = useCallback(() => {
+    setSesion(null);
+    try {
+      window.sessionStorage.removeItem(SESION_KEY);
+    } catch {
+      /* sessionStorage no disponible: basta con limpiar el estado */
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({ usuario: USUARIOS[rol], cambiarRol, sesion, iniciarSesion, cerrarSesion }),
+    [rol, cambiarRol, sesion, iniciarSesion, cerrarSesion],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

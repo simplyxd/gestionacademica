@@ -2,6 +2,7 @@ import { Badge, Button, Card, SimpleGrid, Stack, Table, Text, Title, useMantineT
 import { IconEdit } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { DetailDrawer } from '@/components/ui/DetailDrawer';
+import { useEstructura } from '@/features/estructura/EstructuraContext';
 import { resolver } from '@/features/matricula/catalogos';
 import { useMatriculas } from '@/features/matricula/MatriculaContext';
 import { useOfertaStore } from '@/features/oferta/OfertaContext';
@@ -55,6 +56,7 @@ export function FichaDrawer({ persona, rol, onClose, onEditar }: FichaDrawerProp
   const { periodos, periodoActual } = usePeriodos();
   const { estudiantes } = usePersonas();
   const { matriculas } = useMatriculas();
+  const { carreras, planes } = useEstructura();
 
   const docente = persona && 'especialidad' in persona ? persona : null;
   const estudiante = persona && 'codigoEstudiante' in persona ? persona : null;
@@ -66,7 +68,7 @@ export function FichaDrawer({ persona, rol, onClose, onEditar }: FichaDrawerProp
   const matriculasDe = estudiante
     ? matriculas
         .filter((m) => m.estudianteId === estudiante.id)
-        .map((m) => resolver(m, periodos, estudiantes))
+        .map((m) => resolver(m, periodos, estudiantes, carreras, planes))
         .filter((r) => r !== null)
     : [];
 

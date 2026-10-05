@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { notify } from '@/lib/notify';
+import { useEstructura } from '@/features/estructura/EstructuraContext';
 import { usePeriodos } from '@/features/periodos/PeriodosContext';
 import { usePersonas } from '@/features/personas/PersonasContext';
 import { nombreCompleto } from '@/mock/personas';
@@ -63,6 +64,7 @@ export function MatriculaPage() {
   const { matriculas, cambiarEstado } = useMatriculas();
   const { periodos } = usePeriodos();
   const { estudiantes: personas } = usePersonas();
+  const { carreras, planes } = useEstructura();
   const [drawerAbierto, drawer] = useDisclosure(false);
 
   const [busqueda, setBusqueda] = useState('');
@@ -85,9 +87,9 @@ export function MatriculaPage() {
     () =>
       [...matriculas]
         .sort((a, b) => b.creadaEn.localeCompare(a.creadaEn))
-        .map((m) => resolver(m, periodos, personas))
+        .map((m) => resolver(m, periodos, personas, carreras, planes))
         .filter((r): r is MatriculaRow => r !== null),
-    [matriculas, periodos, personas],
+    [matriculas, periodos, personas, carreras, planes],
   );
 
   const filtradas = useMemo(() => {

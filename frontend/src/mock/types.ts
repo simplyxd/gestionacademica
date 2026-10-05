@@ -1,5 +1,7 @@
 /** Tipos de los catálogos mock. Reflejan las colecciones del backlog (E0-1) sin API real. */
 
+import type { Jornada, Modalidad } from '@/features/oferta/types';
+
 export interface Estudiante {
   id: string;
   rut: string;
@@ -8,10 +10,29 @@ export interface Estudiante {
   email: string;
 }
 
+export type EstadoCarrera = 'activa' | 'inactiva';
+
 export interface Carrera {
   id: string;
   codigo: string;
   nombre: string;
+  /** Ids de las sedes donde se imparte (ver `mock/sedes.ts`). */
+  sedes: string[];
+  modalidad: Modalidad;
+  jornada: Jornada;
+  duracionSemestres: number;
+  estado: EstadoCarrera;
+}
+
+export type EstadoPlan = 'vigente' | 'histórico';
+
+export type TipoAsignaturaPlan = 'obligatoria' | 'electiva';
+
+/** Asignatura dentro de un plan: el nombre y los créditos viven en el catálogo de asignaturas. */
+export interface AsignaturaPlan {
+  codigo: string;
+  semestre: number;
+  tipo: TipoAsignaturaPlan;
 }
 
 export interface PlanEstudio {
@@ -19,7 +40,8 @@ export interface PlanEstudio {
   carreraId: string;
   nombre: string;
   /** `vigente` = plan para nuevos ingresos; `histórico` = cohortes anteriores. */
-  estado: 'vigente' | 'histórico';
+  estado: EstadoPlan;
+  asignaturas: AsignaturaPlan[];
 }
 
 export type EstadoPeriodo = 'planificación' | 'inscripción abierta' | 'en curso' | 'cerrado';

@@ -3,9 +3,9 @@ import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconCheck } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DetailDrawer } from '@/components/ui/DetailDrawer';
+import { useEstructura } from '@/features/estructura/EstructuraContext';
 import { usePeriodos } from '@/features/periodos/PeriodosContext';
-import { CARRERAS } from '@/mock/estructura';
-import type { Estudiante, Periodo } from '@/mock/types';
+import type { Carrera, Estudiante, Periodo, PlanEstudio } from '@/mock/types';
 import { usePersonas } from '@/features/personas/PersonasContext';
 import { nombreCompleto } from '@/mock/personas';
 import { notify } from '@/lib/notify';
@@ -40,10 +40,17 @@ interface ErrorVista {
   message: string;
 }
 
+interface Catalogos {
+  periodos: readonly Periodo[];
+  estudiantes: readonly Estudiante[];
+  carreras: readonly Carrera[];
+  planes: readonly PlanEstudio[];
+}
+
 /** Copy del error de negocio: nombra la regla, da el dato concreto y una salida (system design §6.4). */
-function describir(error: ErrorMatricula, periodos: readonly Periodo[], estudiantes: readonly Estudiante[]): ErrorVista {
+function describir(error: ErrorMatricula, { periodos, estudiantes, carreras, planes }: Catalogos): ErrorVista {
   if (error.code === 'MATRICULA_VIGENTE_EN_PERIODO' && error.existente) {
-    const fila = resolver(error.existente, periodos, estudiantes);
+    const fila = resolver(error.existente, periodos, estudiantes, carreras, planes);
     if (fila) {
       return {
         title: 'Este estudiante ya tiene una matrícula vigente en el período',
@@ -67,6 +74,7 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
   const { registrar } = useMatriculas();
   const { periodos: periodosStore, periodoActual } = usePeriodos();
   const { estudiantes: personas, estudiantesActivos } = usePersonas();
+  const { carreras: carrerasStore, planes: planesStore } = useEstructura();
   const theme = useMantineTheme();
   const [errorNegocio, setErrorNegocio] = useState<ErrorVista | null>(null);
   const alertRef = useRef<HTMLDivElement>(null);
@@ -101,14 +109,19 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
     () => estudiantesActivos.map((e) => ({ value: e.id, label: `${nombreCompleto(e)} · ${e.rut}` })),
     [estudiantesActivos],
   );
-  const carreras = useMemo(() => CARRERAS.map((c) => ({ value: c.id, label: c.nombre })), []);
+  // Solo carreras activas: las inactivas no reciben matrículas nuevas.
+  const carreras = useMemo(
+    () => carrerasStore.filter((c) => c.estado === 'activa').map((c) => ({ value: c.id, label: c.nombre })),
+    [carrerasStore],
+  );
   const periodos = useMemo(
     () => periodosStore.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` })),
     [periodosStore],
   );
   const planes = useMemo(
-    () => planesDeCarrera(form.values.carreraId).map((p) => ({ value: p.id, label: `${p.nombre} · ${p.estado}` })),
-    [form.values.carreraId],
+    () =>
+      planesDeCarrera(form.values.carreraId, planesStore).map((p) => ({ value: p.id, label: `${p.nombre} · ${p.estado}` })),
+    [form.values.carreraId, planesStore],
   );
 
   const cambiarCampo = (campo: keyof NuevaMatricula, valor: string | null) => {
@@ -123,7 +136,7 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
 
   const cambiarCarrera = (carreraId: string | null) => {
     const id = carreraId ?? '';
-    const delPlan = planesDeCarrera(id);
+    const delPlan = planesDeCarrera(id, planesStore);
     form.setValues({ carreraId: id, planId: delPlan.length === 1 ? delPlan[0].id : '' });
     form.clearFieldError('planId');
   };
@@ -133,7 +146,7 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
       setErrorNegocio(null);
       const r = registrar(values);
       if (r.ok) {
-        const fila = resolver(r.value, periodosStore, personas);
+        const fila = resolver(r.value, periodosStore, personas, carrerasStore, planesStore);
         notify.success({
           title: 'Matrícula registrada',
           message: fila
@@ -143,7 +156,12 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
         onRegistrada(r.value);
         return;
       }
-      const vista = describir(r.error, periodosStore, personas);
+      const vista = describir(r.error, {
+        periodos: periodosStore,
+        estudiantes: personas,
+        carreras: carrerasStore,
+        planes: planesStore,
+      });
       setErrorNegocio(vista);
       if (r.error.field) {
         form.setFieldError(

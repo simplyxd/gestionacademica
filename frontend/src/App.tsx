@@ -1,6 +1,7 @@
 import { RouterProvider } from 'react-router-dom';
 import { ParametrosProvider } from './app/parametros/ParametrosContext';
 import { SgaProvider } from './app/SgaContext';
+import { EstructuraProvider } from './features/estructura/EstructuraContext';
 import { SedesProvider } from './features/estructura/SedesContext';
 import { OfertaProvider } from './features/oferta/OfertaContext';
 import { PeriodosProvider } from './features/periodos/PeriodosContext';
@@ -18,13 +19,15 @@ export function App() {
       <PersonasProvider>
         <PeriodosProvider>
           <SedesProvider>
-            <OfertaProvider>
-              <MatriculaProvider>
-                <SgaProvider>
-                  <RouterProvider router={router} />
-                </SgaProvider>
-              </MatriculaProvider>
-            </OfertaProvider>
+            <EstructuraProvider>
+              <OfertaProvider>
+                <MatriculaProvider>
+                  <SgaProvider>
+                    <RouterProvider router={router} />
+                  </SgaProvider>
+                </MatriculaProvider>
+              </OfertaProvider>
+            </EstructuraProvider>
           </SedesProvider>
         </PeriodosProvider>
       </PersonasProvider>
