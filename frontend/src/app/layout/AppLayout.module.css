@@ -1,0 +1,26 @@
+.userButton {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  padding: rem(4px) rem(8px);
+  cursor: pointer;
+  color: inherit;
+
+  @mixin hover {
+    background: var(--mantine-color-default-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+}
+
+.navLink {
+  border-radius: var(--mantine-radius-md);
+  font-weight: 500;
+
+  &[data-active] {
+    font-weight: 600;
+  }
+}
