@@ -1,12 +1,14 @@
 import request from 'supertest';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import app from '../../src/app.js';
+import { crearApp } from '../../src/app.js';
 import { conectarBaseDePrueba, desconectarBaseDePrueba } from '../helpers/db.js';
 
 // Contrato (D-X2, D-X3, D-X4): GET /api/health es público.
 //   base disponible -> 200 { data: { api: 'ok', db: 'conectada' } }
 //   base caída      -> 503 { data: { api: 'ok', db: 'desconectada' } }
 // Se compara el cuerpo completo con toEqual para que no se filtre ningún dato interno.
+
+const app = crearApp();
 
 describe('GET /api/health', () => {
   describe('con la base de datos caída', () => {
