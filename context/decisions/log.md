@@ -2,6 +2,26 @@
 
 Append-only. Más reciente arriba.
 
+## 2026-11-07 — PROPUESTA (Angel → Matias): suspender una matrícula no anula inscripciones
+
+**Decision (propuesta, pendiente de OK de Matias):** al pasar una matrícula a `suspendida`, sus inscripciones activas del período **se conservan**; el estudiante no puede inscribir nuevas (la regla 1 ya exige matrícula vigente). Recién al pasar a `retirada` se anulan sus inscripciones activas del período.
+
+**Rationale:** la suspensión es reversible en la práctica; anular de inmediato haría perder cupos que después no se recuperan.
+
+**Rejected:** anular automáticamente al suspender; impedir suspender si hay inscripciones activas.
+
+**Scope/links:** E5 (D-10 de Angel) · E8 (Matias) · [bitácora de Angel](../../asignaciones/bitacoras/angel.md)
+
+## 2026-11-07 — PROPUESTA (Angel → Lorenzo): carrera inactiva permite renovación
+
+**Decision (propuesta, pendiente de OK de Lorenzo):** una carrera `inactiva` (cerrada a nuevo ingreso) bloquea solo el **nuevo ingreso**: el estudiante que nunca tuvo matrícula en esa carrera. Quien ya tuvo una matrícula en esa carrera (cualquier período anterior) puede **renovar** para un período nuevo.
+
+**Rationale:** «cerrada a nuevo ingreso» no debe dejar sin continuidad a quienes ya cursan la carrera.
+
+**Rejected:** bloquear toda matrícula en carrera inactiva; permitir renovación solo en el mismo plan.
+
+**Scope/links:** E5 (D-08 de Angel) · E2 (Lorenzo) · [bitácora de Angel](../../asignaciones/bitacoras/angel.md)
+
 ## 2026-09-05 — Backlog curado como mapa, no como dump
 
 **Decision:** Las 85 tarjetas siguen en `backlog-sga.md`. En `context/` solo el mapa de épicos, sprints y decisiones extraídas.
