@@ -106,3 +106,24 @@ Plantilla:
 - Alternativa que se descartó y por qué: `require` directo de modelos ajenos (no existen); devolver `{ ok, error }` como el frontend (se reescribiría).
 - Decisión final: hechos el modelo con índice, `TRANSICIONES`, `matriculaVigente`, `contarPorCarrera` y `listar`. Pendientes: `registrar` y `cambiarEstado` (con la fábrica), `errors/codigos/matriculas.js`, búsqueda `q` y alcance por sedes en `listar`.
 - Qué aprendió / qué quedó pendiente: la fábrica se crea junto con `registrar`, que es lo único que usa las dependencias.
+
+### D-12 · Alumnos de demo por regla · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿qué alumnos necesita cada regla para poder demostrarse y qué intentan inscribir?
+- Respuesta de Angel (sus palabras): aprobó la tabla propuesta tal cual (sinmatricula → regla 1, otroplan → 4, sinprerrequisito → 5, yaaprobo → 6, choque → 7, feliz → acepta); se documenta en `db/README.md` como propuesta para Matias.
+- Alternativa que se descartó y por qué: un alumno por cada una de las 7 reglas (las reglas 2 y 3 dependen del período y la sección, no del alumno).
+- Decisión final: `db/seed/lib/demo.js` + tabla en `db/README.md`; tests que comprueban que cada caso realmente provoca su regla.
+- Qué aprendió / qué quedó pendiente: OK de Matias (su D-17); la inscripción previa de `demo.choque` la pone él en el seed 10.
+
+### D-11 · Historiales realistas y coherentes · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿cómo generar el historial de 200 estudiantes respetando prerrequisitos?
+- Respuesta de Angel (sus palabras): recorrer el plan semestre a semestre hasta su nivel - 1; cada asignatura se aprueba solo si sus prerrequisitos ya están aprobados, con ~85% de probabilidad (algunos reprueban), usando una semilla fija para que siempre salga igual.
+- Alternativa que se descartó y por qué: aprobar todo lo anterior a su nivel (simple pero poco realista).
+- Decisión final: `generarHistorial` + `verificarHistorial` en `db/seed/lib/historial.js`; test de consistencia sobre 200 historiales. Un prerrequisito del mismo semestre no habilita la asignatura ese semestre.
+- Qué aprendió / qué quedó pendiente: adaptar la entrada al modelo de plan de Lorenzo cuando exista (hoy: `{ codigo, semestre, prerrequisitos[] }`).
+
+### G-06 · Ubicación de los generadores del seed · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿dónde va el código de los generadores y sus tests?
+- Respuesta de Angel (sus palabras): `db/seed/lib/*.js`, y los tests se corren con el vitest del backend agregando `db/` al include.
+- Alternativa que se descartó y por qué: `db/` con su propio `package.json` (duplica herramientas).
+- Decisión final: generadores sin dependencias externas; el test que valida perfiles carga `mongoose` desde `backend/`. Los perfiles generados se validan contra los esquemas reales.
+- Qué aprendió / qué quedó pendiente: escribir `07-personas.js` y `08-matriculas.js` cuando existan el modelo `Usuario` (Endert) y los seeds 04–06.
