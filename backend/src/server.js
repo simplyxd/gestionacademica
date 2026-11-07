@@ -7,7 +7,7 @@ import { ErrorDeConfiguracion, leerEntorno } from './config/env.js';
 
 async function iniciar() {
   const config = leerEntorno(); // si falta algo, lanza ErrorDeConfiguracion y no se arranca
-  const app = crearApp({ corsOrigins: config.corsOrigins, registro: process.stdout });
+  const app = crearApp({ corsOrigins: config.corsOrigins, registro: process.stdout, jwtSecret: config.jwtSecret });
 
   try {
     await mongoose.connect(config.mongoUri, { serverSelectionTimeoutMS: 5000 });

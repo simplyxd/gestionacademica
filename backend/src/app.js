@@ -1,3 +1,4 @@
+import './config/mongoose.js'; // siempre primero: registra el plugin global antes de que se carguen los modelos
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -22,9 +23,13 @@ const FORMATO_REGISTRO = ':method :ruta :status :response-time ms';
  *   (en desarrollo el proxy de Vite hace que no haga falta).
  * @param {{ write: (linea: string) => void }} [opciones.registro] destino del registro de peticiones.
  *   Sin él no se registra nada.
+ * @param {string} [opciones.jwtSecret] secreto con el que se verifican los tokens. Queda en
+ *   app.locals.jwtSecret: el middleware authenticate lo lee con req.app.locals.jwtSecret (decisión 2A),
+ *   así cada test puede pasar su propio secreto de prueba sin tocar process.env.
  */
-export function crearApp({ corsOrigins = [], registro } = {}) {
+export function crearApp({ corsOrigins = [], registro, jwtSecret } = {}) {
   const app = express();
+  app.locals.jwtSecret = jwtSecret;
 
   app.use(helmet()); // D-06: cabeceras de seguridad HTTP (y oculta X-Powered-By).
   if (corsOrigins.length > 0) app.use(cors({ origin: corsOrigins })); // D-05: lista blanca, nunca "*".

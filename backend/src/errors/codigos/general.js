@@ -10,4 +10,6 @@ export const GEN = Object.freeze({
   PETICION_INVALIDA: 'GEN_PETICION_INVALIDA', //    4xx: la petición no se pudo procesar
   BODY_DEMASIADO_GRANDE: 'GEN_BODY_DEMASIADO_GRANDE', // 413: el body supera el límite
   DUPLICADO: 'GEN_DUPLICADO', //                    409: choca con un valor único que ya existe
+  PAGINACION_INVALIDA: 'GEN_PAGINACION_INVALIDA', // 400: page o limit fuera de rango o mal escritos
+  ORDEN_INVALIDO: 'GEN_ORDEN_INVALIDO', //          400: sort pide un campo que no se puede ordenar
 });
