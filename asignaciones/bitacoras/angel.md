@@ -34,3 +34,10 @@ Plantilla:
 - Alternativa que se descartó y por qué: dejarlo en la raíz (no coincide con lo que dice el propio archivo).
 - Decisión final: `asignaciones/asignacion-angel.md` y `asignaciones/bitacoras/angel.md`.
 - Qué aprendió / qué quedó pendiente: —
+
+### G-03 · Herramienta de tests y sistema de módulos del backend · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿qué runner de tests y qué estilo de imports usa el backend?
+- Respuesta de Angel (sus palabras): vitest (el mismo del frontend) y CommonJS (`require`/`module.exports`, el estilo clásico de Express).
+- Alternativa que se descartó y por qué: jest (configuración extra), `node:test` (menos cómodo); ESM.
+- Decisión final: vitest con `globals: true` (vitest no se carga con `require`) + `mongodb-memory-server` para probar índices reales. Base mínima: solo `package.json`, `vitest.config.mjs` y `tests/helpers/mongo.js`; sin Express ni `app.js`.
+- Qué aprendió / qué quedó pendiente: avisar a Juan que `backend/package.json` ya existe con CommonJS + vitest, para que su H0 lo extienda en vez de duplicarlo (o que diga si prefiere otra cosa).
