@@ -71,3 +71,38 @@ Plantilla:
 - Alternativa que se descartó y por qué: perfil obligatorio (depende de lo que se acuerde con Endert sobre el alta); lanzar error o devolver booleano (sin motivo).
 - Decisión final: `null | string`; Endert lo usa con `invalidate()` en su modelo.
 - Qué aprendió / qué quedó pendiente: revisar si el perfil pasa a obligatorio cuando se cierre el acuerdo con Endert.
+
+### D-07 · Índice único parcial para «una vigente por período» · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿por qué un índice parcial y no solo un `find` antes de insertar? Describe una secuencia que lo rompe.
+- Respuesta de Angel (sus palabras): dos coordinadores (o un doble clic) envían el alta a la vez: ambos hacen el find, ninguno ve una vigente, ambos insertan y quedan dos vigentes. El índice hace que la BD rechace la segunda (E11000) y respondemos 409 MTR_YA_VIGENTE.
+- Alternativa que se descartó y por qué: solo `find` + `insert` (condición de carrera).
+- Decisión final: índice `{ estudianteId, periodoId }` único con `partialFilterExpression: { estado: 'vigente' }`. Test con dos altas simultáneas: solo una queda.
+- Qué aprendió / qué quedó pendiente: traducir E11000 a `409 MTR_YA_VIGENTE` cuando exista `AppError` (Juan).
+
+### D-09 · Estados finales sin atajos · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: ¿cómo impedir que un PATCH directo se salte las transiciones?
+- Respuesta de Angel (sus palabras): tabla TRANSICIONES central en el servicio, y el update condicional y atómico: `findOneAndUpdate({ _id, estado: actual }, { estado: nuevo })`; si otro la cambió entre medio, no se aplica.
+- Alternativa que se descartó y por qué: leer + `save()` (dos pasos, carrera entre lectura y escritura); hook `pre('save')` (no cubre `updateOne`/`findOneAndUpdate`).
+- Decisión final: `TRANSICIONES` congelada (`Object.freeze`) en `matriculas.service.js`. El `cambiarEstado` atómico queda para cuando exista `AppError`.
+- Qué aprendió / qué quedó pendiente: implementar `cambiarEstado` con el update condicionado.
+
+### D-08 · Carrera cerrada: nuevo ingreso vs. renovación · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: con la carrera `inactiva`, ¿qué pasa con quien ya estaba matriculado y pide matrícula para el siguiente período?
+- Respuesta de Angel (sus palabras): renovación permitida: si el estudiante ya tuvo una matrícula en esa carrera (cualquier período anterior), puede renovar; solo se bloquea al que entra por primera vez.
+- Alternativa que se descartó y por qué: bloquear todo (deja sin continuidad a quienes cursan); solo mismo plan (más restrictivo de lo que pide el dominio).
+- Decisión final: **propuesta** a Lorenzo, registrada en `context/decisions/log.md`.
+- Qué aprendió / qué quedó pendiente: OK de Lorenzo; implementarla en `registrar`.
+
+### D-10 · Suspensión e inscripciones activas · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: al suspender, ¿qué pasa con las inscripciones activas del período?
+- Respuesta de Angel (sus palabras): se conservan tal cual, pero no puede inscribir nuevas (la regla 1 ya exige matrícula vigente). Al pasar a retirada recién se anulan.
+- Alternativa que se descartó y por qué: anular al suspender (pierde cupos); impedir suspender con inscripciones (burocrático).
+- Decisión final: **propuesta** a Matias, registrada en `context/decisions/log.md`.
+- Qué aprendió / qué quedó pendiente: OK de Matias; acordar quién anula las inscripciones al retirar (su servicio, llamado desde `cambiarEstado`).
+
+### G-05 · Alcance del Paso 3 y forma del servicio · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: sin `AppError` y sin los modelos de otros, ¿qué se implementa y cómo recibe el servicio las dependencias?
+- Respuesta de Angel (sus palabras): avanzar con lo que no necesite dependencia de otra persona; los errores quedan pendientes hasta que Juan suba sus cosas. Dependencias por fábrica: `crearMatriculasService({ buscarEstudiante, buscarCarrera, buscarPlan, buscarPeriodo })`. `contarPorCarrera` sin estado cuenta todas; `listar` más recientes primero (page 1, limit 20, tope 100); `matriculaVigente` devuelve la matrícula o `null`.
+- Alternativa que se descartó y por qué: `require` directo de modelos ajenos (no existen); devolver `{ ok, error }` como el frontend (se reescribiría).
+- Decisión final: hechos el modelo con índice, `TRANSICIONES`, `matriculaVigente`, `contarPorCarrera` y `listar`. Pendientes: `registrar` y `cambiarEstado` (con la fábrica), `errors/codigos/matriculas.js`, búsqueda `q` y alcance por sedes en `listar`.
+- Qué aprendió / qué quedó pendiente: la fábrica se crea junto con `registrar`, que es lo único que usa las dependencias.
