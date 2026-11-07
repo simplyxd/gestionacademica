@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { RoleGuard } from '@/features/auth/RoleGuard';
 import { AppLayout } from './layout/AppLayout';
+import { EscucharSesionInvalida } from './EscucharSesionInvalida';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { InicioPage } from './pages/InicioPage';
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <RequireAuth>
+        <EscucharSesionInvalida />
         <AppLayout />
       </RequireAuth>
     ),
