@@ -67,6 +67,12 @@ function describir(error: ErrorMatricula, { periodos, estudiantes, carreras, pla
       message: 'Elige un plan de estudio de la carrera seleccionada.',
     };
   }
+  if (error.code === 'PERIODO_CERRADO') {
+    return {
+      title: 'El período está cerrado',
+      message: 'Un período cerrado no recibe matrículas nuevas. Elige un período en planificación, con inscripción abierta o en curso.',
+    };
+  }
   return { title: 'No se pudo registrar la matrícula', message: 'Revisa los datos e inténtalo de nuevo.' };
 }
 
@@ -114,8 +120,12 @@ export function MatriculaFormDrawer({ opened, onClose, onRegistrada }: Matricula
     () => carrerasStore.filter((c) => c.estado === 'activa').map((c) => ({ value: c.id, label: c.nombre })),
     [carrerasStore],
   );
+  // Un período cerrado no recibe matrículas nuevas.
   const periodos = useMemo(
-    () => periodosStore.map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` })),
+    () =>
+      periodosStore
+        .filter((p) => p.estado !== 'cerrado')
+        .map((p) => ({ value: p.id, label: `${p.codigo} · ${p.estado}` })),
     [periodosStore],
   );
   const planes = useMemo(

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { MATRICULAS_SEED } from '@/mock/matriculas';
 import { useEstructura } from '@/features/estructura/EstructuraContext';
+import { usePeriodos } from '@/features/periodos/PeriodosContext';
 import { cambiarEstado, registrarMatricula } from './rules';
 import type { EstadoMatricula, Matricula, NuevaMatricula, Resultado } from './types';
 
@@ -19,6 +20,7 @@ const MatriculaContext = createContext<MatriculaStore | null>(null);
  */
 export function MatriculaProvider({ children }: PropsWithChildren) {
   const { planes } = useEstructura();
+  const { periodos } = usePeriodos();
   const [matriculas, setMatriculas] = useState<Matricula[]>(MATRICULAS_SEED);
   const ref = useRef(matriculas);
   const secuencia = useRef(MATRICULAS_SEED.length);
@@ -31,14 +33,14 @@ export function MatriculaProvider({ children }: PropsWithChildren) {
   const registrar = useCallback<MatriculaStore['registrar']>(
     (input) => {
       const id = `MAT-${String(secuencia.current + 1).padStart(4, '0')}`;
-      const r = registrarMatricula(ref.current, input, planes, { id, ahora: new Date().toISOString() });
+      const r = registrarMatricula(ref.current, input, planes, periodos, { id, ahora: new Date().toISOString() });
       if (r.ok) {
         secuencia.current += 1;
         commit([r.value, ...ref.current]);
       }
       return r;
     },
-    [commit, planes],
+    [commit, planes, periodos],
   );
 
   const cambiar = useCallback<MatriculaStore['cambiarEstado']>(

@@ -127,3 +127,17 @@ Plantilla:
 - Alternativa que se descartó y por qué: `db/` con su propio `package.json` (duplica herramientas).
 - Decisión final: generadores sin dependencias externas; el test que valida perfiles carga `mongoose` desde `backend/`. Los perfiles generados se validan contra los esquemas reales.
 - Qué aprendió / qué quedó pendiente: escribir `07-personas.js` y `08-matriculas.js` cuando existan el modelo `Usuario` (Endert) y los seeds 04–06.
+
+### D-15 · Plan dependiente de la carrera · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: el formulario ya reinicia el plan al cambiar la carrera; ¿por qué el backend igual debe validar que el plan sea de la carrera?
+- Respuesta de Angel (sus palabras): porque el front se puede saltar (Postman, otra pantalla, un bug o datos obsoletos): el backend es la autoridad y el front solo adelanta el error.
+- Alternativa que se descartó y por qué: confiar solo en el reinicio del front.
+- Decisión final: se mantiene `cambiarCarrera` (reinicia `planId`, o lo preselecciona si la carrera tiene un solo plan); el backend validará `MTR_PLAN_FUERA_DE_CARRERA` en `registrar`.
+- Qué aprendió / qué quedó pendiente: —
+
+### G-07 · Período cerrado en el formulario de matrícula · 2026-11-07 · ayuda: N0
+- Pregunta que se hizo: el selector ofrecía períodos `cerrado` y ninguna regla lo impedía; ¿qué hacemos?
+- Respuesta de Angel (sus palabras): ocultarlos del selector y agregar la regla en `rules.ts` con su test (código `PERIODO_CERRADO`), igual que la regla del backend. El formato de error del contrato queda pendiente hasta que Juan suba `api.ts` y `AppError`.
+- Alternativa que se descartó y por qué: solo ocultarlos (la regla no quedaría probada); dejarlo como estaba.
+- Decisión final: `registrarMatricula(matriculas, input, planes, periodos, meta)` rechaza un período cerrado; el selector los filtra; mensaje con salida en el `Alert`.
+- Qué aprendió / qué quedó pendiente: si Lorenzo acepta D-08 (renovación en carrera inactiva), el selector de carreras deja de ocultar las inactivas para quienes renuevan.
