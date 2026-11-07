@@ -1,21 +1,38 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { SgaProvider } from '@/app/SgaContext';
-import { AppLayout } from '@/app/layout/AppLayout';
-import { HorarioPage } from '@/features/horario/HorarioPage';
-import { InscripcionPage } from '@/features/inscripcion/InscripcionPage';
-import { OfertaPage } from '@/features/oferta/OfertaPage';
+import { RouterProvider } from 'react-router-dom';
+import { ParametrosProvider } from './app/parametros/ParametrosContext';
+import { SgaProvider } from './app/SgaContext';
+import { EstructuraProvider } from './features/estructura/EstructuraContext';
+import { SedesProvider } from './features/estructura/SedesContext';
+import { OfertaProvider } from './features/oferta/OfertaContext';
+import { PeriodosProvider } from './features/periodos/PeriodosContext';
+import { PermisosProvider } from './features/permisos/PermisosContext';
+import { PersonasProvider } from './features/personas/PersonasContext';
+import { router } from './app/router';
+import { AuthProvider } from './features/auth/AuthContext';
+import { MatriculaProvider } from './features/matricula/MatriculaContext';
 
 export function App() {
   return (
-    <SgaProvider>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/oferta" replace />} />
-          <Route path="/oferta" element={<OfertaPage />} />
-          <Route path="/inscripcion" element={<InscripcionPage />} />
-          <Route path="/horario" element={<HorarioPage />} />
-        </Route>
-      </Routes>
-    </SgaProvider>
+    <AuthProvider>
+      <ParametrosProvider>
+      <PermisosProvider>
+      <PersonasProvider>
+        <PeriodosProvider>
+          <SedesProvider>
+            <EstructuraProvider>
+              <OfertaProvider>
+                <MatriculaProvider>
+                  <SgaProvider>
+                    <RouterProvider router={router} />
+                  </SgaProvider>
+                </MatriculaProvider>
+              </OfertaProvider>
+            </EstructuraProvider>
+          </SedesProvider>
+        </PeriodosProvider>
+      </PersonasProvider>
+      </PermisosProvider>
+      </ParametrosProvider>
+    </AuthProvider>
   );
 }

@@ -68,7 +68,7 @@ function CandadoPrerrequisito({ fila }: { fila: FilaOferta }) {
   return (
     <Tooltip label={`Te falta aprobar ${nombresPendientes(fila.prerrequisitosPendientes)}`} zIndex={Z_GLOBO}>
       <Box component="span" c="crimson" className={classes.candado}>
-        <IconLock size={15} stroke={2} aria-label="Con prerrequisito pendiente" />
+        <IconLock size={14} stroke={2} aria-label="Con prerrequisito pendiente" />
       </Box>
     </Tooltip>
   );
@@ -206,7 +206,7 @@ export function OfertaSecciones({ oferta, onVerSeccion }: OfertaSeccionesProps) 
                         <Table.Td>
                           <Stack gap={2}>
                             <Group gap={6} wrap="nowrap">
-                              <Text component="span" className="sga-code" c="indigo">
+                              <Text component="span" className="sga-code sga-code-indigo">
                                 {seccion.codigoAsignatura}
                               </Text>
                               <CandadoPrerrequisito fila={fila} />
@@ -271,7 +271,7 @@ export function OfertaSecciones({ oferta, onVerSeccion }: OfertaSeccionesProps) 
                       <Group justify="space-between" wrap="nowrap" align="flex-start">
                         <Stack gap={2} align="flex-start">
                           <Group gap={6} wrap="nowrap">
-                            <Text component="span" className="sga-code" c="indigo">
+                            <Text component="span" className="sga-code sga-code-indigo">
                               {seccion.codigoAsignatura} · {seccion.seccion}
                             </Text>
                             <CandadoPrerrequisito fila={fila} />

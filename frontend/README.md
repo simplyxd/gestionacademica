@@ -1,32 +1,64 @@
-# React + TypeScript + Vite
+# SGA · Frontend (prototipo)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Solo frontend, en `localhost`, con datos mock (sin API, base de datos ni persistencia: al recargar vuelve el seed).
+Stack y reglas visuales: [`../system-desing.md`](../system-desing.md) — React 18 + TypeScript + Vite + Mantine 7 + React Router 6.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run typecheck
+npm run lint
+npm test           # reglas de matrícula (vitest)
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Perfiles
+
+El menú de usuario (arriba a la derecha) permite «Probar como…» Coordinador, Estudiante, Docente o Administrador.
+La navegación (`src/app/navigation.ts`) y el control de acceso (`RoleGuard`) dependen del perfil.
+
+| Perfil | Pantallas disponibles |
+|---|---|
+| Administrador | `/admin` (panel), `/admin/usuarios` (ABM, RF1), `/admin/parametros`, `/admin/permisos` (RF1), `/reportes` (RF12) |
+| Coordinador académico | `/matricula` (RF6), `/periodos` (RF4), `/estructura/sedes` (RF2), `/personas` (RF5), `/coordinador/oferta` (RF7–RF8), `/reportes` (RF12) |
+| Docente | `/docente/secciones` (con nómina), `/docente/horario` (RF11) |
+| Estudiante | `/oferta`, `/inscripcion`, `/horario` (RF9–RF10 / CU7–CU8) |
+
+El resto de rutas muestran «Próximamente».
+
+### Cómo se conectan las pantallas
+
+La **Oferta de secciones** del coordinador es la fuente única de secciones (`features/oferta/OfertaContext.tsx`):
+lo que se programa ahí lo ven el Estudiante (en el período «en curso») y el Docente asignado. Los **Períodos** y las
+**Sedes** que crea el coordinador alimentan los selectores de Matrícula y de la oferta. En
+**Docentes y estudiantes** la baja lógica importa: solo los *activos* se ofrecen al asignar docentes en la oferta y al
+matricular (la ficha del docente calcula su carga académica desde la oferta). Todo vive en memoria: al
+recargar vuelve el seed (excepto los **Parámetros institucionales**, que se guardan en `localStorage`: siglas y nombre de la
+institución se leen en el encabezado y el pie).
+
+### Datos para probar
+
+`src/mock/datos-de-prueba.ts` trae casos listos (datos de formulario y recorridos entre perfiles) con el resultado
+esperado: choque de docente o de sala, cupo menor a los inscritos, período duplicado o con dos «en curso», sede
+repetida, etc. `npm test` comprueba que cada caso se comporte como dice.
+
+### Matrícula (`/matricula`)
+
+- Alta en Drawer: estudiante + carrera + plan de esa carrera + período.
+- Una sola matrícula `vigente` por estudiante y período. Estados `vigente | suspendida | egresada | retirada`;
+  `egresada` y `retirada` son finales; `suspendida` solo puede pasar a `retirada`.
+- Reglas en `src/features/matricula/rules.ts` (funciones puras, con tests).
+
+### Oferta · Inscripción · Horario (Estudiante)
+
+Consulta de oferta, inscripción con las 7 reglas y horario semanal. Para el Estudiante, el encabezado muestra el
+selector **Escenario de prueba** (inscripción normal, sin matrícula, ventana futura / cerrada) para ver el rechazo
+con el mensaje de la regla que falló.
+
+## Estructura
+
+- `src/app/` — router, layout (header, navegación por rol, footer), navegación
+- `src/components/` — `BrandLogo`, `PageHeader`, `SiteFooter`, `EmptyState`, `ConfirmModal`, `DetailDrawer`
+- `src/features/` — `auth`, `personas`, `matricula`, `periodos`, `estructura` (sedes), `oferta`, `inscripcion`, `horario`, `docente`, `permisos`
+- `src/theme/` — tema Mantine + tokens (glass, colores, modo claro/oscuro)
+- `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ siguen siendo dos carpetas: `mocks/sga.ts` es el catálogo del Estudiante y alimenta el seed de `mock/oferta.ts`)

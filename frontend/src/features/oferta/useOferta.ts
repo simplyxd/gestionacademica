@@ -1,6 +1,6 @@
 import { useDebouncedValue } from '@mantine/hooks';
 import { useMemo, useState } from 'react';
-import { asignaturaPorCodigo, estudiante, secciones } from '@/mocks/sga';
+import { asignaturaPorCodigo, estudiante } from '@/mocks/sga';
 import type { DiaSemana, Seccion } from './types';
 
 export interface FilaOferta {
@@ -19,6 +19,7 @@ export interface FilaOferta {
 export type Ocupacion = { inscritos: number; cupo: number };
 
 export function construirFilas(
+  secciones: readonly Seccion[],
   ocupacionDe: (seccionId: string) => Ocupacion,
   estaInscrita: (seccionId: string) => boolean,
 ): FilaOferta[] {

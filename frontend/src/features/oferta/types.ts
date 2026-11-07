@@ -36,6 +36,12 @@ export interface Seccion {
   bloques: BloqueSeccion[];
 }
 
+/** Sección dentro de la oferta del coordinador: la misma que ve el estudiante, más período y sede. */
+export interface SeccionOfertada extends Seccion {
+  periodoId: string;
+  sede: string;
+}
+
 export interface AsignaturaAprobada {
   codigo: string;
   /** Período en que la aprobó, para poder nombrarlo en el aviso. */

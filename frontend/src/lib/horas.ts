@@ -11,6 +11,12 @@ export function fmt(min: number): string {
   return `${hh}:${mm}`;
 }
 
+/** «HH:MM» a minutos desde 00:00. Devuelve 0 si el texto no es una hora válida. */
+export function aMinutos(hhmm: string): number {
+  const [hh, mm] = hhmm.split(':').map(Number);
+  return Number.isFinite(hh) && Number.isFinite(mm) ? hh * 60 + mm : 0;
+}
+
 /** «Lun 10:00–11:30 · Mié 14:00–15:30» */
 export function textoBloques(bloques: BloqueSeccion[]): string {
   return bloques

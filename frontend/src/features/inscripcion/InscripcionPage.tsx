@@ -7,12 +7,11 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { AnuladasList } from './AnuladasList';
 import { PorTomarList } from './PorTomarList';
 import { reglaDeMatricula, reglaDeVentana } from './reglas';
-import { seccionPorId } from './useInscripciones';
 import { asignaturaPorCodigo, estudiante } from '@/mocks/sga';
 
 export function InscripcionPage() {
   const navigate = useNavigate();
-  const { anuladas, codigosInscritos, escenario } = useSga();
+  const { anuladas, codigosInscritos, escenario, seccionPorId } = useSga();
 
   const matricula = reglaDeMatricula(escenario);
   const ventana = reglaDeVentana(escenario);
@@ -36,7 +35,7 @@ export function InscripcionPage() {
         prerrequisitosPendientes: asignatura.prerrequisitos.filter((c) => !aprobadas.has(c)),
       }];
     });
-  }, [anuladas, codigosInscritos]);
+  }, [anuladas, codigosInscritos, seccionPorId]);
 
   return (
     <>
@@ -67,7 +66,7 @@ export function InscripcionPage() {
 
         <Card>
           <Card.Section inheritPadding withBorder py="sm">
-            <Title order={3}>Asignaturas por tomar</Title>
+            <Title order={2} size="h3">Asignaturas por tomar</Title>
           </Card.Section>
           <Card.Section inheritPadding py="md">
             <PorTomarList
@@ -79,7 +78,7 @@ export function InscripcionPage() {
 
         <Card>
           <Card.Section inheritPadding withBorder py="sm">
-            <Title order={3}>Inscripciones anuladas</Title>
+            <Title order={2} size="h3">Inscripciones anuladas</Title>
           </Card.Section>
           <Card.Section inheritPadding py="md">
             <AnuladasList anuladas={anuladas} />

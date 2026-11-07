@@ -48,4 +48,14 @@ export const sky: MantineColorsTuple = [
   '#2496E0', '#0E6FB3', '#0F5A91', '#124B76', '#10395A',
 ];
 
-export const sgaColors = { navy, indigo, amber, slate, teal, crimson, orange, sky } as const;
+/**
+ * Escala `dark` de Mantine reasignada a la pizarra del SGA. Mantine la usa en modo oscuro para
+ * texto (0), `dimmed` (2), bordes (4), hover (5), controles (6) y fondo de card/body (7).
+ * Sin esto las superficies salen en gris neutro (#242424) en vez de pizarra.
+ */
+export const dark: MantineColorsTuple = [
+  '#F1F5F9', '#E2E8F0', '#94A3B8', '#64748B', '#334155',
+  '#2B3A4F', '#243046', '#1E293B', '#172033', '#0F172A',
+];
+
+export const sgaColors = { navy, indigo, amber, slate, teal, crimson, orange, sky, dark } as const;
