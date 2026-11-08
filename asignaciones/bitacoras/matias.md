@@ -120,6 +120,35 @@ Archivo: `backend/src/services/reglasInscripcion.js`
 
 ---
 
+## Acuerdos con Diego (secciones y oferta)
+
+### D-09 (de Diego) · Cambiar el horario de una sección con inscritos · acordado
+- **Pregunta de Diego:** si una sección ya tiene inscritos activos, ¿se pueden cambiar sus bloques?
+- **Respuesta:** no. Si tiene inscritos activos, el cambio se rechaza con 409.
+- **Por qué:** si se cambia el horario, a un alumno le puede quedar un choque que la regla 7 nunca revisó.
+- **Alternativa descartada:** permitir el cambio y volver a revisar choques de todos. Es más complejo y deja alumnos con tope sin que lo pidan.
+- **Si hay que cambiarlo sí o sí:** se cancela la sección (ver D-30) y se abre otra.
+
+### D-11 (de Diego) · Qué período usa `GET /api/oferta` · acordado
+- **Pregunta de Diego:** ¿la oferta muestra `inscripcion_abierta` o también `en_curso`?
+- **Respuesta:** por defecto, solo `inscripcion_abierta` (ahí se toman ramos). `en_curso` es para el horario y la carga académica.
+- **Por qué:** calza con mi D-06 (el "período actual" prefiere el de inscripción abierta).
+- **Si no hay período con inscripción abierta:** la oferta sale vacía con un mensaje, no muestra secciones del período en curso.
+
+### D-30 (de Diego) · Cancelar una sección con inscritos · acordado
+- **Pregunta de Diego:** ¿qué pasa con las inscripciones activas si se cancela la sección?
+- **Respuesta:**
+  - Se **anulan**, no se borran: `estado: 'anulada'`, `fechaAnulacion` y `motivo: 'seccion_cancelada'`.
+  - **No se libera cupo:** la sección cancelada ya no recibe alumnos.
+  - **No se reubica automáticamente:** la otra sección tendría que pasar de nuevo las 7 reglas. El alumno se vuelve a inscribir solo.
+  - **Aviso:** sin correos por ahora. El alumno lo ve en su lista de anuladas con el motivo.
+- **Cómo se hace:** Diego cancela la sección y, en la misma transacción, llama a `anularPorCancelacion(seccionId, sesion)`. Si algo falla, se deshace todo y nunca queda una sección cancelada con inscritos activos.
+- **Código:**
+  - `backend/src/models/inscripcion.model.js`: campo nuevo `motivo` (`estudiante` | `seccion_cancelada` | `null`).
+  - `backend/src/services/inscripciones.service.js`: `anularPorCancelacion`.
+  - `backend/tests/inscripcion/anularPorCancelacion.test.js`: 5 tests (anula con motivo, no toca otras secciones, no pisa el motivo de las ya anuladas, se deshace si falla la transacción y el motivo solo acepta valores válidos).
+- **Pregunta posible:** *¿por qué `updateMany` y no un `for`?* → Es una sola operación en la base: más rápida, y no hay ningún momento en que queden algunas anuladas y otras no.
+
 ## Preguntas de defensa (E6) con respuesta corta
 
 1. **¿Por qué un índice y no un `find` antes de guardar?** → Por la condición de carrera: dos peticiones al mismo tiempo pasan las dos el `find`. El índice lo frena la base.
@@ -132,4 +161,4 @@ Archivo: `backend/src/services/reglasInscripcion.js`
 
 - `authenticate` y `authorize` (Endert) → para las rutas `/api/periodos` y `/api/inscripciones`.
 - Modelos `Seccion` (Diego) y `Matricula` + aprobadas (Angel) → para `inscribir()`, el seed 10 y la evidencia con supertest.
-- Confirmar D-06 con Diego y D-11 con el grupo.
+- Confirmar D-11 (qué cuenta como "aprobado") con el grupo. D-06 ya quedó acordada con Diego (ver su D-11).
