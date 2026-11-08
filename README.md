@@ -100,7 +100,7 @@ Detalle de estructura, componentes y rúbrica: [`frontend/README.md`](frontend/R
 
 La base del backend está lista. Para levantarla:
 
-1. **Requisitos:** Node 22 (22.12 o superior; ver `.nvmrc`) y MongoDB (local o Atlas).
+1. **Requisitos:** Node 22 (22.12 o superior; ver `.nvmrc`) y MongoDB (local o Atlas). Las transacciones exigen que sea un replica set (Atlas lo es; ver [`backend/README.md`](backend/README.md)).
 2. **Variables de entorno:** copia `backend/.env.example` como `backend/.env` y completa `MONGO_URI` y `JWT_SECRET` (mínimo 32 caracteres). El `.env` nunca se sube al repositorio.
 3. **Datos de ejemplo:** `cd backend && npm run seed` (detalle y cómo escribir tu archivo en [`db/README.md`](db/README.md)).
 4. **Arrancar:** `cd backend && npm install && npm run dev`; responde en `http://localhost:3000/api/health`. Pruebas con `npm test` (no necesitan MongoDB). Guía completa y cómo agregar un endpoint en [`backend/README.md`](backend/README.md).

@@ -5,7 +5,7 @@ API REST del Sistema de Gestión Académica: Node.js + Express + MongoDB (Mongoo
 ## Requisitos
 
 - **Node 22 (22.12 o superior).** El archivo `.nvmrc` de la raíz fija la versión.
-- **MongoDB** para ejecutar la API. Los tests **no** la necesitan: levantan una base temporal en memoria.
+- **MongoDB** para ejecutar la API. Para usar transacciones debe correr como **replica set** (Atlas ya lo es; ver «Transacciones y concurrencia»). Los tests **no** la necesitan: levantan una base temporal en memoria.
 
 ## Cómo arrancar
 
@@ -66,6 +66,38 @@ describe('GET /api/sedes', () => {
 - Para comprobar un error, compara el cuerpo completo: `expect(res.body).toEqual({ code, regla, message })`.
 - `asUser(rol)` (el token de prueba para los tests de 401/403) llega cuando se entregue `authenticate`.
 
+## Transacciones y concurrencia
+
+Cuando un endpoint **valida algo y luego inserta** (por ejemplo, que un docente no tenga dos secciones en el mismo horario), dos peticiones simultáneas pueden pasar las dos la validación. **Una transacción sola no lo evita**: se comprobó, y las dos secciones que chocan se guardaron. Usa `conTransaccion` con un **bloqueo**:
+
+```js
+import { conTransaccion, claveDeBloqueo } from '../utils/transaccion.js';
+
+await conTransaccion(
+  async (sesion) => {
+    const choca = await Seccion.exists({ docenteId, periodoId /* ...y los bloques que se solapan */ }).session(sesion);
+    if (choca) throw new AppError(422, SEC.CHOQUE_DOCENTE, 'El docente ya tiene una sección en ese horario.', { regla: 'Sin choque de docente' });
+    await Seccion.create([datos], { session: sesion });
+  },
+  { bloqueos: [claveDeBloqueo('docente', docenteId, 'periodo', periodoId)] },
+);
+```
+
+- El bloqueo hace que dos transacciones con la misma clave **se turnen**: una espera, se reintenta sola, ve lo que guardó la otra y se rechaza con tu propio mensaje.
+- El cuerpo **puede ejecutarse más de una vez**: nada de efectos fuera de la transacción (correos, otras APIs). Usa siempre la `sesion` que recibe.
+- Un `AppError` lanzado adentro deshace todo y llega tal cual al `errorHandler`.
+- El **cupo** (`inscritos < cupoMaximo`) no necesita esto: es una sola operación atómica con `findOneAndUpdate`.
+
+### MongoDB como replica set
+
+Las transacciones solo funcionan con un **replica set**. Los tests ya usan uno en memoria y **Atlas lo es**. Un `mongod` suelto (el que se instala por defecto) las rechaza: `conTransaccion` lo detecta y lo explica con un `ErrorDeTransaccion`. Para tenerlo en local:
+
+```bash
+mongod --replSet rs0 --dbpath <una-carpeta>     # en una terminal
+mongosh --eval "rs.initiate()"                   # una sola vez
+# y en backend/.env:  MONGO_URI=mongodb://localhost:27017/sga?replicaSet=rs0
+```
+
 ## Estructura de `src/`
 
 | Carpeta | Para qué |
@@ -77,7 +109,7 @@ describe('GET /api/sedes', () => {
 | `middlewares/` | `validate`, `errorHandler`, `notFound` |
 | `errors/` | `AppError` y los códigos de error (`errors/codigos/<dominio>.js`) |
 | `constants/enums.js` | Los enums del contrato. Nadie crea copias propias |
-| `utils/` | `paginar`, `envolver`/`envolverLista`, plugin `toJSON` |
+| `utils/` | `paginar`, `envolver`/`envolverLista`, plugin `toJSON`, `conTransaccion` y `claveDeBloqueo` |
 | `config/` | Lectura y validación del entorno, plugin global de Mongoose |
 
 `app.js` construye la aplicación (`crearApp`) y **no** escucha en ningún puerto; `server.js` valida el entorno, conecta a Mongo y escucha.
