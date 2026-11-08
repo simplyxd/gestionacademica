@@ -4,6 +4,12 @@ import { toJSONPlugin } from '../utils/toJSONPlugin.js';
 
 const { ObjectId } = mongoose.Schema.Types;
 
+/** Por qué se anuló una inscripción (D-30). Viaja en ASCII; el front lo traduce. */
+export const MOTIVOS_ANULACION = Object.freeze({
+  ESTUDIANTE: 'estudiante', //              la anuló el propio alumno
+  SECCION_CANCELADA: 'seccion_cancelada', // la sección se canceló
+});
+
 export const esquemaInscripcion = new mongoose.Schema(
   {
     estudianteId: { type: ObjectId, ref: 'Usuario', required: true },
@@ -13,6 +19,7 @@ export const esquemaInscripcion = new mongoose.Schema(
     estado: { type: String, enum: Object.values(ESTADOS_INSCRIPCION), default: ESTADOS_INSCRIPCION.ACTIVA },
     fechaInscripcion: { type: Date, default: Date.now },
     fechaAnulacion: { type: Date, default: null },
+    motivo: { type: String, enum: [...Object.values(MOTIVOS_ANULACION), null], default: null }, // solo si está anulada
   },
   { collection: 'inscripciones', timestamps: true },
 );
