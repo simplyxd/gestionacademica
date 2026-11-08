@@ -1,0 +1,122 @@
+.grid {
+  --hour-h: var(--sga-schedule-hour-height);
+  display: grid;
+  grid-template-rows: rem(40px) calc(var(--hours) * var(--hour-h));
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+  background: var(--mantine-color-body);
+}
+
+.corner,
+.dayHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoursCol {
+  position: relative;
+  border-right: 1px solid var(--mantine-color-default-border);
+}
+
+.hourLabel {
+  height: var(--hour-h);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: rem(2px);
+}
+
+.dayCol {
+  position: relative;
+  border-right: 1px solid var(--mantine-color-default-border);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--hour-h) - 1px),
+    var(--sga-schedule-grid-line) calc(var(--hour-h) - 1px),
+    var(--sga-schedule-grid-line) var(--hour-h)
+  );
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+/* ---------- Bloques ---------- */
+.bloque {
+  position: absolute;
+  padding: rem(6px) rem(8px);
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: rem(2px);
+  font: inherit;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+
+  @mixin hover {
+    box-shadow: var(--mantine-shadow-sm);
+    z-index: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 1px;
+    z-index: 1;
+  }
+}
+
+.meta {
+  opacity: 0.8;
+}
+
+.inscrita {
+  background: light-dark(var(--mantine-color-indigo-1), var(--mantine-color-indigo-9));
+  border-color: light-dark(var(--mantine-color-indigo-3), var(--mantine-color-indigo-7));
+  color: light-dark(var(--mantine-color-indigo-9), var(--mantine-color-indigo-1));
+}
+
+.propuesta {
+  background: light-dark(var(--mantine-color-navy-0), var(--mantine-color-slate-8));
+  border: 2px dashed light-dark(var(--mantine-color-navy-6), var(--mantine-color-navy-4));
+  color: light-dark(var(--mantine-color-navy-8), var(--mantine-color-navy-2));
+}
+
+.conflicto {
+  background: repeating-linear-gradient(
+    135deg,
+    light-dark(var(--mantine-color-crimson-1), var(--mantine-color-crimson-9)) 0 rem(6px),
+    light-dark(var(--mantine-color-crimson-2), var(--mantine-color-crimson-8)) rem(6px) rem(12px)
+  );
+  border: 2px solid var(--mantine-color-crimson-6);
+  color: light-dark(var(--mantine-color-crimson-8), var(--mantine-color-crimson-1));
+}
+
+.docente-ocupado {
+  background: light-dark(var(--mantine-color-orange-1), var(--mantine-color-orange-9));
+  border-color: var(--mantine-color-orange-5);
+  color: light-dark(var(--mantine-color-orange-8), var(--mantine-color-orange-2));
+}
+
+.pasada {
+  background: light-dark(var(--mantine-color-slate-1), var(--mantine-color-slate-8));
+  border-color: light-dark(var(--mantine-color-slate-3), var(--mantine-color-slate-6));
+  color: light-dark(var(--mantine-color-slate-6), var(--mantine-color-slate-4));
+  opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloque {
+    transition: none;
+  }
+}

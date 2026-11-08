@@ -1,0 +1,36 @@
+.grupoLabel {
+  min-width: rem(78px);
+}
+
+/* En teléfono la etiqueta ocupa su propia línea: si no, los chips que se
+   envuelven quedan desalineados respecto a los de la primera fila. */
+@media (max-width: $mantine-breakpoint-sm) {
+  .grupoLabel {
+    min-width: 100%;
+  }
+}
+
+/* §6.4: las aprobadas y las de fuera del plan se atenúan, no se esconden. */
+.atenuada td,
+.tarjeta.atenuada {
+  opacity: 0.75;
+}
+
+.candado {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* La tarjeta entera es el objetivo táctil en teléfono. */
+.tarjeta {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-primary-color-filled);
+    outline-offset: 2px;
+  }
+}

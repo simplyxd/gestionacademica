@@ -1,0 +1,33 @@
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* El cuerpo ocupa el alto restante para que el footer quede pegado abajo
+   y no encima del contenido. */
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.footer {
+  margin: var(--mantine-spacing-md) calc(-1 * var(--mantine-spacing-lg))
+    calc(-1 * var(--mantine-spacing-lg));
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+/* En teléfono las acciones se apilan a ancho completo en vez de partirse. */
+@media (max-width: $mantine-breakpoint-sm) {
+  .footerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

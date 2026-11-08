@@ -1,0 +1,17 @@
+/* Colores del monograma por token del tema (sin hex literales). */
+.mark {
+  fill: var(--mantine-color-navy-7);
+}
+
+.glyph {
+  fill: var(--mantine-color-slate-0);
+}
+
+.dot {
+  fill: var(--mantine-color-amber-5);
+}
+
+/* navy-6 sobre fondo oscuro ≈ 4.0:1 (no llega a AA): en oscuro se aclara. */
+.wordmark {
+  color: light-dark(var(--mantine-color-navy-8), var(--mantine-color-navy-1));
+}
