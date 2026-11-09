@@ -4,7 +4,7 @@ import { limpiarEspacios } from './sede.model.js';
 // Asignatura del catálogo institucional. Los prerrequisitos NO viven aquí: pertenecen al plan de estudios
 // (decisión 2026-09-05), porque la misma asignatura puede exigir cosas distintas en planes distintos.
 
-/** Rango de créditos aceptado (PROPUESTA pendiente de confirmar por Lorenzo; ver el PR). */
+/** Rango de créditos aceptado: entero de 1 a 30 (confirmado por Lorenzo, 2026-11-09). */
 export const CREDITOS_MIN = 1;
 export const CREDITOS_MAX = 30;
 
