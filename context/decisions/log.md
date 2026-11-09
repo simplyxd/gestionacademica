@@ -161,3 +161,17 @@ Append-only. Más reciente arriba.
 **Rejected:** Validar solo en React.
 
 **Scope/links:** [inscripcion-asignaturas.md](../specs/inscripcion-asignaturas.md)
+
+## 2026-11-09 — Estructura académica: plan vigente, prerrequisitos, créditos y ocupación (Lorenzo)
+
+**Decision:**
+- Una carrera tiene **un solo plan `vigente`** a la vez (índice único parcial en `planesEstudio`; activar otro → 409 `PLN_VIGENTE_DUPLICADO`). Los matriculados de planes `historico` siguen válidos; un plan histórico no se edita.
+- Un prerrequisito debe estar en un **semestre estrictamente menor** que la asignatura que lo exige (422 `PLN_PRERREQUISITO_SEMESTRE`), además de pertenecer al mismo plan y no formar ciclos (422 `PLN_CICLO_PREREQUISITOS`, con el camino del ciclo en `details.camino`).
+- Créditos de asignatura: entero de **1 a 30**. **No se cambian** si la asignatura está en algún plan (409 `ASG_CREDITOS_BLOQUEADOS`); el nombre sí se puede corregir.
+- Ocupación en reportes: la fuente de verdad es el **conteo de inscripciones `activa`**; se informa también el contador `inscritos` de la sección y `desincronizado: true` si no coinciden.
+
+**Rationale:** Evitar ambigüedad al matricular (Angel), asignaturas imposibles de inscribir (Matias) y cambios silenciosos al historial. El contador atómico puede divergir; el conteo detecta el desfase.
+
+**Rejected:** Varios planes vigentes por carrera; prerrequisitos sin restricción de semestre; editar créditos libremente; usar solo el contador `inscritos` para la ocupación.
+
+**Scope/links:** E2 · E10 · `backend/src/services/{planes,asignaturas,reportes}.service.js` · afecta a Angel (matrícula usa el plan vigente), Matias (prerrequisitos y contador `inscritos`) y Diego (estado de sección).
