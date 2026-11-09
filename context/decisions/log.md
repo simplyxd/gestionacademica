@@ -2,6 +2,16 @@
 
 Append-only. Más reciente arriba.
 
+## 2026-11-08 — Seed 07/08 tolerante a dependencias cruzadas
+
+**Decision:** `db/seed/07-personas.js` y `db/seed/08-matriculas.js` se implementan en modo desacoplado: si falta el modelo `Usuario` o no están listas las colecciones de otros dominios (`usuarios`, `carreras`, `planes`, `periodos`), el archivo registra una omisión explícita y continúa, sin romper la ejecución completa del seed.
+
+**Rationale:** Angel puede avanzar en su dominio sin bloquear ni tocar el modelo/rutas de Endert. Cuando Endert y el resto cierren sus modelos, las mismas semillas pasan de "omitidas" a "aplicadas" sin cambiar el runner.
+
+**Rejected:** dejar 07/08 sin archivo (rompe el orden de semillas acordado) o forzar imports directos de modelos ajenos (acopla ramas y genera fallas tempranas).
+
+**Scope/links:** E4/E5 de Angel · `db/seed/07-personas.js` · `db/seed/08-matriculas.js` · `db/README.md`
+
 ## 2026-11-08 — Choques concurrentes: transacción con bloqueo por docente y período
 
 **Decision:** Los endpoints que validan «no choca» y luego insertan (el choque de docente al crear o mover secciones, y cualquier invariante entre documentos distintos) corren con `conTransaccion(trabajo, { bloqueos: [claveDeBloqueo('docente', docenteId, 'periodo', periodoId)] })` (`backend/src/utils/transaccion.js`). La utilidad toma primero un documento de bloqueo por clave (colección `bloqueos`, índice único) con un `$inc`; así dos creaciones simultáneas se turnan: una reintenta sola, ve la sección de la otra y se rechaza con el mensaje de choque. El cuerpo de la transacción puede ejecutarse más de una vez, así que no debe tener efectos fuera de ella. Las transacciones exigen MongoDB como replica set: los tests usan uno en memoria y Atlas lo es; en local hay que levantar `mongod --replSet rs0`, ejecutar `rs.initiate()` y usar `?replicaSet=rs0`. Un MongoDB suelto da un error claro (`ErrorDeTransaccion`). El cupo (`inscritos < cupoMaximo`) sigue siendo una sola operación atómica y no necesita bloqueo.

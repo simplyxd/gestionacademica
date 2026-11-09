@@ -79,7 +79,9 @@ export default async function sembrar({ upsertPorClave, resolver }) {
 
 ## Generadores de Angel (`db/seed/lib/`)
 
-Hasta que existan los seeds `07-personas.js` y `08-matriculas.js`, se avanzó en utilidades y tests de consistencia:
+`07-personas.js` y `08-matriculas.js` se ejecutan con **guardas de compatibilidad**: si falta el modelo de usuario o las colecciones
+base de otros dominios (usuarios/carreras/planes/períodos), registran una omisión explícita y no rompen el seed completo.
+En paralelo, se avanzó en utilidades y tests de consistencia:
 
 | Archivo | Qué hace |
 |---|---|

@@ -7,7 +7,9 @@ import {
   matriculaVigente,
   contarPorCarrera,
   listar,
+  cambiarEstado,
 } from './matriculas.service.js';
+import { MTR } from '../errors/codigos/matriculas.js';
 import { conectar, limpiar, desconectar } from '../../tests/helpers/mongo.js';
 
 const id = () => new mongoose.Types.ObjectId();
@@ -133,6 +135,28 @@ describe('consultas de matrícula', () => {
       expect((await listar({ limit: 500 })).meta.limit).toBe(100);
       expect((await listar({ page: 0, limit: 0 })).meta).toMatchObject({ page: 1, limit: 20 });
       expect((await listar({ page: '3', limit: '10' })).meta).toMatchObject({ page: 3, limit: 10 });
+    });
+  });
+
+  describe('cambiarEstado', () => {
+    it('actualiza cuando la transición está permitida', async () => {
+      const base = await Matricula.create(nueva({ estado: 'vigente' }));
+      const actualizada = await cambiarEstado(base.id, 'suspendida');
+      expect(actualizada.estado).toBe('suspendida');
+    });
+
+    it('rechaza transiciones inválidas con 409 y código del dominio', async () => {
+      const base = await Matricula.create(nueva({ estado: 'suspendida' }));
+      const error = await cambiarEstado(base.id, 'egresada').catch((e) => e);
+      expect(error.status).toBe(409);
+      expect(error.code).toBe(MTR.TRANSICION_INVALIDA);
+      expect(error.details).toMatchObject({ actual: 'suspendida', siguiente: 'egresada', permitidos: ['retirada'] });
+    });
+
+    it('devuelve 404 si la matrícula no existe', async () => {
+      const error = await cambiarEstado(id(), 'suspendida').catch((e) => e);
+      expect(error.status).toBe(404);
+      expect(error.code).toBe(MTR.NO_ENCONTRADA);
     });
   });
 });

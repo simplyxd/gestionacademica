@@ -1,4 +1,6 @@
 import Matricula from '../models/matricula.model.js';
+import { AppError } from '../errors/AppError.js';
+import { MTR } from '../errors/codigos/matriculas.js';
 
 const LIMIT_POR_DEFECTO = 20;
 const LIMIT_MAXIMO = 100;
@@ -55,5 +57,42 @@ export async function listar({ periodoId, carreraId, estado, estudianteId, page,
   ]);
 
   return { data, meta: { page: pagina, limit: porPagina, total } };
+}
+
+/**
+ * Cambia el estado de forma atómica: solo aplica si la matrícula sigue en el estado leído.
+ * Si otra petición la cambió entre medio, se reevalúa con el estado nuevo.
+ */
+export async function cambiarEstado(id, siguienteEstado) {
+  const actual = await Matricula.findById(id).select('estado');
+  if (!actual) throw new AppError(404, MTR.NO_ENCONTRADA, 'No existe la matrícula indicada.');
+
+  const permitidos = transicionesDe(actual.estado);
+  if (!permitidos.includes(siguienteEstado)) {
+    throw new AppError(
+      409,
+      MTR.TRANSICION_INVALIDA,
+      `No se puede pasar de «${actual.estado}» a «${siguienteEstado}». Transiciones permitidas: ${permitidos.join(', ') || 'ninguna'}.`,
+      { details: { actual: actual.estado, siguiente: siguienteEstado, permitidos } },
+    );
+  }
+
+  const actualizada = await Matricula.findOneAndUpdate(
+    { _id: id, estado: actual.estado },
+    { estado: siguienteEstado },
+    { returnDocument: 'after' },
+  );
+
+  if (actualizada) return actualizada;
+
+  const recargada = await Matricula.findById(id).select('estado');
+  if (!recargada) throw new AppError(404, MTR.NO_ENCONTRADA, 'No existe la matrícula indicada.');
+  const permitidosRecargada = transicionesDe(recargada.estado);
+  throw new AppError(
+    409,
+    MTR.TRANSICION_INVALIDA,
+    `No se puede pasar de «${recargada.estado}» a «${siguienteEstado}». Transiciones permitidas: ${permitidosRecargada.join(', ') || 'ninguna'}.`,
+    { details: { actual: recargada.estado, siguiente: siguienteEstado, permitidos: permitidosRecargada } },
+  );
 }
 
