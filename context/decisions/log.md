@@ -2,6 +2,16 @@
 
 Append-only. Más reciente arriba.
 
+## 2026-11-08 — Seed 07/08 tolerante a dependencias cruzadas
+
+**Decision:** `db/seed/07-personas.js` y `db/seed/08-matriculas.js` se implementan en modo desacoplado: si falta el modelo `Usuario` o no están listas las colecciones de otros dominios (`usuarios`, `carreras`, `planes`, `periodos`), el archivo registra una omisión explícita y continúa, sin romper la ejecución completa del seed.
+
+**Rationale:** Angel puede avanzar en su dominio sin bloquear ni tocar el modelo/rutas de Endert. Cuando Endert y el resto cierren sus modelos, las mismas semillas pasan de "omitidas" a "aplicadas" sin cambiar el runner.
+
+**Rejected:** dejar 07/08 sin archivo (rompe el orden de semillas acordado) o forzar imports directos de modelos ajenos (acopla ramas y genera fallas tempranas).
+
+**Scope/links:** E4/E5 de Angel · `db/seed/07-personas.js` · `db/seed/08-matriculas.js` · `db/README.md`
+
 ## 2026-11-08 — Choques concurrentes: transacción con bloqueo por docente y período
 
 **Decision:** Los endpoints que validan «no choca» y luego insertan (el choque de docente al crear o mover secciones, y cualquier invariante entre documentos distintos) corren con `conTransaccion(trabajo, { bloqueos: [claveDeBloqueo('docente', docenteId, 'periodo', periodoId)] })` (`backend/src/utils/transaccion.js`). La utilidad toma primero un documento de bloqueo por clave (colección `bloqueos`, índice único) con un `$inc`; así dos creaciones simultáneas se turnan: una reintenta sola, ve la sección de la otra y se rechaza con el mensaje de choque. El cuerpo de la transacción puede ejecutarse más de una vez, así que no debe tener efectos fuera de ella. Las transacciones exigen MongoDB como replica set: los tests usan uno en memoria y Atlas lo es; en local hay que levantar `mongod --replSet rs0`, ejecutar `rs.initiate()` y usar `?replicaSet=rs0`. Un MongoDB suelto da un error claro (`ErrorDeTransaccion`). El cupo (`inscritos < cupoMaximo`) sigue siendo una sola operación atómica y no necesita bloqueo.
@@ -21,6 +31,26 @@ Append-only. Más reciente arriba.
 **Rejected:** Modalidad por bloque (más fiel a las clases mixtas, pero obliga a modelar salas y a validar el choque de sala por bloque). Si el grupo lo necesita más adelante, se agrega un campo opcional `modalidad` al bloque y esta decisión se reemplaza.
 
 **Scope/links:** E6 (Diego) · `.cursor/plans/pendientes_sga_y_roles_4366da4a.plan.md`. **Pendiente de confirmar con el grupo:** el plan lo dejaba como pendiente de dominio.
+
+## 2026-11-07 — PROPUESTA (Angel → Matias): suspender una matrícula no anula inscripciones
+
+**Decision (propuesta, pendiente de OK de Matias):** al pasar una matrícula a `suspendida`, sus inscripciones activas del período **se conservan**; el estudiante no puede inscribir nuevas (la regla 1 ya exige matrícula vigente). Recién al pasar a `retirada` se anulan sus inscripciones activas del período.
+
+**Rationale:** la suspensión es reversible en la práctica; anular de inmediato haría perder cupos que después no se recuperan.
+
+**Rejected:** anular automáticamente al suspender; impedir suspender si hay inscripciones activas.
+
+**Scope/links:** E5 (D-10 de Angel) · E8 (Matias) · [bitácora de Angel](../../asignaciones/bitacoras/angel.md)
+
+## 2026-11-07 — PROPUESTA (Angel → Lorenzo): carrera inactiva permite renovación
+
+**Decision (propuesta, pendiente de OK de Lorenzo):** una carrera `inactiva` (cerrada a nuevo ingreso) bloquea solo el **nuevo ingreso**: el estudiante que nunca tuvo matrícula en esa carrera. Quien ya tuvo una matrícula en esa carrera (cualquier período anterior) puede **renovar** para un período nuevo.
+
+**Rationale:** «cerrada a nuevo ingreso» no debe dejar sin continuidad a quienes ya cursan la carrera.
+
+**Rejected:** bloquear toda matrícula en carrera inactiva; permitir renovación solo en el mismo plan.
+
+**Scope/links:** E5 (D-08 de Angel) · E2 (Lorenzo) · [bitácora de Angel](../../asignaciones/bitacoras/angel.md)
 
 ## 2026-11-07 — Seed y fines de línea
 

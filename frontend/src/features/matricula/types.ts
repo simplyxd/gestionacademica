@@ -26,6 +26,7 @@ export type CampoMatricula = keyof NuevaMatricula;
 export type CodigoErrorMatricula =
   | 'MATRICULA_VIGENTE_EN_PERIODO'
   | 'PLAN_FUERA_DE_CARRERA'
+  | 'PERIODO_CERRADO'
   | 'CAMPO_REQUERIDO'
   | 'TRANSICION_INVALIDA'
   | 'MATRICULA_INEXISTENTE';

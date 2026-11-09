@@ -87,3 +87,19 @@ Solo para la base local. No son cuentas reales.
 | coordinador | `coordinador@iunf.cl` | `Clave-Dev-Coord-2026` |
 
 El coordinador queda en las sedes de código `central` y `norte`. La semilla 01 las asegura por ese código (upsert) para poder referenciarlas; la semilla 02 debe reutilizar los mismos códigos si quiere esas sedes.
+
+## Generadores de Angel (`db/seed/lib/`)
+
+`07-personas.js` y `08-matriculas.js` se ejecutan con **guardas de compatibilidad**: si falta el modelo de usuario o las colecciones
+base de otros dominios (usuarios/carreras/planes/períodos), registran una omisión explícita y no rompen el seed completo.
+En paralelo, se avanzó en utilidades y tests de consistencia:
+
+| Archivo | Qué hace |
+|---|---|
+| `azar.js` | Pseudoaleatorio con semilla fija (reproducible) |
+| `rut.js` | RUT chileno válido (módulo 11) |
+| `personas.js` | 20 docentes y 200 estudiantes con RUT/correos únicos y perfil válido |
+| `historial.js` | Genera y verifica historial coherente con prerrequisitos |
+| `demo.js` | Casos reservados para demo de reglas de inscripción |
+
+Los tests se corren desde `backend/` con `npm test` (incluye `db/seed/**/*.test.js`).

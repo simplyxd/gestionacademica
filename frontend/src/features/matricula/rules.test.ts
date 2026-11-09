@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PLANES } from '@/mock/estructura';
+import { PERIODOS, PLANES } from '@/mock/estructura';
 import { cambiarEstado, registrarMatricula } from './rules';
 import type { Matricula, NuevaMatricula } from './types';
 
@@ -18,17 +18,17 @@ function matricula(over: Partial<Matricula>): Matricula {
 
 describe('registrarMatricula', () => {
   it('asigna carrera + plan + período y deja la matrícula vigente', () => {
-    const r = registrarMatricula([], base, PLANES, meta(1));
+    const r = registrarMatricula([], base, PLANES, PERIODOS, meta(1));
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.value).toMatchObject({ ...base, estado: 'vigente' });
   });
 
   it('bloquea un segundo intento vigente en el mismo período y no duplica', () => {
-    const primera = registrarMatricula([], base, PLANES, meta(1));
+    const primera = registrarMatricula([], base, PLANES, PERIODOS, meta(1));
     if (!primera.ok) throw new Error('el primer alta debía funcionar');
     const lista = [primera.value];
 
-    const segunda = registrarMatricula(lista, { ...base, carreraId: 'car-adm', planId: 'plan-adm-2023' }, PLANES, meta(2));
+    const segunda = registrarMatricula(lista, { ...base, carreraId: 'car-adm', planId: 'plan-adm-2023' }, PLANES, PERIODOS, meta(2));
     expect(segunda.ok).toBe(false);
     if (!segunda.ok) {
       expect(segunda.error.code).toBe('MATRICULA_VIGENTE_EN_PERIODO');
@@ -40,29 +40,39 @@ describe('registrarMatricula', () => {
 
   it('permite otra matrícula del mismo estudiante en otro período', () => {
     const lista = [matricula({})];
-    const r = registrarMatricula(lista, { ...base, periodoId: 'per-2027-1' }, PLANES, meta(3));
+    const r = registrarMatricula(lista, { ...base, periodoId: 'per-2027-1' }, PLANES, PERIODOS, meta(3));
     expect(r.ok).toBe(true);
   });
 
   it('no cuenta como bloqueo una matrícula suspendida, egresada o retirada', () => {
     for (const estado of ['suspendida', 'egresada', 'retirada'] as const) {
-      const r = registrarMatricula([matricula({ estado })], base, PLANES, meta(4));
+      const r = registrarMatricula([matricula({ estado })], base, PLANES, PERIODOS, meta(4));
       expect(r.ok).toBe(true);
     }
   });
 
   it('no bloquea a otro estudiante en el mismo período', () => {
-    const r = registrarMatricula([matricula({})], { ...base, estudianteId: 'est-008' }, PLANES, meta(5));
+    const r = registrarMatricula([matricula({})], { ...base, estudianteId: 'est-008' }, PLANES, PERIODOS, meta(5));
     expect(r.ok).toBe(true);
   });
 
   it('rechaza un plan que no pertenece a la carrera', () => {
-    const r = registrarMatricula([], { ...base, planId: 'plan-adm-2023' }, PLANES, meta(6));
+    const r = registrarMatricula([], { ...base, planId: 'plan-adm-2023' }, PLANES, PERIODOS, meta(6));
     expect(r).toMatchObject({ ok: false, error: { code: 'PLAN_FUERA_DE_CARRERA', field: 'planId' } });
   });
 
+  it('rechaza un período cerrado', () => {
+    const r = registrarMatricula([], { ...base, periodoId: 'per-2026-1' }, PLANES, PERIODOS, meta(8));
+    expect(r).toMatchObject({ ok: false, error: { code: 'PERIODO_CERRADO', field: 'periodoId' } });
+  });
+
+  it('acepta un período en planificación', () => {
+    const r = registrarMatricula([], { ...base, periodoId: 'per-2027-1' }, PLANES, PERIODOS, meta(9));
+    expect(r.ok).toBe(true);
+  });
+
   it('exige todos los campos', () => {
-    const r = registrarMatricula([], { ...base, estudianteId: '' }, PLANES, meta(7));
+    const r = registrarMatricula([], { ...base, estudianteId: '' }, PLANES, PERIODOS, meta(7));
     expect(r).toMatchObject({ ok: false, error: { code: 'CAMPO_REQUERIDO', field: 'estudianteId' } });
   });
 });

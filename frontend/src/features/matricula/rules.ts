@@ -1,4 +1,4 @@
-import type { PlanEstudio } from '@/mock/types';
+import type { Periodo, PlanEstudio } from '@/mock/types';
 import type {
   EstadoMatricula,
   Matricula,
@@ -46,6 +46,7 @@ export function registrarMatricula(
   matriculas: readonly Matricula[],
   input: NuevaMatricula,
   planes: readonly PlanEstudio[],
+  periodos: readonly Periodo[],
   meta: MetaAlta,
 ): Resultado<Matricula> {
   const campos: (keyof NuevaMatricula)[] = ['estudianteId', 'carreraId', 'planId', 'periodoId'];
@@ -56,6 +57,11 @@ export function registrarMatricula(
   const plan = planes.find((p) => p.id === input.planId);
   if (!plan || plan.carreraId !== input.carreraId) {
     return { ok: false, error: { code: 'PLAN_FUERA_DE_CARRERA', field: 'planId' } };
+  }
+
+  const periodo = periodos.find((p) => p.id === input.periodoId);
+  if (periodo?.estado === 'cerrado') {
+    return { ok: false, error: { code: 'PERIODO_CERRADO', field: 'periodoId' } };
   }
 
   const existente = buscarVigente(matriculas, input.estudianteId, input.periodoId);
