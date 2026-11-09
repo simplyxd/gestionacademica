@@ -18,6 +18,17 @@ export const PERMISOS = Object.freeze({
   'parametros.escribir': ADMIN,
   'permisos.leer': CUATRO,
   'docente.leer': Object.freeze([ROLES.DOCENTE]),
+  // Estructura académica y reportes (Lorenzo; pendiente del OK de Endert por tocar su matriz).
+  // Lectura para los cuatro roles (el estudiante ve su plan, el docente sus asignaturas); escritura solo coordinador.
+  'sedes.leer': CUATRO,
+  'sedes.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'asignaturas.leer': CUATRO,
+  'asignaturas.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'carreras.leer': CUATRO,
+  'carreras.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'planes.leer': CUATRO,
+  'planes.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'reportes.leer': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
 });
 
 /** True si el rol tiene ese permiso. Un permiso desconocido no lo tiene nadie. */

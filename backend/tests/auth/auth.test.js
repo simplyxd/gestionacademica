@@ -353,6 +353,16 @@ describe('GET /api/permisos', () => {
       'parametros.escribir': ['admin'],
       'permisos.leer': cuatro,
       'docente.leer': ['docente'],
+      // Estructura y reportes (Lorenzo).
+      'sedes.leer': cuatro,
+      'sedes.escribir': ['coordinador'],
+      'asignaturas.leer': cuatro,
+      'asignaturas.escribir': ['coordinador'],
+      'carreras.leer': cuatro,
+      'carreras.escribir': ['coordinador'],
+      'planes.leer': cuatro,
+      'planes.escribir': ['coordinador'],
+      'reportes.leer': ['admin', 'coordinador'],
     });
   });
 });
