@@ -15,7 +15,7 @@ export const COLLATION_NOMBRE_SEDE = Object.freeze({ locale: 'es', strength: 1 }
 
 export const esquemaSede = new mongoose.Schema(
   {
-    nombre: { type: String, required: true, set: limpiarEspacios, minlength: 2, maxlength: 80 },
+    nombre: { type: String, required: true, set: limpiarEspacios, minlength: 2, maxlength: 100 },
     direccion: { type: String, required: true, set: limpiarEspacios, minlength: 2, maxlength: 160 },
     comuna: { type: String, required: true, set: limpiarEspacios, minlength: 2, maxlength: 80 },
     estado: { type: String, enum: Object.values(ESTADOS_SEDE), default: ESTADOS_SEDE.ACTIVA, required: true },
