@@ -1,0 +1,479 @@
+{
+  "info": {
+    "name": "SGA — demo del backend",
+    "description": "Peticiones contra el backend local (http://localhost:3000/api).\n\nEl backend tiene que estar corriendo (`npm run dev` en la carpeta backend).\n\nOrden: en cada carpeta, primero el login. Ese POST guarda el token y las peticiones siguientes lo usan solas.\n\nCuentas de desarrollo:\n- docente@iunf.cl / Clave-Dev-Docente-2026 (Elena Vargas)\n- admin@iunf.cl / Clave-Dev-Admin-2026 (Camila Soto)\n- estudiante@iunf.cl / Clave-Dev-Estudiante-2026 (Sofía Núñez)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "tokenDocente", "value": "" },
+    { "key": "tokenAdmin", "value": "" },
+    { "key": "tokenEstudiante", "value": "" },
+    { "key": "periodo2026_1", "value": "6af1dfd2c187c8dbc0d7e849" },
+    { "key": "periodo2026_2", "value": "6af1dfd2c187c8dbc0d7e84c" },
+    { "key": "usuarioSofiaId", "value": "6af1f7d42d2370945eb7330b" }
+  ],
+  "item": [
+    {
+      "name": "1. Salud (sin sesión)",
+      "item": [
+        {
+          "name": "GET Salud",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "No pide token. Tiene que responder 200."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El backend está en pie', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Docente — Elena Vargas",
+      "item": [
+        {
+          "name": "POST Login docente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"docente@iunf.cl\",\n  \"password\": \"Clave-Dev-Docente-2026\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Entra como Elena Vargas y guarda el token en la variable tokenDocente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El login respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('tokenDocente', cuerpo.data.token);",
+                  "pm.test('La sesión es de Elena Vargas, docente', function () {",
+                  "    pm.expect(cuerpo.data.usuario.nombre).to.eql('Elena Vargas');",
+                  "    pm.expect(cuerpo.data.usuario.rol).to.eql('docente');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Mis secciones 2026-1",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenDocente}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/docente/secciones?periodoId={{periodo2026_1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["docente", "secciones"],
+              "query": [{ "key": "periodoId", "value": "{{periodo2026_1}}", "description": "2026-1, en curso" }]
+            },
+            "description": "Cursos de Elena en el primer semestre 2026: INF-101 A e INF-210 A. Hay que haber enviado antes el login de la docente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Las secciones respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cursos = pm.response.json().data.map((curso) => curso.codigoAsignatura + ' ' + curso.letra);",
+                  "pm.test('Están INF-101 A e INF-210 A', function () {",
+                  "    pm.expect(cursos).to.include('INF-101 A');",
+                  "    pm.expect(cursos).to.include('INF-210 A');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Horario 2026-1",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenDocente}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/docente/horario?periodoId={{periodo2026_1}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["docente", "horario"],
+              "query": [{ "key": "periodoId", "value": "{{periodo2026_1}}" }]
+            },
+            "description": "Bloques de horario de Elena en 2026-1."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El horario respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Mis secciones 2026-2",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenDocente}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/docente/secciones?periodoId={{periodo2026_2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["docente", "secciones"],
+              "query": [{ "key": "periodoId", "value": "{{periodo2026_2}}", "description": "2026-2, inscripción abierta" }]
+            },
+            "description": "En el segundo semestre 2026 Elena tiene INF-230 B."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Las secciones respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cursos = pm.response.json().data.map((curso) => curso.codigoAsignatura + ' ' + curso.letra);",
+                  "pm.test('Está INF-230 B', function () {",
+                  "    pm.expect(cursos).to.include('INF-230 B');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Administración — Camila Soto",
+      "item": [
+        {
+          "name": "POST Login admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@iunf.cl\",\n  \"password\": \"Clave-Dev-Admin-2026\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Entra como Camila Soto y guarda el token en tokenAdmin."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El login respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('tokenAdmin', cuerpo.data.token);",
+                  "pm.test('La sesión es de una administradora', function () {",
+                  "    pm.expect(cuerpo.data.usuario.rol).to.eql('admin');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Usuarios",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenAdmin}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/usuarios",
+            "description": "Listado de cuentas. Hay que haber enviado antes el login de la administradora. Sin token responde 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Los usuarios respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Sedes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenAdmin}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/sedes",
+            "description": "Sedes de la institución."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Las sedes respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Asignaturas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenAdmin}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/asignaturas?limit=20",
+            "description": "Catálogo de asignaturas."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Las asignaturas respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Modificar usuario",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenAdmin}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefono\": \"+56 9 5555 0199\"\n}"
+            },
+            "url": "{{baseUrl}}/usuarios/{{usuarioSofiaId}}",
+            "description": "Cambia el teléfono de Sofía Núñez. Solo se actualizan los campos enviados. El estado no entra por esta ruta."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('La modificación respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH Cambiar estado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenAdmin}}", "type": "string" }]
+            },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"inactivo\"\n}"
+            },
+            "url": "{{baseUrl}}/usuarios/{{usuarioSofiaId}}/estado",
+            "description": "Activa o desactiva a Sofía Núñez. El cuerpo solo acepta activo o inactivo, y la ruta tiene que terminar en /estado."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El cambio de estado respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('El estado quedó inactivo', function () {",
+                  "    pm.expect(pm.response.json().data.estado).to.eql('inactivo');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Estudiante — Sofía Núñez",
+      "item": [
+        {
+          "name": "POST Login estudiante",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"estudiante@iunf.cl\",\n  \"password\": \"Clave-Dev-Estudiante-2026\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Entra como Sofía Núñez y guarda el token en tokenEstudiante."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El login respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const cuerpo = pm.response.json();",
+                  "pm.collectionVariables.set('tokenEstudiante', cuerpo.data.token);",
+                  "pm.test('La sesión es de Sofía Núñez, estudiante', function () {",
+                  "    pm.expect(cuerpo.data.usuario.nombre).to.eql('Sofía Núñez');",
+                  "    pm.expect(cuerpo.data.usuario.rol).to.eql('estudiante');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Mi perfil",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenEstudiante}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me",
+            "description": "Perfil de la sesión. Hay que haber enviado antes el login de la estudiante."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('El perfil respondió 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('El rol es estudiante', function () {",
+                  "    pm.expect(pm.response.json().data.rol).to.eql('estudiante');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Parámetros",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenEstudiante}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parametros",
+            "description": "Parámetros institucionales. La estudiante puede leerlos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Los parámetros respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Permisos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{tokenEstudiante}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/permisos",
+            "description": "Matriz de permisos. Sirve para mostrar qué puede hacer el rol estudiante."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Los permisos respondieron 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
