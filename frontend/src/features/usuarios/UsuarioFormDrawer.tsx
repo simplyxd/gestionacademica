@@ -14,6 +14,7 @@ import {
   borradorDe,
   borradorVacio,
   cuerpoDeUsuario,
+  nombreDeSede,
   erroresDeApi,
   validarBorrador,
   type BorradorUsuario,
@@ -70,8 +71,10 @@ export function UsuarioFormDrawer({
 
   const opcionesSedes = (() => {
     const mapa = new Map<string, string>();
-    for (const sede of sedes) mapa.set(sede.id, sede.nombre);
-    for (const sede of usuario?.sedes ?? []) mapa.set(sede.id, sede.nombre);
+    for (const sede of sedes) mapa.set(sede.id, nombreDeSede(sede, sedes));
+    for (const sede of usuario?.sedes ?? []) {
+      if (!mapa.has(sede.id)) mapa.set(sede.id, nombreDeSede(sede, sedes));
+    }
     return [...mapa.entries()].map(([value, label]) => ({ value, label }));
   })();
 

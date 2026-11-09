@@ -185,7 +185,43 @@ describe('alta y edición de la cuenta', () => {
     expect(res.status).toBe(200);
     expect(res.body.data.nombre).toBe('Nombre Nuevo');
     expect(res.body.data.telefono).toBe('+56911111111');
-    expect(res.body.data.perfilDocente).toMatchObject({ tipoVinculo: 'planta', especialidad: 'Matemática' });
+    expect(res.body.data.perfilDocente).toMatchObject({ tipoVinculo: 'honorarios', especialidad: 'No debe reemplazar', departamentos: ['Intruso'] });
+  });
+
+  it('guarda el perfil del estudiante y lo devuelve para volver a editarlo', async () => {
+    const admin = await insertar({ rol: 'admin' });
+    const perfil = { codigoEstudiante: 'EST-2026-014', contactoEmergencia: 'Ana 987654321', nivelCursando: 3 };
+
+    const alta = await como(admin).post('/api/usuarios').send({
+      rut: '22222222-2',
+      nombre: 'Alumna Demo',
+      correo: 'alumna@iunf.cl',
+      telefono: '+56912345678',
+      clave: CLAVE,
+      rol: 'estudiante',
+      sedes: [String(SEDE_A)],
+      incorporacion: '2025-03-01',
+      perfilEstudiante: { ...perfil, codigoEstudiante: 'est-2026-014' },
+      perfilDocente: null,
+    });
+
+    expect(alta.status).toBe(200);
+    expect(alta.body.data.perfilEstudiante).toMatchObject(perfil);
+    expect(alta.body.data).not.toHaveProperty('perfilDocente');
+
+    const lectura = await como(admin).get(`/api/usuarios/${alta.body.data.id}`);
+    expect(lectura.status).toBe(200);
+    expect(lectura.body.data.perfilEstudiante).toMatchObject(perfil);
+
+    const edicion = await como(admin).patch(`/api/usuarios/${alta.body.data.id}`).send({
+      perfilEstudiante: { ...perfil, nivelCursando: 4, contactoEmergencia: 'Luis 912345678' },
+    });
+    expect(edicion.status).toBe(200);
+    expect(edicion.body.data.perfilEstudiante).toMatchObject({
+      codigoEstudiante: 'EST-2026-014',
+      contactoEmergencia: 'Luis 912345678',
+      nivelCursando: 4,
+    });
   });
 });
 

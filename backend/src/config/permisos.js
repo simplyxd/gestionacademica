@@ -18,6 +18,8 @@ export const PERMISOS = Object.freeze({
   'parametros.escribir': ADMIN,
   'permisos.leer': CUATRO,
   'docente.leer': Object.freeze([ROLES.DOCENTE]),
+  // El selector de período lo usan los cuatro perfiles. La escritura queda para el coordinador.
+  'periodos.leer': CUATRO,
   // Estructura académica y reportes (Lorenzo; pendiente del OK de Endert por tocar su matriz).
   // Lectura para los cuatro roles (el estudiante ve su plan, el docente sus asignaturas); escritura solo coordinador.
   'sedes.leer': CUATRO,

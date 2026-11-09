@@ -232,6 +232,20 @@ export function leerSede(valor: unknown): OpcionSede | null {
   return { id, nombre };
 }
 
+const ID_MONGO = /^[a-f0-9]{24}$/i;
+
+/** El listado de usuarios trae el id de la sede. El nombre sale del catálogo de sedes. */
+export function nombreDeSede(sede: OpcionSede, catalogo: readonly OpcionSede[]): string {
+  const conocida = catalogo.find((item) => item.id === sede.id);
+  if (conocida?.nombre && !ID_MONGO.test(conocida.nombre)) return conocida.nombre;
+  if (sede.nombre && !ID_MONGO.test(sede.nombre)) return sede.nombre;
+  return conocida?.nombre || sede.nombre || sede.id;
+}
+
+export function textoDeSedes(delUsuario: readonly OpcionSede[], catalogo: readonly OpcionSede[]): string {
+  return delUsuario.map((sede) => nombreDeSede(sede, catalogo)).filter(Boolean).join(', ');
+}
+
 export function normalizarSedes(data: unknown): OpcionSede[] {
   if (!Array.isArray(data)) return [];
   return data.map(leerSede).filter((sede): sede is OpcionSede => sede !== null);

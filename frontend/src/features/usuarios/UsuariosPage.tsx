@@ -39,6 +39,7 @@ import {
   normalizarListado,
   normalizarSedes,
   rangoPagina,
+  textoDeSedes,
   textoPerfil,
   type CuerpoUsuario,
   type OpcionSede,
@@ -325,7 +326,7 @@ export function UsuariosPage() {
                               <Text component="span" className="sga-code" c="dimmed" fz="xs">{cuenta.rut || '—'}</Text>
                             </Table.Td>
                             <Table.Td><Text fz="sm">{ROLES_USUARIO.find((item) => item.value === cuenta.rol)?.label}</Text></Table.Td>
-                            <Table.Td><Text fz="sm">{cuenta.sedes.map((sede) => sede.nombre).join(', ') || '—'}</Text></Table.Td>
+                            <Table.Td><Text fz="sm">{textoDeSedes(cuenta.sedes, sedes) || '—'}</Text></Table.Td>
                             <Table.Td><Text fz="sm" className={classes.largo}>{textoPerfil(cuenta)}</Text></Table.Td>
                             <Table.Td>
                               <Text fz="sm" className={classes.largo}>{cuenta.correo || '—'}</Text>
@@ -357,7 +358,7 @@ export function UsuariosPage() {
                           <Text component="span" className="sga-code" c="dimmed" fz="xs">{cuenta.rut || '—'}</Text>
                         </Box>
                         <Text fz="sm">{ROLES_USUARIO.find((item) => item.value === cuenta.rol)?.label}</Text>
-                        <Text fz="sm">Sedes: {cuenta.sedes.map((sede) => sede.nombre).join(', ') || '—'}</Text>
+                        <Text fz="sm">Sedes: {textoDeSedes(cuenta.sedes, sedes) || '—'}</Text>
                         <Text fz="sm" className={classes.largo}>{textoPerfil(cuenta)}</Text>
                         <Text fz="sm" className={classes.largo}>{cuenta.correo || '—'}<br />{cuenta.telefono || '—'}</Text>
                         <Group justify="space-between">

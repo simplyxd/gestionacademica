@@ -85,6 +85,7 @@ Solo para la base local. No son cuentas reales.
 |---|---|---|
 | admin | `admin@iunf.cl` | `Clave-Dev-Admin-2026` |
 | coordinador | `coordinador@iunf.cl` | `Clave-Dev-Coord-2026` |
+| docente | `docente@iunf.cl` | `Clave-Dev-Docente-2026` |
 
 El coordinador queda en las sedes de código `central` y `norte`. La semilla 01 las asegura por ese código (upsert) para poder referenciarlas; la semilla 02 debe reutilizar los mismos códigos si quiere esas sedes.
 

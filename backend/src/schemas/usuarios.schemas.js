@@ -75,6 +75,61 @@ function incorporacion(obligatorio) {
   return cadena.custom(fechaReal).withMessage('se guarda como fecha YYYY-MM-DD');
 }
 
+const CODIGO_ESTUDIANTE = /^EST-\d{4}-\d{3}$/;
+const VINCULOS = ['planta', 'contrata', 'honorarios'];
+
+function perfilEstudiante() {
+  return body('perfilEstudiante')
+    .optional({ nullable: true })
+    .customSanitizer((valor) => {
+      if (valor == null) return null;
+      if (typeof valor !== 'object' || Array.isArray(valor)) return valor;
+      const nivel = Number(valor.nivelCursando);
+      return {
+        codigoEstudiante: typeof valor.codigoEstudiante === 'string' ? valor.codigoEstudiante.trim().toUpperCase() : valor.codigoEstudiante,
+        contactoEmergencia: typeof valor.contactoEmergencia === 'string' ? valor.contactoEmergencia.trim() : valor.contactoEmergencia,
+        nivelCursando: nivel,
+      };
+    })
+    .custom((valor) => {
+      if (valor == null) return true;
+      if (typeof valor !== 'object') throw new Error('debe ser un objeto');
+      if (!CODIGO_ESTUDIANTE.test(valor.codigoEstudiante ?? '')) throw new Error('el código debe tener el formato EST-AAAA-NNN');
+      if (typeof valor.contactoEmergencia !== 'string' || valor.contactoEmergencia === '' || valor.contactoEmergencia.length > 120) {
+        throw new Error('el contacto de emergencia es obligatorio');
+      }
+      if (!Number.isInteger(valor.nivelCursando) || valor.nivelCursando < 1 || valor.nivelCursando > 8) {
+        throw new Error('el nivel debe ser un entero del 1 al 8');
+      }
+      return true;
+    });
+}
+
+function perfilDocente() {
+  return body('perfilDocente')
+    .optional({ nullable: true })
+    .customSanitizer((valor) => {
+      if (valor == null) return null;
+      if (typeof valor !== 'object' || Array.isArray(valor)) return valor;
+      const departamentos = Array.isArray(valor.departamentos)
+        ? valor.departamentos.filter((item) => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+        : [];
+      return {
+        especialidad: typeof valor.especialidad === 'string' ? valor.especialidad.trim() : '',
+        tipoVinculo: valor.tipoVinculo,
+        departamentos,
+      };
+    })
+    .custom((valor) => {
+      if (valor == null) return true;
+      if (typeof valor !== 'object') throw new Error('debe ser un objeto');
+      if (!VINCULOS.includes(valor.tipoVinculo)) throw new Error('el vínculo debe ser planta, contrata u honorarios');
+      if (typeof valor.especialidad !== 'string' || valor.especialidad.length > 120) throw new Error('la especialidad admite hasta 120 caracteres');
+      if (valor.departamentos.some((item) => item.length > 120)) throw new Error('cada departamento admite hasta 120 caracteres');
+      return true;
+    });
+}
+
 export const esquemaListar = [
   query('rol').optional({ values: 'falsy' }).isIn(ROLES_VALIDOS).withMessage('no es un rol permitido'),
   query('estado').optional({ values: 'falsy' }).isIn(ESTADOS_VALIDOS).withMessage('no es un estado permitido'),
@@ -100,9 +155,22 @@ export const esquemaCrear = [
   rol(true),
   sedes(),
   incorporacion(true),
+  perfilEstudiante(),
+  perfilDocente(),
 ];
 
-export const esquemaEditar = [idParam(), rut(false), nombre(false), correo(false), telefono(), rol(false), sedes(), incorporacion(false)];
+export const esquemaEditar = [
+  idParam(),
+  rut(false),
+  nombre(false),
+  correo(false),
+  telefono(),
+  rol(false),
+  sedes(),
+  incorporacion(false),
+  perfilEstudiante(),
+  perfilDocente(),
+];
 
 export const esquemaEstado = [
   idParam(),

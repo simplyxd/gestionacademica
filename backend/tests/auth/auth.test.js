@@ -353,6 +353,7 @@ describe('GET /api/permisos', () => {
       'parametros.escribir': ['admin'],
       'permisos.leer': cuatro,
       'docente.leer': ['docente'],
+      'periodos.leer': cuatro,
       // Estructura y reportes (Lorenzo).
       'sedes.leer': cuatro,
       'sedes.escribir': ['coordinador'],

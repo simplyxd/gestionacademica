@@ -1,6 +1,5 @@
-// Acuerdo con Angel: el admin edita la cuenta (nombre, rut, correo, teléfono, rol, sedes, estado,
-// incorporacion, clave); el coordinador editará el perfil académico (perfilDocente / perfilEstudiante).
-// Este PR no implementa la edición del perfil.
+// El admin edita la cuenta y también el perfil que completa en el mismo formulario
+// (perfilDocente o perfilEstudiante). Un rol que no corresponde deja el otro perfil vacío.
 
 import { randomInt } from 'node:crypto';
 import { AppError } from '../errors/AppError.js';
@@ -57,6 +56,11 @@ function traducirDuplicado(error) {
   }
   if (campo === 'correo') {
     return new AppError(409, USR.CORREO_DUPLICADO, 'Ya existe un usuario con ese correo.', { details: { campo: 'correo' } });
+  }
+  if (campo === 'perfilEstudiante.codigoEstudiante') {
+    return new AppError(409, USR.CODIGO_DUPLICADO, 'Ya existe un estudiante con ese código.', {
+      details: { campos: [{ campo: 'perfilEstudiante.codigoEstudiante', motivo: 'ya está en uso' }] },
+    });
   }
   return null;
 }
@@ -183,6 +187,35 @@ function aplicarCuenta(usuario, cambios) {
   }
 }
 
+function historialAprobadas(usuario) {
+  const lista = usuario.perfilEstudiante?.aprobadas ?? [];
+  return lista.map((item) => ({ asignaturaId: item.asignaturaId, periodoId: item.periodoId }));
+}
+
+/** Guarda el perfil del rol actual. Si el body no lo trae, deja el que ya estaba. */
+function aplicarPerfiles(usuario, cambios) {
+  if (usuario.rol === ROLES.ESTUDIANTE) {
+    if (Object.hasOwn(cambios, 'perfilEstudiante')) {
+      if (cambios.perfilEstudiante == null) usuario.set('perfilEstudiante', undefined);
+      else usuario.perfilEstudiante = { ...cambios.perfilEstudiante, aprobadas: historialAprobadas(usuario) };
+    }
+    usuario.set('perfilDocente', undefined);
+    return;
+  }
+
+  if (usuario.rol === ROLES.DOCENTE) {
+    if (Object.hasOwn(cambios, 'perfilDocente')) {
+      if (cambios.perfilDocente == null) usuario.set('perfilDocente', undefined);
+      else usuario.perfilDocente = cambios.perfilDocente;
+    }
+    usuario.set('perfilEstudiante', undefined);
+    return;
+  }
+
+  usuario.set('perfilDocente', undefined);
+  usuario.set('perfilEstudiante', undefined);
+}
+
 function rechazarPerfilQueNoCalza(usuario) {
   const motivo = validarPerfilSegunRol({
     rol: usuario.rol,
@@ -237,6 +270,7 @@ export async function crearUsuario(datos) {
     sedes: datos.sedes ?? [],
     incorporacion: datos.incorporacion,
   });
+  aplicarPerfiles(usuario, datos);
   await usuario.fijarClave(datos.clave);
   return guardar(usuario);
 }
@@ -246,6 +280,7 @@ async function editarDentroDe(id, cambios, sesion) {
   const eraAdminActivo = usuario.rol === ROLES.ADMIN && usuario.estado === ESTADOS_USUARIO.ACTIVO;
 
   aplicarCuenta(usuario, cambios);
+  aplicarPerfiles(usuario, cambios);
   rechazarPerfilQueNoCalza(usuario);
 
   if (eraAdminActivo && usuario.rol !== ROLES.ADMIN) {

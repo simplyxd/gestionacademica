@@ -6,6 +6,7 @@ export const USR = Object.freeze({
   ULTIMO_ADMIN: 'USR_ULTIMO_ADMIN', //         409: la operación dejaría el sistema sin un admin activo
   RUT_DUPLICADO: 'USR_RUT_DUPLICADO', //       409: el índice único de rut rechazó el guardado
   CORREO_DUPLICADO: 'USR_CORREO_DUPLICADO', // 409: el índice único de correo rechazó el guardado
+  CODIGO_DUPLICADO: 'USR_CODIGO_DUPLICADO', //   409: el índice único de codigoEstudiante rechazó el guardado
   CLAVE_INVALIDA: 'USR_CLAVE_INVALIDA', //     400: la clave no cumple la política
   ROL_NO_CALZA: 'USR_ROL_NO_CALZA', //         409: el rol no calza con el perfil académico que ya tiene
 });

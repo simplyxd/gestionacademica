@@ -7,6 +7,7 @@ import {
   leerClaveTemporal,
   normalizarListado,
   normalizarSedes,
+  textoDeSedes,
   rangoPagina,
   textoPerfil,
   validarBorrador,
@@ -116,6 +117,12 @@ describe('listado', () => {
     expect(lista[0]?.incorporacion).toBe('2026-03-01');
     expect(lista[0]?.perfilEstudiante?.codigoEstudiante).toBe('EST-2026-004');
     expect(normalizarSedes([{ id: 's1', nombre: 'Central' }])).toEqual([{ id: 's1', nombre: 'Central' }]);
+  });
+
+  it('muestra el nombre de la sede cuando el usuario solo trae el id', () => {
+    const catalogo = [{ id: '6af1dfd1c187c8dbc0d7e7a5', nombre: 'Sede Central' }];
+    const delUsuario = [{ id: '6af1dfd1c187c8dbc0d7e7a5', nombre: '6af1dfd1c187c8dbc0d7e7a5' }];
+    expect(textoDeSedes(delUsuario, catalogo)).toBe('Sede Central');
   });
 
   it('el texto del perfil no inventa datos para admin', () => {

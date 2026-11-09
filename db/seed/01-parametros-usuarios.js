@@ -6,6 +6,7 @@ import { COSTO_BCRYPT, Usuario } from '../../backend/src/models/usuario.model.js
 // Contraseñas solo de desarrollo. Están repetidas en db/README.md. No uses estas cuentas fuera de local.
 export const CLAVE_ADMIN_DESARROLLO = 'Clave-Dev-Admin-2026';
 export const CLAVE_COORDINADOR_DESARROLLO = 'Clave-Dev-Coord-2026';
+export const CLAVE_DOCENTE_DESARROLLO = 'Clave-Dev-Docente-2026';
 
 const PARAMETROS_POR_DEFECTO = {
   clave: CLAVE_PARAMETROS,
@@ -41,6 +42,17 @@ const CUENTAS = [
     sedesCodigos: ['central', 'norte'],
     incorporacion: '2024-03-01',
     clave: CLAVE_COORDINADOR_DESARROLLO,
+  },
+  {
+    rut: '16666666-K',
+    nombre: 'Elena Vargas',
+    correo: 'docente@iunf.cl',
+    telefono: '+56 9 5555 0103',
+    rol: 'docente',
+    sedesCodigos: ['central'],
+    incorporacion: '2024-03-01',
+    clave: CLAVE_DOCENTE_DESARROLLO,
+    perfilDocente: { especialidad: 'Informática', tipoVinculo: 'planta', departamentos: ['Computación'] },
   },
 ];
 

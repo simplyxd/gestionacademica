@@ -82,7 +82,8 @@ const seccionSchema = new mongoose.Schema({
     }
   }
 }, {
-  timestamps: true
+  collection: 'secciones',
+  timestamps: true,
 });
 
 // Índices compuestos solicitados
