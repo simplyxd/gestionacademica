@@ -6,6 +6,7 @@ import { Carrera } from '../models/carrera.model.js';
 import { Sede } from '../models/sede.model.js';
 import { envolver } from '../utils/respuesta.js';
 import { paginar } from '../utils/paginar.js';
+import { claveDeBloqueo, conTransaccion } from '../utils/transaccion.js';
 import { aObjectId, conUnicidad, esCoordinador, filtroBusqueda, sedesDe } from './estructura.comun.js';
 
 /**
@@ -38,8 +39,14 @@ export async function buscarEnAlcance(usuario, id) {
   return carrera;
 }
 
+/**
+ * Bloqueo compartido con sedes.service.cambiarEstado: quien asigna una carrera activa a una sede y quien inactiva
+ * esa sede escriben el MISMO documento de bloqueo, así que nunca validan a la vez (ver utils/transaccion.js).
+ */
+export const bloqueoSede = (sedeId) => claveDeBloqueo('sede', sedeId);
+
 /** Todas las sedes existen y están activas; el coordinador solo asigna las suyas. */
-async function validarSedes(usuario, sedes) {
+async function validarSedes(usuario, sedes, sesion = null) {
   const ids = [...new Set((sedes ?? []).map(String))].map((s) => aObjectId(s, 'sedes'));
   if (esCoordinador(usuario)) {
     const propias = new Set(sedesDe(usuario));
@@ -50,7 +57,7 @@ async function validarSedes(usuario, sedes) {
       });
     }
   }
-  const encontradas = await Sede.find({ _id: { $in: ids } }).select('nombre estado').lean();
+  const encontradas = await Sede.find({ _id: { $in: ids } }).select('nombre estado').session(sesion).lean();
   const activas = new Set(encontradas.filter((s) => s.estado === ESTADOS_SEDE.ACTIVA).map((s) => s._id.toString()));
   const malas = ids.filter((s) => !activas.has(s.toString()));
   if (malas.length > 0) {
@@ -78,11 +85,24 @@ export async function obtener(usuario, id) {
   return envolver(await buscarEnAlcance(usuario, id));
 }
 
+/** Ids de sedes como texto, sin repetir (para las claves de bloqueo). */
+const idsDeSedes = (sedes) => [...new Set((sedes ?? []).map(String))];
+
 export async function crear(usuario, datos) {
-  const sedes = await validarSedes(usuario, datos.sedes);
   const { codigo, nombre, modalidad, jornada, duracionSemestres } = datos;
   const carrera = await conUnicidad(
-    () => Carrera.create({ codigo, nombre, modalidad, jornada, duracionSemestres, sedes, estado: ESTADOS_CARRERA.ACTIVA }),
+    () =>
+      conTransaccion(
+        async (sesion) => {
+          const sedes = await validarSedes(usuario, datos.sedes, sesion);
+          const [creada] = await Carrera.create(
+            [{ codigo, nombre, modalidad, jornada, duracionSemestres, sedes, estado: ESTADOS_CARRERA.ACTIVA }],
+            { session: sesion },
+          );
+          return creada;
+        },
+        { bloqueos: idsDeSedes(datos.sedes).map(bloqueoSede) },
+      ),
     unicidad(datos),
   );
   return envolver(carrera);
@@ -92,9 +112,20 @@ export async function actualizar(usuario, id, datos) {
   const carrera = await buscarEnAlcance(usuario, id);
   const { codigo, nombre, modalidad, jornada, duracionSemestres } = datos;
   const cambios = Object.fromEntries(Object.entries({ codigo, nombre, modalidad, jornada, duracionSemestres }).filter(([, v]) => v !== undefined));
-  if (datos.sedes !== undefined) cambios.sedes = await validarSedes(usuario, datos.sedes);
+  const cambiaSedes = datos.sedes !== undefined && carrera.estado === ESTADOS_CARRERA.ACTIVA;
+  if (datos.sedes !== undefined && !cambiaSedes) cambios.sedes = await validarSedes(usuario, datos.sedes);
   carrera.set(cambios);
-  await conUnicidad(() => carrera.save(), unicidad({ codigo: carrera.codigo, nombre: carrera.nombre }));
+  await conUnicidad(
+    () =>
+      conTransaccion(
+        async (sesion) => {
+          if (cambiaSedes) carrera.sedes = await validarSedes(usuario, datos.sedes, sesion);
+          await carrera.save({ session: sesion });
+        },
+        { bloqueos: cambiaSedes ? idsDeSedes(datos.sedes).map(bloqueoSede) : [] },
+      ),
+    unicidad({ codigo: carrera.codigo, nombre: carrera.nombre }),
+  );
   return envolver(carrera);
 }
 
@@ -105,9 +136,15 @@ export async function actualizar(usuario, id, datos) {
  */
 export async function cambiarEstado(usuario, id, estado) {
   const carrera = await buscarEnAlcance(usuario, id);
-  if (estado === ESTADOS_CARRERA.ACTIVA) await validarSedes({ rol: 'admin' }, carrera.sedes);
-  carrera.estado = estado;
-  await carrera.save();
+  const reabre = estado === ESTADOS_CARRERA.ACTIVA;
+  await conTransaccion(
+    async (sesion) => {
+      if (reabre) await validarSedes({ rol: 'admin' }, carrera.sedes, sesion);
+      carrera.estado = estado;
+      await carrera.save({ session: sesion });
+    },
+    { bloqueos: reabre ? idsDeSedes(carrera.sedes).map(bloqueoSede) : [] },
+  );
   const matriculasVigentes = await dependencias.contarMatriculas(carrera._id, { estado: ESTADOS_MATRICULA.VIGENTE });
   return envolver({ ...carrera.toJSON(), matriculasVigentes });
 }

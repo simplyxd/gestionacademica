@@ -7,15 +7,18 @@ import { Carrera } from '../models/carrera.model.js';
 import { Sede } from '../models/sede.model.js';
 import { envolver } from '../utils/respuesta.js';
 import { paginar } from '../utils/paginar.js';
+import { conTransaccion } from '../utils/transaccion.js';
+import { bloqueoSede } from './carreras.service.js';
 import { aObjectId, conUnicidad, esCoordinador, filtroBusqueda, sedesDe } from './estructura.comun.js';
 
 /**
  * Dependencias de otros dominios, inyectables (en tests se reemplazan por dobles).
  * Contrato propuesto a Diego: secciones.service exporta
- *   contarAbiertasPorSede(sedeId: ObjectId) => Promise<number>   // secciones en estado "abierta"
+ *   contarAbiertasPorSede(sedeId: ObjectId, { session }) => Promise<number>   // secciones en estado "abierta"
+ * y, al abrir una sección en una sede, toma el mismo bloqueo claveDeBloqueo('sede', sedeId).
  */
 export const dependencias = {
-  async contarSeccionesAbiertas(sedeId) {
+  async contarSeccionesAbiertas(sedeId, sesion) {
     let modulo;
     try {
       modulo = await import('./secciones.service.js');
@@ -25,7 +28,7 @@ export const dependencias = {
     if (typeof modulo?.contarAbiertasPorSede !== 'function') {
       throw new Error('secciones.service.contarAbiertasPorSede no está disponible (contrato con Diego, LOR-3).');
     }
-    return modulo.contarAbiertasPorSede(sedeId);
+    return modulo.contarAbiertasPorSede(sedeId, { session: sesion });
   },
 };
 
@@ -75,26 +78,33 @@ export async function actualizar(usuario, id, { nombre, direccion, comuna }) {
  */
 export async function cambiarEstado(usuario, id, estado) {
   const sede = await buscarEnAlcance(usuario, id);
+  const inactiva = estado === ESTADOS_SEDE.INACTIVA && sede.estado !== ESTADOS_SEDE.INACTIVA;
 
-  if (estado === ESTADOS_SEDE.INACTIVA && sede.estado !== ESTADOS_SEDE.INACTIVA) {
-    const [carreras, secciones] = await Promise.all([
-      Carrera.find({ sedes: sede._id, estado: ESTADOS_CARRERA.ACTIVA }).select('codigo').limit(5).lean(),
-      dependencias.contarSeccionesAbiertas(sede._id),
-    ]);
-    if (carreras.length > 0 || secciones > 0) {
-      const partes = [];
-      if (carreras.length > 0) partes.push(`carreras activas (${carreras.map((c) => c.codigo).join(', ')})`);
-      if (secciones > 0) partes.push(`${secciones} sección(es) abierta(s)`);
-      throw new AppError(
-        422,
-        SED.CON_DEPENDENCIAS,
-        `La sede «${sede.nombre}» no se puede inactivar: tiene ${partes.join(' y ')}. Cierra o traslada eso primero.`,
-        { regla: 'Sede sin carreras ni secciones activas', details: { carreras: carreras.map((c) => c.codigo), secciones } },
-      );
-    }
-  }
-
-  sede.estado = estado;
-  await sede.save();
+  // Misma clave de bloqueo que carreras.service al asignar una sede: o se inactiva la sede, o se le asigna
+  // una carrera activa, nunca ambas a la vez con lecturas desfasadas.
+  await conTransaccion(
+    async (sesion) => {
+      if (inactiva) {
+        const [carreras, secciones] = await Promise.all([
+          Carrera.find({ sedes: sede._id, estado: ESTADOS_CARRERA.ACTIVA }).select('codigo').limit(5).session(sesion).lean(),
+          dependencias.contarSeccionesAbiertas(sede._id, sesion),
+        ]);
+        if (carreras.length > 0 || secciones > 0) {
+          const partes = [];
+          if (carreras.length > 0) partes.push(`carreras activas (${carreras.map((c) => c.codigo).join(', ')})`);
+          if (secciones > 0) partes.push(`${secciones} sección(es) abierta(s)`);
+          throw new AppError(
+            422,
+            SED.CON_DEPENDENCIAS,
+            `La sede «${sede.nombre}» no se puede inactivar: tiene ${partes.join(' y ')}. Cierra o traslada eso primero.`,
+            { regla: 'Sede sin carreras ni secciones activas', details: { carreras: carreras.map((c) => c.codigo), secciones } },
+          );
+        }
+      }
+      sede.estado = estado;
+      await sede.save({ session: sesion });
+    },
+    { bloqueos: inactiva ? [bloqueoSede(sede._id)] : [] },
+  );
   return envolver(sede);
 }
