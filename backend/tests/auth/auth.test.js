@@ -355,13 +355,13 @@ describe('GET /api/permisos', () => {
       'docente.leer': ['docente'],
       // Estructura y reportes (Lorenzo).
       'sedes.leer': cuatro,
-      'sedes.escribir': ['coordinador'],
+      'sedes.escribir': ['admin', 'coordinador'],
       'asignaturas.leer': cuatro,
-      'asignaturas.escribir': ['coordinador'],
+      'asignaturas.escribir': ['admin', 'coordinador'],
       'carreras.leer': cuatro,
-      'carreras.escribir': ['coordinador'],
+      'carreras.escribir': ['admin', 'coordinador'],
       'planes.leer': cuatro,
-      'planes.escribir': ['coordinador'],
+      'planes.escribir': ['admin', 'coordinador'],
       'reportes.leer': ['admin', 'coordinador'],
     });
   });

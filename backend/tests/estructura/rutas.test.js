@@ -52,9 +52,6 @@ describe('403 por rol', () => {
     const res = await como(await crearUsuario('estudiante'))[metodo](url).send({});
     expect(res.status).toBe(403);
   });
-  it.each(ESCRITURAS)('admin tampoco escribe estructura (solo coordinador): %s %s', async (metodo, url) => {
-    expect((await como(await crearUsuario('admin'))[metodo](url).send({})).status).toBe(403);
-  });
   it.each(REPORTES)('docente no ve reportes: %s %s', async (metodo, url) => {
     expect((await como(await crearUsuario('docente'))[metodo](url)).status).toBe(403);
   });
@@ -125,6 +122,13 @@ describe('flujo HTTP del coordinador', () => {
     expect(ok.status).toBe(200);
     const grafo = await coord.get(`/api/planes/${plan.body.data.id}/grafo`);
     expect(grafo.body.data.aristas).toEqual([{ desde: B, hacia: A }]);
+  });
+
+  it('el admin también escribe estructura y sin límite de sedes', async () => {
+    const { sur } = await crearBase();
+    const adm = como(await crearUsuario('admin'));
+    expect((await adm.post('/api/sedes').send({ nombre: 'Sede Este', direccion: 'Calle 9', comuna: 'Talca' })).status).toBe(201);
+    expect((await adm.patch(`/api/sedes/${sur.id}`).send({ comuna: 'Chillán' })).status).toBe(200);
   });
 
   it('reportes: admin y coordinador entran; filtro inválido → 400', async () => {

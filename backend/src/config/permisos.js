@@ -19,15 +19,15 @@ export const PERMISOS = Object.freeze({
   'permisos.leer': CUATRO,
   'docente.leer': Object.freeze([ROLES.DOCENTE]),
   // Estructura académica y reportes (Lorenzo; pendiente del OK de Endert por tocar su matriz).
-  // Lectura para los cuatro roles (el estudiante ve su plan, el docente sus asignaturas); escritura solo coordinador.
+  // Lectura para los cuatro roles (el estudiante ve su plan, el docente sus asignaturas); escritura admin y coordinador (decisión Lorenzo, 2026-11-09).
   'sedes.leer': CUATRO,
-  'sedes.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'sedes.escribir': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
   'asignaturas.leer': CUATRO,
-  'asignaturas.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'asignaturas.escribir': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
   'carreras.leer': CUATRO,
-  'carreras.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'carreras.escribir': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
   'planes.leer': CUATRO,
-  'planes.escribir': Object.freeze([ROLES.COORDINADOR]),
+  'planes.escribir': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
   'reportes.leer': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
 });
 

@@ -4,7 +4,7 @@ import { authenticate, authorize } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validate.js';
 import * as s from '../schemas/planes.schemas.js';
 
-// /api/planes · authenticate en todas; lectura para los cuatro roles, escritura solo coordinador. Sin DELETE.
+// /api/planes · authenticate en todas; lectura para los cuatro roles, escritura admin y coordinador. Sin DELETE.
 const router = Router();
 router.use(authenticate);
 

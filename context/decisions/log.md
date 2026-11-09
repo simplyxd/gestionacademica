@@ -168,6 +168,7 @@ Append-only. Más reciente arriba.
 - Una carrera tiene **un solo plan `vigente`** a la vez (índice único parcial en `planesEstudio`; activar otro → 409 `PLN_VIGENTE_DUPLICADO`). Los matriculados de planes `historico` siguen válidos; un plan histórico no se edita.
 - Un prerrequisito debe estar en un **semestre estrictamente menor** que la asignatura que lo exige (422 `PLN_PRERREQUISITO_SEMESTRE`), además de pertenecer al mismo plan y no formar ciclos (422 `PLN_CICLO_PREREQUISITOS`, con el camino del ciclo en `details.camino`).
 - Créditos de asignatura: entero de **1 a 30**. **No se cambian** si la asignatura está en algún plan (409 `ASG_CREDITOS_BLOQUEADOS`); el nombre sí se puede corregir.
+- Escritura de estructura (sedes, asignaturas, carreras, planes): **admin y coordinador**. El admin no tiene límite de sedes; el coordinador solo las suyas. Cambia el contrato de LOR-3, que decía «solo coordinador».
 - Ocupación en reportes: la fuente de verdad es el **conteo de inscripciones `activa`**; se informa también el contador `inscritos` de la sección y `desincronizado: true` si no coinciden.
 
 **Rationale:** Evitar ambigüedad al matricular (Angel), asignaturas imposibles de inscribir (Matias) y cambios silenciosos al historial. El contador atómico puede divergir; el conteo detecta el desfase.
