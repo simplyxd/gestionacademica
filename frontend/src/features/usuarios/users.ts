@@ -1,111 +1,369 @@
-import { CARRERAS as CARRERAS_SEED } from '@/mock/estructura';
-import { formatRut, isValidRut, rutKey } from '@/lib/rut';
-import { SEDES as SEDES_SEED } from '@/mock/sedes';
+import { ROL_LABEL, type Rol } from '@/app/navigation';
+import { motivoClave } from '@/features/auth/clave';
+import { ApiError } from '@/lib/api';
+import { isValidRut } from '@/lib/rut';
 
-export const ROLES = {
-  admin: 'Administrador',
-  coordinador: 'Coordinador Académico',
-  docente: 'Docente',
-  estudiante: 'Estudiante',
-} as const;
-export type Role = keyof typeof ROLES;
-/** Mismos nombres que Sedes y Carreras del coordinador, para que una cuenta apunte a lo que existe. */
-export const SEDES = SEDES_SEED.map((s) => s.nombre);
-export const CARRERAS = CARRERAS_SEED.map((c) => c.nombre);
-export const DEPARTAMENTOS = ['Computación', 'Ciencias Básicas', 'Administración', 'Humanidades'];
-export const ESTADOS = [{ value: 'activo', label: 'Activo' }, { value: 'inactivo', label: 'Desactivado' }];
+export const ROLES_USUARIO: { value: Rol; label: string }[] = (Object.keys(ROL_LABEL) as Rol[]).map((value) => ({
+  value,
+  label: ROL_LABEL[value],
+}));
 
-export type UserDraft = {
+export const ESTADOS_USUARIO = [
+  { value: 'activo', label: 'Activo' },
+  { value: 'inactivo', label: 'Desactivado' },
+] as const;
+
+export const TIPOS_VINCULO = ['planta', 'contrata', 'honorarios'] as const;
+export type TipoVinculo = (typeof TIPOS_VINCULO)[number];
+
+export const ETIQUETA_VINCULO: Record<TipoVinculo, string> = {
+  planta: 'Planta',
+  contrata: 'Contrata',
+  honorarios: 'Honorarios',
+};
+
+export const NIVELES = Array.from({ length: 8 }, (_, i) => ({
+  value: String(i + 1),
+  label: `Nivel ${i + 1}`,
+}));
+
+const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CODIGO = /^EST-\d{4}-\d{3}$/;
+const FECHA = /^\d{4}-\d{2}-\d{2}$/;
+
+export interface OpcionSede {
+  id: string;
+  nombre: string;
+}
+
+export interface PerfilDocente {
+  especialidad: string;
+  tipoVinculo: TipoVinculo;
+  departamentos: string[];
+}
+
+export interface PerfilEstudiante {
+  codigoEstudiante: string;
+  contactoEmergencia: string;
+  nivelCursando: number;
+}
+
+export interface UsuarioLista {
+  id: string;
   nombre: string;
   rut: string;
-  rol: Role;
-  sedes: string[];
-  carreras: string[];
-  departamentos: string[];
   correo: string;
   telefono: string;
-};
-export type User = UserDraft & { id: string; estado: 'activo' | 'inactivo' };
-export type Filters = { sedes: string[]; carreras: string[]; roles: string[]; estados: string[] };
-export const emptyFilters = (): Filters => ({ sedes: [], carreras: [], roles: [], estados: [] });
-export const emptyDraft = (): UserDraft => ({
-  nombre: '', rut: '', rol: 'admin', sedes: [], carreras: [], departamentos: [], correo: '', telefono: '',
-});
-
-export { isValidRut };
-
-const INITIAL_USERS: User[] = [
-  { id: '1', nombre: 'Camila Soto', rut: '12.345.678-5', rol: 'admin', sedes: [...SEDES], carreras: [], departamentos: [], correo: 'camila.soto@instituto.example', telefono: '+56 9 5555 0101', estado: 'activo' },
-  { id: '2', nombre: 'Tomás Rojas', rut: '11.111.111-1', rol: 'coordinador', sedes: ['Sede Central', 'Sede Norte'], carreras: [], departamentos: [], correo: 'tomas.rojas@instituto.example', telefono: '+56 9 5555 0102', estado: 'activo' },
-  { id: '3', nombre: 'Valentina Díaz', rut: '22.222.222-2', rol: 'docente', sedes: ['Sede Central', 'Sede Sur'], carreras: [], departamentos: ['Computación', 'Ciencias Básicas'], correo: 'valentina.diaz@instituto.example', telefono: '+56 9 5555 0103', estado: 'activo' },
-  { id: '4', nombre: 'Diego Muñoz', rut: '13.333.333-9', rol: 'estudiante', sedes: ['Sede Norte'], carreras: ['Ingeniería en Informática'], departamentos: [], correo: 'diego.munoz@instituto.example', telefono: '+56 9 5555 0104', estado: 'activo' },
-  { id: '5', nombre: 'Antonia Pérez', rut: '14.444.444-2', rol: 'estudiante', sedes: ['Sede Central', 'Sede Sur'], carreras: ['Administración de Empresas', 'Contabilidad y Auditoría'], departamentos: [], correo: 'antonia.perez@instituto.example', telefono: '+56 9 5555 0105', estado: 'activo' },
-  { id: '6', nombre: 'Gabriel Torres', rut: '15.555.555-6', rol: 'docente', sedes: ['Sede Sur'], carreras: [], departamentos: ['Humanidades'], correo: 'gabriel.torres@instituto.example', telefono: '+56 9 5555 0106', estado: 'inactivo' },
-  { id: '7', nombre: 'Francisca Vera', rut: '16.666.666-K', rol: 'coordinador', sedes: ['Sede Sur'], carreras: [], departamentos: [], correo: 'francisca.vera@instituto.example', telefono: '+56 9 5555 0107', estado: 'activo' },
-];
-
-// simplified: estado en memoria de esta pestaña; un adaptador de API si se autoriza persistencia.
-let users: User[] = INITIAL_USERS.map(user => structuredClone(user));
-const events = new EventTarget();
-export const getUsers = () => users as readonly User[];
-export const canManageUsers = (role: unknown) => role === 'admin';
-export function subscribeUsers(listener: () => void) {
-  events.addEventListener('usuarios:changed', listener);
-  return () => events.removeEventListener('usuarios:changed', listener);
+  rol: Rol;
+  sedes: OpcionSede[];
+  estado: 'activo' | 'inactivo';
+  incorporacion: string;
+  perfilDocente: PerfilDocente | null;
+  perfilEstudiante: PerfilEstudiante | null;
 }
 
-export function validateUser(draft: UserDraft, editingId?: string) {
-  const errors: Partial<Record<keyof UserDraft, string>> = {};
-  if (!draft.nombre.trim()) errors.nombre = 'Ingresa el nombre.';
-  if (!isValidRut(draft.rut)) errors.rut = 'Ingresa un RUT válido, incluido su dígito verificador.';
-  if (!Object.hasOwn(ROLES, draft.rol)) errors.rol = 'Selecciona un rol válido.';
-  if (!draft.sedes.length) errors.sedes = 'Selecciona al menos una sede.';
-  if ((draft.rol === 'docente' || draft.rol === 'estudiante') && draft.sedes.length > 3) errors.sedes = 'Puedes seleccionar como máximo 3 sedes.';
-  if (draft.rol === 'estudiante' && draft.carreras.length > 2) errors.carreras = 'Puedes seleccionar como máximo 2 carreras.';
-  if (draft.rol === 'docente' && draft.departamentos.length > 3) errors.departamentos = 'Puedes seleccionar como máximo 3 departamentos.';
-  for (const [field, catalog] of [['sedes', SEDES], ['carreras', CARRERAS], ['departamentos', DEPARTAMENTOS]] as const) {
-    if (draft[field].some(value => !catalog.includes(value)) || new Set(draft[field]).size !== draft[field].length) {
-      errors[field] ??= 'Selecciona valores válidos, sin repetir.';
+export interface BorradorUsuario {
+  nombre: string;
+  rut: string;
+  correo: string;
+  telefono: string;
+  rol: Rol;
+  sedes: string[];
+  incorporacion: string;
+  password: string;
+  confirmacion: string;
+  especialidad: string;
+  tipoVinculo: string;
+  departamentos: string[];
+  codigoEstudiante: string;
+  contactoEmergencia: string;
+  nivelCursando: string;
+}
+
+export interface CuerpoUsuario {
+  nombre: string;
+  rut: string;
+  correo: string;
+  telefono: string;
+  rol: Rol;
+  sedes: string[];
+  incorporacion: string;
+  perfilDocente: PerfilDocente | null;
+  perfilEstudiante: { codigoEstudiante: string; contactoEmergencia: string; nivelCursando: number } | null;
+  /** El alta la espera el servidor en `clave`. En la edición no se envía. */
+  clave?: string;
+}
+
+export function esAbort(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && (error as { name?: unknown }).name === 'AbortError';
+}
+
+export function esTipoVinculo(valor: string): valor is TipoVinculo {
+  return (TIPOS_VINCULO as readonly string[]).includes(valor);
+}
+
+export function borradorVacio(): BorradorUsuario {
+  return {
+    nombre: '',
+    rut: '',
+    correo: '',
+    telefono: '',
+    rol: 'admin',
+    sedes: [],
+    incorporacion: '',
+    password: '',
+    confirmacion: '',
+    especialidad: '',
+    tipoVinculo: '',
+    departamentos: [],
+    codigoEstudiante: '',
+    contactoEmergencia: '',
+    nivelCursando: '',
+  };
+}
+
+function fechaValida(iso: string): boolean {
+  if (!FECHA.test(iso)) return false;
+  const [anio, mes, dia] = iso.split('-').map(Number);
+  const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+  return fecha.getUTCFullYear() === anio && fecha.getUTCMonth() === mes - 1 && fecha.getUTCDate() === dia;
+}
+
+export function limpiarDepartamentos(lista: readonly string[]): string[] {
+  const vistos = new Set<string>();
+  const salida: string[] = [];
+  for (const item of lista) {
+    const texto = item.trim();
+    if (!texto) continue;
+    const clave = texto.toLocaleLowerCase('es');
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    salida.push(texto);
+  }
+  return salida;
+}
+
+export function validarBorrador(borrador: BorradorUsuario, modo: 'crear' | 'editar'): Partial<Record<keyof BorradorUsuario, string>> {
+  const errores: Partial<Record<keyof BorradorUsuario, string>> = {};
+  if (!borrador.nombre.trim()) errores.nombre = 'Ingresa el nombre.';
+  else if (borrador.nombre.trim().length > 120) errores.nombre = 'El nombre puede tener hasta 120 caracteres.';
+  if (!isValidRut(borrador.rut)) errores.rut = 'Ingresa un RUT válido, incluido su dígito verificador.';
+  if (!CORREO.test(borrador.correo.trim())) errores.correo = 'Ingresa un correo válido.';
+  const telefono = borrador.telefono.trim();
+  if (telefono) {
+    const digitos = telefono.replace(/\D/g, '');
+    if (!/^[+\d\s().-]+$/.test(telefono) || digitos.length < 7 || digitos.length > 15 || telefono.length > 30) {
+      errores.telefono = 'Ingresa un teléfono válido (7 a 15 dígitos).';
     }
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.correo.trim())) errors.correo = 'Ingresa un correo válido.';
-  const digits = draft.telefono.replace(/\D/g, '');
-  if (draft.telefono.trim() && (!/^[+\d\s().-]+$/.test(draft.telefono) || digits.length < 7 || digits.length > 15)) errors.telefono = 'Ingresa un teléfono válido (7 a 15 dígitos).';
-  for (const user of users.filter(user => user.id !== editingId)) {
-    if (rutKey(user.rut) === rutKey(draft.rut)) errors.rut = 'Este RUT ya pertenece a otra cuenta.';
-    if (user.correo.toLowerCase() === draft.correo.trim().toLowerCase()) errors.correo = 'Este correo ya pertenece a otra cuenta.';
+  if (!borrador.sedes.length) errores.sedes = 'Selecciona al menos una sede.';
+  else if (new Set(borrador.sedes).size !== borrador.sedes.length) errores.sedes = 'No repitas la misma sede.';
+  if (!fechaValida(borrador.incorporacion)) errores.incorporacion = 'Ingresa la fecha de incorporación.';
+
+  if (modo === 'crear') {
+    if (!borrador.password) errores.password = 'Ingresa una contraseña inicial.';
+    else {
+      const motivo = motivoClave(borrador.password);
+      if (motivo) errores.password = motivo;
+    }
+    if (!borrador.confirmacion) errores.confirmacion = 'Repite la contraseña inicial.';
+    else if (borrador.password && borrador.confirmacion !== borrador.password) errores.confirmacion = 'Las contraseñas no coinciden.';
   }
-  return errors;
+
+  if (borrador.rol === 'docente') {
+    if (borrador.especialidad.trim().length > 120) errores.especialidad = 'La especialidad puede tener hasta 120 caracteres.';
+    if (!esTipoVinculo(borrador.tipoVinculo)) errores.tipoVinculo = 'Selecciona el tipo de vínculo.';
+    const departamentos = limpiarDepartamentos(borrador.departamentos);
+    if (departamentos.some((departamento) => departamento.length > 120)) {
+      errores.departamentos = 'Cada departamento puede tener hasta 120 caracteres.';
+    }
+  }
+
+  if (borrador.rol === 'estudiante') {
+    const codigo = borrador.codigoEstudiante.trim().toUpperCase();
+    if (!codigo) errores.codigoEstudiante = 'Ingresa el código de estudiante.';
+    else if (!CODIGO.test(codigo)) errores.codigoEstudiante = 'Usa el formato EST-AAAA-NNN, por ejemplo EST-2026-014.';
+    if (!borrador.contactoEmergencia.trim()) errores.contactoEmergencia = 'Ingresa el contacto de emergencia.';
+    else if (borrador.contactoEmergencia.trim().length > 120) errores.contactoEmergencia = 'El contacto puede tener hasta 120 caracteres.';
+    const nivel = Number(borrador.nivelCursando);
+    if (!Number.isInteger(nivel) || nivel < 1 || nivel > 8) errores.nivelCursando = 'Selecciona un nivel del 1 al 8.';
+  }
+
+  return errores;
 }
 
-export function saveUser(draft: UserDraft, actor: unknown, editingId?: string) {
-  if (!canManageUsers(actor)) throw new Error('Solo un administrador puede administrar usuarios.');
-  const previous = editingId ? users.find(user => user.id === editingId) : undefined;
-  if (editingId && !previous) throw new Error('La cuenta que intentas editar no existe.');
-  const data: UserDraft = {
-    ...draft, nombre: draft.nombre.trim(), rut: draft.rut.trim(), correo: draft.correo.trim().toLowerCase(), telefono: draft.telefono.trim(),
-    sedes: [...draft.sedes], carreras: draft.rol === 'estudiante' ? [...draft.carreras] : [], departamentos: draft.rol === 'docente' ? [...draft.departamentos] : [],
+export function cuerpoDeUsuario(borrador: BorradorUsuario, modo: 'crear' | 'editar'): CuerpoUsuario {
+  const cuerpo: CuerpoUsuario = {
+    nombre: borrador.nombre.trim(),
+    rut: borrador.rut.trim(),
+    correo: borrador.correo.trim(),
+    telefono: borrador.telefono.trim(),
+    rol: borrador.rol,
+    sedes: [...borrador.sedes],
+    incorporacion: borrador.incorporacion,
+    perfilDocente: null,
+    perfilEstudiante: null,
   };
-  const errors = validateUser(data, editingId);
-  if (Object.keys(errors).length) throw new Error(Object.values(errors)[0]);
-  const user: User = { ...data, rut: formatRut(data.rut), id: previous?.id ?? crypto.randomUUID(), estado: previous?.estado ?? 'activo' };
-  users = previous ? users.map(current => current.id === user.id ? user : current) : [...users, user];
-  events.dispatchEvent(new Event('usuarios:changed'));
-  return user;
+  if (borrador.rol === 'docente' && esTipoVinculo(borrador.tipoVinculo)) {
+    cuerpo.perfilDocente = {
+      especialidad: borrador.especialidad.trim(),
+      tipoVinculo: borrador.tipoVinculo,
+      departamentos: limpiarDepartamentos(borrador.departamentos),
+    };
+  }
+  if (borrador.rol === 'estudiante') {
+    cuerpo.perfilEstudiante = {
+      codigoEstudiante: borrador.codigoEstudiante.trim().toUpperCase(),
+      contactoEmergencia: borrador.contactoEmergencia.trim(),
+      nivelCursando: Number(borrador.nivelCursando),
+    };
+  }
+  if (modo === 'crear') cuerpo.clave = borrador.password;
+  return cuerpo;
 }
 
-export function deactivateUser(id: string, actor: unknown) {
-  if (!canManageUsers(actor)) throw new Error('Solo un administrador puede administrar usuarios.');
-  if (!users.some(user => user.id === id)) throw new Error('La cuenta que intentas desactivar no existe.');
-  users = users.map(user => user.id === id ? { ...user, estado: 'inactivo' } : user);
-  events.dispatchEvent(new Event('usuarios:changed'));
+export function leerSede(valor: unknown): OpcionSede | null {
+  if (typeof valor === 'string' && valor.trim()) return { id: valor, nombre: valor };
+  if (!valor || typeof valor !== 'object') return null;
+  const dato = valor as { id?: unknown; _id?: unknown; nombre?: unknown };
+  const id = typeof dato.id === 'string' ? dato.id : typeof dato._id === 'string' ? dato._id : '';
+  if (!id) return null;
+  const nombre = typeof dato.nombre === 'string' && dato.nombre.trim() ? dato.nombre.trim() : id;
+  return { id, nombre };
 }
 
-export function filterUsers(source: readonly User[], filters: Filters) {
-  return source.filter(user =>
-    (!filters.sedes.length || user.sedes.some(sede => filters.sedes.includes(sede))) &&
-    (!filters.carreras.length || user.carreras.some(carrera => filters.carreras.includes(carrera))) &&
-    (!filters.roles.length || filters.roles.includes(user.rol)) &&
-    (!filters.estados.length || filters.estados.includes(user.estado)),
-  );
+export function normalizarSedes(data: unknown): OpcionSede[] {
+  if (!Array.isArray(data)) return [];
+  return data.map(leerSede).filter((sede): sede is OpcionSede => sede !== null);
+}
+
+function leerPerfilDocente(valor: unknown): PerfilDocente | null {
+  if (!valor || typeof valor !== 'object') return null;
+  const dato = valor as Record<string, unknown>;
+  const tipo = typeof dato.tipoVinculo === 'string' ? dato.tipoVinculo : '';
+  if (!esTipoVinculo(tipo)) return null;
+  const departamentos = Array.isArray(dato.departamentos)
+    ? dato.departamentos.filter((item): item is string => typeof item === 'string')
+    : [];
+  return {
+    especialidad: typeof dato.especialidad === 'string' ? dato.especialidad : '',
+    tipoVinculo: tipo,
+    departamentos,
+  };
+}
+
+function leerPerfilEstudiante(valor: unknown): PerfilEstudiante | null {
+  if (!valor || typeof valor !== 'object') return null;
+  const dato = valor as Record<string, unknown>;
+  const codigo = typeof dato.codigoEstudiante === 'string' ? dato.codigoEstudiante.trim().toUpperCase() : '';
+  const contacto = typeof dato.contactoEmergencia === 'string' ? dato.contactoEmergencia : '';
+  const nivel = typeof dato.nivelCursando === 'number' ? dato.nivelCursando : Number(dato.nivelCursando);
+  if (!codigo || !Number.isInteger(nivel)) return null;
+  return { codigoEstudiante: codigo, contactoEmergencia: contacto, nivelCursando: nivel };
+}
+
+export function normalizarUsuarioLista(raw: unknown): UsuarioLista | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const dato = raw as Record<string, unknown>;
+  const id = typeof dato.id === 'string' ? dato.id : typeof dato._id === 'string' ? dato._id : '';
+  const nombre = typeof dato.nombre === 'string' ? dato.nombre : '';
+  const rol = dato.rol;
+  if (!id || !nombre || (rol !== 'admin' && rol !== 'coordinador' && rol !== 'docente' && rol !== 'estudiante')) return null;
+  if (dato.estado !== 'activo' && dato.estado !== 'inactivo') return null;
+  const sedes = Array.isArray(dato.sedes) ? dato.sedes.map(leerSede).filter((sede): sede is OpcionSede => sede !== null) : [];
+  return {
+    id,
+    nombre,
+    rut: typeof dato.rut === 'string' ? dato.rut : '',
+    correo: typeof dato.correo === 'string' ? dato.correo : '',
+    telefono: typeof dato.telefono === 'string' ? dato.telefono : '',
+    rol,
+    sedes,
+    estado: dato.estado,
+    incorporacion: typeof dato.incorporacion === 'string' ? dato.incorporacion.slice(0, 10) : '',
+    perfilDocente: leerPerfilDocente(dato.perfilDocente),
+    perfilEstudiante: leerPerfilEstudiante(dato.perfilEstudiante),
+  };
+}
+
+export function normalizarListado(data: unknown): UsuarioLista[] {
+  if (!Array.isArray(data)) return [];
+  return data.map(normalizarUsuarioLista).filter((usuario): usuario is UsuarioLista => usuario !== null);
+}
+
+export function borradorDe(usuario: UsuarioLista): BorradorUsuario {
+  return {
+    ...borradorVacio(),
+    nombre: usuario.nombre,
+    rut: usuario.rut,
+    correo: usuario.correo,
+    telefono: usuario.telefono,
+    rol: usuario.rol,
+    sedes: usuario.sedes.map((sede) => sede.id),
+    incorporacion: usuario.incorporacion,
+    especialidad: usuario.perfilDocente?.especialidad ?? '',
+    tipoVinculo: usuario.perfilDocente?.tipoVinculo ?? '',
+    departamentos: usuario.perfilDocente?.departamentos ?? [],
+    codigoEstudiante: usuario.perfilEstudiante?.codigoEstudiante ?? '',
+    contactoEmergencia: usuario.perfilEstudiante?.contactoEmergencia ?? '',
+    nivelCursando: usuario.perfilEstudiante ? String(usuario.perfilEstudiante.nivelCursando) : '',
+  };
+}
+
+export function textoPerfil(usuario: UsuarioLista): string {
+  if (usuario.rol === 'docente' && usuario.perfilDocente) {
+    const partes = [
+      usuario.perfilDocente.especialidad,
+      ETIQUETA_VINCULO[usuario.perfilDocente.tipoVinculo],
+      usuario.perfilDocente.departamentos.join(', '),
+    ].filter(Boolean);
+    return partes.join(' · ') || '—';
+  }
+  if (usuario.rol === 'estudiante' && usuario.perfilEstudiante) {
+    const contacto = usuario.perfilEstudiante.contactoEmergencia;
+    const base = `${usuario.perfilEstudiante.codigoEstudiante} · Nivel ${usuario.perfilEstudiante.nivelCursando}`;
+    return contacto ? `${base} · ${contacto}` : base;
+  }
+  return '—';
+}
+
+export function rangoPagina(pagina: number, limite: number, total: number): { desde: number; hasta: number } {
+  if (total <= 0) return { desde: 0, hasta: 0 };
+  const desde = (pagina - 1) * limite + 1;
+  const hasta = Math.min(pagina * limite, total);
+  return { desde, hasta };
+}
+
+/** La clave temporal viaja una sola vez en la respuesta. No se guarda. */
+export function leerClaveTemporal(data: unknown): string | null {
+  if (typeof data === 'string' && data.trim()) return data;
+  if (!data || typeof data !== 'object') return null;
+  const dato = data as Record<string, unknown>;
+  for (const campo of ['claveTemporal', 'clave', 'password']) {
+    const valor = dato[campo];
+    if (typeof valor === 'string' && valor.trim()) return valor;
+  }
+  return null;
+}
+
+/** Traduce `details.campos` del contrato ({ campo, motivo }) a errores del formulario. */
+export function erroresDeApi(error: ApiError): Partial<Record<keyof BorradorUsuario, string>> {
+  const details = error.details;
+  if (!details || typeof details !== 'object') return {};
+  const campos = (details as { campos?: unknown }).campos;
+  if (!Array.isArray(campos)) return {};
+  const salida: Partial<Record<keyof BorradorUsuario, string>> = {};
+  for (const item of campos) {
+    if (!item || typeof item !== 'object') continue;
+    const campo = (item as { campo?: unknown }).campo;
+    const motivo = (item as { motivo?: unknown }).motivo;
+    if (typeof campo !== 'string') continue;
+    const ultimo = campo.split('.').at(-1);
+    const hoja = ultimo === 'clave' ? 'password' : ultimo;
+    if (!hoja || !(hoja in borradorVacio())) continue;
+    const texto = typeof motivo === 'string' && motivo.trim() ? motivo.trim() : 'no es válido';
+    const frase = texto.charAt(0).toUpperCase() + texto.slice(1);
+    salida[hoja as keyof BorradorUsuario] = frase.endsWith('.') ? frase : `${frase}.`;
+  }
+  return salida;
 }

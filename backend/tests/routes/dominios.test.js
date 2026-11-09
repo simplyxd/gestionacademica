@@ -9,6 +9,7 @@ const DOMINIOS_DEL_CONTRATO = [
   'auth',
   'usuarios',
   'parametros',
+  'permisos',
   'sedes',
   'carreras',
   'planes',

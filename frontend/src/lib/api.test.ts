@@ -91,12 +91,16 @@ describe('crearApi · peticiones', () => {
     expect(resultado).toEqual({ data: { id: '1' } });
   });
 
-  it('patch y delete usan su método', async () => {
+  it('patch, put y delete usan su método', async () => {
     const { api, fetchFn } = entorno();
     fetchFn.mockImplementation(async () => json(200, { data: null }));
 
     await api.patch('/sedes/1', { nombre: 'Nuevo' });
     expect(ultimaPeticion(fetchFn).init.method).toBe('PATCH');
+
+    await api.put('/parametros', { siglasPortal: 'SGA' });
+    expect(ultimaPeticion(fetchFn).init.method).toBe('PUT');
+    expect(ultimaPeticion(fetchFn).init.body).toBe('{"siglasPortal":"SGA"}');
 
     await api.delete('/sedes/1');
     expect(ultimaPeticion(fetchFn).init.method).toBe('DELETE');
@@ -231,6 +235,17 @@ describe('crearApi · sesión vencida (401)', () => {
     expect(error).toMatchObject({ status: 401, code: 'AUT_TOKEN_VENCIDO' });
     expect(sesion.clear).toHaveBeenCalledTimes(1);
     expect(alSesionInvalida).toHaveBeenCalledTimes(1);
+  });
+
+  it('con token, si la clave actual no coincide, no cierra la sesión', async () => {
+    const { api, fetchFn, sesion, alSesionInvalida } = entorno({ token: 'valido' });
+    fetchFn.mockResolvedValue(json(401, { code: 'AUT_CLAVE_ACTUAL_INCORRECTA', regla: null, message: 'La clave actual no es correcta.' }));
+
+    const error = (await api.post('/auth/cambiar-clave', {}).catch((e: unknown) => e)) as ApiError;
+
+    expect(error.code).toBe('AUT_CLAVE_ACTUAL_INCORRECTA');
+    expect(sesion.clear).not.toHaveBeenCalled();
+    expect(alSesionInvalida).not.toHaveBeenCalled();
   });
 
   it('sin token (por ejemplo, contraseña incorrecta en el login) NO cierra sesión ni avisa', async () => {
