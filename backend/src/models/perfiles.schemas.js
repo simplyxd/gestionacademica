@@ -1,14 +1,14 @@
-const { Schema } = require('mongoose');
+import { Schema } from 'mongoose';
 
 // Temporales hasta que exista constants/enums.js (Juan, H0): entonces se importan de ahí.
 const ROLES = ['admin', 'coordinador', 'docente', 'estudiante'];
-const TIPOS_VINCULO = ['planta', 'contrata', 'honorarios'];
+export const TIPOS_VINCULO = ['planta', 'contrata', 'honorarios'];
 
-const NIVEL_MIN = 1;
-const NIVEL_MAX = 8;
-const MAX_APROBADAS = 100;
+export const NIVEL_MIN = 1;
+export const NIVEL_MAX = 8;
+export const MAX_APROBADAS = 100;
 
-const perfilDocenteSchema = new Schema(
+export const perfilDocenteSchema = new Schema(
   {
     especialidad: { type: String, trim: true, maxlength: 120 },
     tipoVinculo: { type: String, enum: TIPOS_VINCULO, required: true },
@@ -35,7 +35,7 @@ function sinParesRepetidos(aprobadas) {
   return true;
 }
 
-const perfilEstudianteSchema = new Schema(
+export const perfilEstudianteSchema = new Schema(
   {
     codigoEstudiante: {
       type: String,
@@ -75,7 +75,7 @@ const perfilEstudianteSchema = new Schema(
  * admin/coordinador ⇒ ninguno. El perfil puede faltar (se completa después del alta).
  * Devuelve `null` si es válido o el motivo en español; el modelo Usuario lo usa con `invalidate()`.
  */
-function validarPerfilSegunRol({ rol, perfilDocente, perfilEstudiante }) {
+export function validarPerfilSegunRol({ rol, perfilDocente, perfilEstudiante }) {
   const tieneDocente = perfilDocente != null;
   const tieneEstudiante = perfilEstudiante != null;
 
@@ -88,12 +88,3 @@ function validarPerfilSegunRol({ rol, perfilDocente, perfilEstudiante }) {
   return null;
 }
 
-module.exports = {
-  perfilDocenteSchema,
-  perfilEstudianteSchema,
-  validarPerfilSegunRol,
-  TIPOS_VINCULO,
-  NIVEL_MIN,
-  NIVEL_MAX,
-  MAX_APROBADAS,
-};

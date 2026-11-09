@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
-const Matricula = require('./matricula.model');
-const { conectar, limpiar, desconectar } = require('../../tests/helpers/mongo');
+import mongoose from 'mongoose';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import Matricula from './matricula.model.js';
+import { conectar, limpiar, desconectar } from '../../tests/helpers/mongo.js';
 
 const id = () => new mongoose.Types.ObjectId();
 

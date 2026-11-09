@@ -1,7 +1,7 @@
-const { Schema, model } = require('mongoose');
+import { Schema, model } from 'mongoose';
 
 // Temporal hasta que exista constants/enums.js (Juan, H0): entonces se importa de ahí.
-const ESTADOS_MATRICULA = ['vigente', 'suspendida', 'egresada', 'retirada'];
+export const ESTADOS_MATRICULA = ['vigente', 'suspendida', 'egresada', 'retirada'];
 
 const matriculaSchema = new Schema(
   {
@@ -33,6 +33,4 @@ matriculaSchema.index({ carreraId: 1, estado: 1 });
 matriculaSchema.index({ periodoId: 1, createdAt: -1 });
 
 const Matricula = model('Matricula', matriculaSchema);
-
-module.exports = Matricula;
-module.exports.ESTADOS_MATRICULA = ESTADOS_MATRICULA;
+export default Matricula;

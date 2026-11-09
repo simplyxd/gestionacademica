@@ -1,6 +1,6 @@
 # SGA · Frontend (prototipo)
 
-Solo frontend, en `localhost`, con datos mock (sin API, base de datos ni persistencia: al recargar vuelve el seed).
+Las pantallas siguen con datos mock (al recargar vuelve el seed). El cliente HTTP para hablar con el backend ya está listo en `src/lib/` y cada dominio lo irá adoptando (ver «Hablar con el backend»).
 Stack y reglas visuales: [`../system-desing.md`](../system-desing.md) — React 18 + TypeScript + Vite + Mantine 7 + React Router 6.
 
 ```bash
@@ -11,6 +11,29 @@ npm run lint
 npm test           # reglas de matrícula (vitest)
 npm run build
 ```
+
+## Hablar con el backend
+
+El backend (`../backend`) expone la API bajo `/api`. **En desarrollo no hay que configurar nada:** Vite reenvía `/api` a
+`http://localhost:3000` (si el backend corre en otro puerto: `API_PROXY_TARGET=http://localhost:4000 npm run dev`).
+Levanta antes el backend: `cd ../backend && npm run dev`.
+
+| Archivo | Para qué |
+|---|---|
+| `src/lib/api.ts` | **El único lugar que hace `fetch`:** `api.get / post / patch / delete`. Devuelve el JSON del contrato (`{ data }` o `{ data, meta }`) y lanza `ApiError { status, code, regla, message, details }`. Un 5xx da un mensaje genérico; sin conexión es un `ApiError` de status 0 |
+| `src/lib/session.ts` | El token de sesión (`getToken / setToken / clear`), en `sessionStorage`. Provisional |
+| `src/lib/usePaginacionServidor.ts` | Tablas paginadas por el servidor (`?page&limit&sort` y filtros). Cancela la petición atrasada. Para listas locales pequeñas sigue existiendo `usePaginacion` |
+| `src/app/EscucharSesionInvalida.tsx` | Un **401 con token** borra la sesión y lleva al login sin recargar la página |
+
+```ts
+import { api, type RespuestaLista } from '@/lib/api';
+
+const { data, meta } = await api.get<RespuestaLista<Sede>>('/sedes', { query: { page: 1, limit: 20 } });
+```
+
+- Cómo mostrar un `ApiError`: `system-desing.md` §6 (error de regla persistente y con salida; formulario en línea; 5xx genérico).
+- Códigos HTTP del contrato: `400` forma inválida · `401` sin sesión · `403` sin permiso · `404` no existe · `409` duplicado o estado · `422` regla académica violada. **Ojo:** `system-desing.md` §6.1 los tiene al revés (409 para reglas de inscripción y 422 para formularios); está pendiente de acordar con el grupo y de actualizar. No mapees por número, usa `error.code`.
+- `VITE_API_URL` solo se define si el frontend se despliega separado del backend (ver `.env.example`).
 
 ## Perfiles
 
@@ -61,4 +84,5 @@ con el mensaje de la regla que falló.
 - `src/components/` — `BrandLogo`, `PageHeader`, `SiteFooter`, `EmptyState`, `ConfirmModal`, `DetailDrawer`
 - `src/features/` — `auth`, `personas`, `matricula`, `periodos`, `estructura` (sedes), `oferta`, `inscripcion`, `horario`, `docente`, `permisos`
 - `src/theme/` — tema Mantine + tokens (glass, colores, modo claro/oscuro)
+- `src/lib/` — cliente HTTP (`api.ts`), sesión (`session.ts`), paginación (`usePaginacion`, `usePaginacionServidor`), `notify`, utilidades
 - `src/mock/` y `src/mocks/` — datos de ejemplo (⚠️ siguen siendo dos carpetas: `mocks/sga.ts` es el catálogo del Estudiante y alimenta el seed de `mock/oferta.ts`)

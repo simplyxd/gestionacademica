@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const { conectar, desconectar } = require('./mongo');
+import mongoose from 'mongoose';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { conectar, desconectar } from './mongo.js';
 
 describe('helper de MongoDB en memoria', () => {
   beforeAll(conectar);

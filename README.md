@@ -6,7 +6,7 @@ El sistema centraliza el ciclo semestral del *Instituto Universitario Nueva Form
 
 Hoy esa información vive en hojas de cálculo, archivos sueltos y correos. El SGA es una sola fuente de verdad para planificar oferta, matricular, inscribir con reglas automáticas y consultar información actualizada.
 
-> Estado actual: documentación del caso y backlog curados. Aún no hay código de `/frontend`, `/backend` ni `/db`.
+> Estado actual: hay un **frontend** con pantallas para los 4 perfiles sobre datos mock y la **base del backend** (esqueleto de la API con Express y Mongoose, formato común de errores y respuestas, paginación, validación, pruebas y seed). Los dominios (sedes, usuarios, matrícula, oferta, inscripción…) se implementan sobre esa base.
 
 ## Objetivo de la entrega
 
@@ -69,13 +69,13 @@ No están en el enunciado; no se implementan salvo decisión explícita del grup
 
 ## Estructura del repositorio
 
-Cuando arranque la implementación (épico E0):
+Carpetas del repositorio:
 
 ```
 gestionacademica/
-├── frontend/     # React
-├── backend/      # Node.js + Express
-├── db/           # modelo, seed e instrucciones de MongoDB
+├── frontend/     # React + TypeScript + Mantine (datos mock; ya tiene cliente HTTP: src/lib/api.ts)
+├── backend/      # Node.js 22 + Express 5 + Mongoose (API REST)
+├── db/           # seed (datos de ejemplo) e instrucciones de MongoDB
 ├── context/      # enunciado curado, specs y decisiones
 └── README.md
 ```
@@ -84,9 +84,9 @@ Registros con historia no se borran físicamente: se marcan con estado (`activo`
 
 ## Cómo levantar el proyecto
 
-### Frontend (mock UI local)
+### Frontend (pantallas con datos mock)
 
-Ya existe un mock React del estudiante (oferta, inscripción y horario) en [`frontend/`](frontend/):
+Pantallas de los 4 perfiles sobre datos mock en [`frontend/`](frontend/). En desarrollo, Vite reenvía `/api` al backend (`http://localhost:3000`), así que no hace falta configurar CORS:
 
 ```bash
 cd frontend
@@ -98,14 +98,14 @@ Detalle de estructura, componentes y rúbrica: [`frontend/README.md`](frontend/R
 
 ### Backend y base de datos
 
-Pendiente del bootstrap (E0-2 / E0-3). Cuando existan las carpetas, este apartado tendrá:
+La base del backend está lista. Para levantarla:
 
-1. Requisitos (Node.js, MongoDB / Atlas)
-2. Variables de entorno (nunca commitear secretos)
-3. Seed de datos de prueba
-4. Cómo arrancar el backend
+1. **Requisitos:** Node 22 (22.12 o superior; ver `.nvmrc`) y MongoDB (local o Atlas). Las transacciones exigen que sea un replica set (Atlas lo es; ver [`backend/README.md`](backend/README.md)).
+2. **Variables de entorno:** copia `backend/.env.example` como `backend/.env` y completa `MONGO_URI` y `JWT_SECRET` (mínimo 32 caracteres). El `.env` nunca se sube al repositorio.
+3. **Datos de ejemplo:** `cd backend && npm run seed` (detalle y cómo escribir tu archivo en [`db/README.md`](db/README.md)).
+4. **Arrancar:** `cd backend && npm install && npm run dev`; responde en `http://localhost:3000/api/health`. Pruebas con `npm test` (no necesitan MongoDB). Guía completa y cómo agregar un endpoint en [`backend/README.md`](backend/README.md).
 
-**Seed mínimo previsto:** 3 sedes, 4 carreras, 2 planes, 40 asignaturas, 20 docentes, 200 alumnos, 2 períodos y historial de asignaturas aprobadas (sin eso no se demuestran prerrequisitos ni «ya aprobó»).
+**Datos que debe dejar el seed (objetivo):** 3 sedes, 4 carreras, 2 planes, 40 asignaturas, 20 docentes, 200 alumnos, 2 períodos y historial de asignaturas aprobadas (sin eso no se demuestran prerrequisitos ni «ya aprobó»).
 
 ## Documentación del caso
 

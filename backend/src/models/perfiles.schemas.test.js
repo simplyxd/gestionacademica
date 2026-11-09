@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
-const {
+import mongoose from 'mongoose';
+import { describe, expect, it } from 'vitest';
+import {
   perfilDocenteSchema,
   perfilEstudianteSchema,
   validarPerfilSegunRol,
   MAX_APROBADAS,
-} = require('./perfiles.schemas');
+} from './perfiles.schemas.js';
 
 const PerfilDocente = mongoose.model('PerfilDocentePrueba', perfilDocenteSchema);
 const PerfilEstudiante = mongoose.model('PerfilEstudiantePrueba', perfilEstudianteSchema);
