@@ -40,7 +40,7 @@ export function SiteFooter({
         <Stack gap={6}>
           <BrandLogo size={28} wordmark={parametros.siglasPortal} />
           <Text size="sm" c="dimmed" maw={360}>
-            Sistema Web de Gestión Académica — Instituto Universitario Nueva Formación.
+            Sistema Web de Gestión Académica — {parametros.nombreInstitucion}.
             Prototipo frontend con datos de ejemplo.
           </Text>
         </Stack>
@@ -64,7 +64,7 @@ export function SiteFooter({
       </Group>
 
       <Text size="xs" c="dimmed" mt="md" className={classes.copy}>
-        © {year} Instituto Universitario Nueva Formación · Prototipo académico
+        © {year} {parametros.nombreInstitucion} · Prototipo académico
       </Text>
     </footer>
   );

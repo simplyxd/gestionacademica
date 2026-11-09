@@ -5,152 +5,211 @@ import {
   Box,
   Button,
   Card,
-  Grid,
   Group,
-  MultiSelect,
+  Modal,
   Select,
   SimpleGrid,
+  Skeleton,
   Stack,
   Table,
   Text,
   TextInput,
   Tooltip,
-  useMantineTheme,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { IconCheck, IconPencil, IconPlus, IconUserOff } from '@tabler/icons-react';
+import { useDebouncedValue } from '@mantine/hooks';
+import { IconKey, IconPencil, IconPlus, IconUserCheck, IconUserOff } from '@tabler/icons-react';
 import clsx from 'clsx';
-import { useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { ForbiddenPage } from '@/app/pages/ForbiddenPage';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { DetailDrawer } from '@/components/ui/DetailDrawer';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PaginacionBar } from '@/components/ui/PaginacionBar';
 import { useAuth } from '@/features/auth/AuthContext';
+import { ApiError, api, type RespuestaItem, type RespuestaLista } from '@/lib/api';
 import { notify } from '@/lib/notify';
-import { usePaginacion } from '@/lib/usePaginacion';
+import { usePaginacionServidor } from '@/lib/usePaginacionServidor';
 import classes from './UsuariosPage.module.css';
+import { UsuarioFormDrawer } from './UsuarioFormDrawer';
 import {
-  CARRERAS,
-  DEPARTAMENTOS,
-  ESTADOS,
-  ROLES,
-  SEDES,
-  deactivateUser,
-  emptyDraft,
-  emptyFilters,
-  filterUsers,
-  getUsers,
-  saveUser,
-  subscribeUsers,
-  validateUser,
-  type Filters,
-  type Role,
-  type User,
-  type UserDraft,
+  ESTADOS_USUARIO,
+  ROLES_USUARIO,
+  esAbort,
+  leerClaveTemporal,
+  normalizarListado,
+  normalizarSedes,
+  rangoPagina,
+  textoPerfil,
+  type CuerpoUsuario,
+  type OpcionSede,
+  type UsuarioLista,
 } from './users';
 
-const FORM_ID = 'usuario-form';
-const roleOptions = Object.entries(ROLES).map(([value, label]) => ({ value, label }));
+const LIMITE = 20;
 
-function EstadoBadge({ user }: { user: User }) {
-  return <Badge color={user.estado === 'activo' ? 'teal' : 'slate'}>{user.estado === 'activo' ? 'Activo' : 'Desactivado'}</Badge>;
+function EstadoBadge({ usuario }: { usuario: UsuarioLista }) {
+  return <Badge color={usuario.estado === 'activo' ? 'teal' : 'slate'}>{usuario.estado === 'activo' ? 'Activo' : 'Desactivado'}</Badge>;
 }
 
-function Acciones({ user, onEditar, onDesactivar }: { user: User; onEditar: () => void; onDesactivar: () => void }) {
-  return (
-    <Group gap="xs" wrap="nowrap">
-      <Tooltip label={`Editar a ${user.nombre}`}>
-        <ActionIcon aria-label={`Editar a ${user.nombre}`} color="navy" variant="light" size={44} onClick={onEditar}>
-          <IconPencil size={18} stroke={1.5} aria-hidden />
-        </ActionIcon>
-      </Tooltip>
-      <Tooltip label={user.estado === 'activo' ? `Desactivar a ${user.nombre}` : 'La cuenta ya está desactivada'}>
-        <ActionIcon
-          aria-label={`Desactivar a ${user.nombre}`}
-          color="crimson"
-          variant="light"
-          size={44}
-          disabled={user.estado === 'inactivo'}
-          onClick={onDesactivar}
-        >
-          <IconUserOff size={18} stroke={1.5} aria-hidden />
-        </ActionIcon>
-      </Tooltip>
-    </Group>
-  );
-}
-
-/** ABM de usuarios (RF1): alta, edición y baja lógica de cuentas por perfil. Solo el Administrador. */
 export function UsuariosPage() {
-  const { usuario } = useAuth();
-  const actor = usuario.rol;
-  const theme = useMantineTheme();
-  const users = useSyncExternalStore(subscribeUsers, getUsers);
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
-  const [editing, setEditing] = useState<User | null>(null);
+  const { usuario: actor, refrescarUsuario } = useAuth();
+  const [rol, setRol] = useState<string | null>(null);
+  const [estado, setEstado] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  const [qAplicada] = useDebouncedValue(q.trim(), 300);
+  const filtros = useMemo(
+    () => ({
+      ...(rol ? { rol } : {}),
+      ...(estado ? { estado } : {}),
+      ...(qAplicada ? { q: qAplicada } : {}),
+    }),
+    [rol, estado, qAplicada],
+  );
+  const pag = usePaginacionServidor<unknown>({ ruta: '/usuarios', limite: LIMITE, filtros });
+  const usuarios = useMemo(() => normalizarListado(pag.datos), [pag.datos]);
+  const rango = rangoPagina(pag.pagina, pag.limite, pag.total);
+  const errorLista = pag.error && pag.error.status !== 401 ? pag.error : null;
+  const omitidas = !pag.cargando && pag.datos.length > usuarios.length ? pag.datos.length - usuarios.length : 0;
+
+  const [sedes, setSedes] = useState<OpcionSede[]>([]);
+  const [sedesEstado, setSedesEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
+  const [errorSedes, setErrorSedes] = useState<string | null>(null);
+
   const [formOpened, setFormOpened] = useState(false);
-  const [pendingDeactivation, setPendingDeactivation] = useState<User | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<UsuarioLista | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const [pendienteEstado, setPendienteEstado] = useState<UsuarioLista | null>(null);
+  const [cambiandoEstado, setCambiandoEstado] = useState(false);
+  const [pendienteClave, setPendienteClave] = useState<UsuarioLista | null>(null);
+  const [generandoClave, setGenerandoClave] = useState(false);
+  const [claveTemporal, setClaveTemporal] = useState<{ id: string; nombre: string; clave: string | null } | null>(null);
 
-  const filtered = filterUsers(users, filters);
-  const pag = usePaginacion(filtered, 8);
+  useEffect(() => {
+    const control = new AbortController();
+    api
+      .get<RespuestaLista<unknown>>('/sedes', { query: { limit: 100 }, senal: control.signal })
+      .then((respuesta) => {
+        setSedes(normalizarSedes(respuesta.data));
+        setErrorSedes(null);
+        setSedesEstado('listo');
+      })
+      .catch((causa: unknown) => {
+        if (esAbort(causa)) return;
+        if (causa instanceof ApiError && causa.status === 401) return;
+        setSedesEstado('error');
+        setErrorSedes(causa instanceof ApiError ? causa.message : 'No se pudieron cargar las sedes.');
+      });
+    return () => control.abort();
+  }, []);
 
-  const form = useForm<UserDraft>({
-    initialValues: emptyDraft(),
-    validate: (values) => validateUser(values, editing?.id),
-  });
-  const limitedSedes = form.values.rol === 'docente' || form.values.rol === 'estudiante';
-
-  const changeFilter = (field: keyof Filters, values: string[]) => {
-    setFilters((previous) => ({ ...previous, [field]: values }));
-    pag.setPagina(1);
-  };
-
-  const openForm = (user: User | null) => {
-    setEditing(user);
-    form.setValues(user ? structuredClone(user) : emptyDraft());
-    form.resetDirty(user ? structuredClone(user) : emptyDraft());
-    form.clearErrors();
-    setFormError(null);
+  const abrirFormulario = (cuenta: UsuarioLista | null) => {
+    setEditing(cuenta);
     setFormOpened(true);
   };
 
-  const submit = (values: UserDraft) => {
+  const guardar = async (cuerpo: CuerpoUsuario) => {
+    setGuardando(true);
     try {
-      const saved = saveUser(values, actor, editing?.id);
-      notify.success({
-        title: editing ? 'Cuenta actualizada' : 'Cuenta creada',
-        message: `La cuenta de ${saved.nombre} quedó ${editing ? 'actualizada' : 'creada'}.`,
-      });
+      if (editing) {
+        await api.patch(`/usuarios/${encodeURIComponent(editing.id)}`, cuerpo);
+        notify.success({ title: 'Cuenta actualizada', message: `La cuenta de ${cuerpo.nombre} quedó actualizada.` });
+      } else {
+        await api.post('/usuarios', cuerpo);
+        notify.success({ title: 'Cuenta creada', message: `La cuenta de ${cuerpo.nombre} quedó creada.` });
+      }
       setFormOpened(false);
       setEditing(null);
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'No se pudo guardar la cuenta.');
+      pag.recargar();
+    } finally {
+      setGuardando(false);
     }
   };
 
-  const confirmDeactivation = () => {
-    if (!pendingDeactivation) return;
+  const confirmarEstado = async () => {
+    if (!pendienteEstado) return;
+    const siguiente = pendienteEstado.estado === 'activo' ? 'inactivo' : 'activo';
+    setCambiandoEstado(true);
     try {
-      deactivateUser(pendingDeactivation.id, actor);
-      notify.success({ title: 'Cuenta desactivada', message: `La cuenta de ${pendingDeactivation.nombre} quedó desactivada.` });
-    } catch (error) {
-      notify.error({ title: 'No se pudo desactivar', message: error instanceof Error ? error.message : 'Inténtalo de nuevo.' });
+      await api.patch(`/usuarios/${encodeURIComponent(pendienteEstado.id)}/estado`, { estado: siguiente });
+      notify.success({
+        title: siguiente === 'inactivo' ? 'Cuenta desactivada' : 'Cuenta activada',
+        message:
+          siguiente === 'inactivo'
+            ? `La cuenta de ${pendienteEstado.nombre} quedó desactivada.`
+            : `La cuenta de ${pendienteEstado.nombre} quedó activa de nuevo.`,
+      });
+      setPendienteEstado(null);
+      pag.recargar();
+    } catch (causa) {
+      if (causa instanceof ApiError && causa.status === 401) return;
+      notify.error({
+        title: 'No se pudo cambiar el estado',
+        message: causa instanceof ApiError ? causa.message : 'Inténtalo de nuevo.',
+      });
+    } finally {
+      setCambiandoEstado(false);
     }
-    setPendingDeactivation(null);
   };
 
-  const detalle = (user: User) => (user.rol === 'estudiante' ? user.carreras : user.departamentos).join(', ') || '—';
+  const confirmarClave = async () => {
+    if (!pendienteClave) return;
+    setGenerandoClave(true);
+    try {
+      const respuesta = await api.post<RespuestaItem<unknown>>(`/usuarios/${encodeURIComponent(pendienteClave.id)}/restablecer-clave`);
+      setClaveTemporal({ id: pendienteClave.id, nombre: pendienteClave.nombre, clave: leerClaveTemporal(respuesta.data) });
+      setPendienteClave(null);
+      pag.recargar();
+    } catch (causa) {
+      if (causa instanceof ApiError && causa.status === 401) return;
+      notify.error({
+        title: 'No se pudo restablecer la clave',
+        message: causa instanceof ApiError ? causa.message : 'Inténtalo de nuevo.',
+      });
+    } finally {
+      setGenerandoClave(false);
+    }
+  };
+
+  const copiarClave = async () => {
+    if (!claveTemporal?.clave) return;
+    try {
+      await navigator.clipboard.writeText(claveTemporal.clave);
+      notify.success({ title: 'Clave copiada', message: 'Pégala en un canal seguro. No se vuelve a mostrar.' });
+    } catch {
+      notify.error({ title: 'No se pudo copiar', message: 'Selecciónala y cópiala a mano.' });
+    }
+  };
+
+  const cerrarClave = () => {
+    const eraYo = claveTemporal?.id === actor.id;
+    setClaveTemporal(null);
+    if (!eraYo) return;
+    void refrescarUsuario().catch((causa: unknown) => {
+      if (causa instanceof ApiError && causa.status === 401) return;
+      notify.error({
+        title: 'No se pudo actualizar tu sesión',
+        message: causa instanceof ApiError ? causa.message : 'Inténtalo de nuevo.',
+      });
+    });
+  };
+
+  const limpiarFiltros = () => {
+    setRol(null);
+    setEstado(null);
+    setQ('');
+  };
+  const hayFiltros = Boolean(rol || estado || q.trim());
+
+  if (!pag.cargando && errorLista?.status === 403) return <ForbiddenPage />;
 
   return (
     <>
       <PageHeader
         title="Usuarios"
-        description="Administra las cuentas de acceso por perfil."
+        description="Administra las cuentas de acceso. El perfil de docentes y estudiantes se completa en el mismo formulario."
         breadcrumbs={[{ label: 'Inicio', to: '/admin' }, { label: 'Usuarios' }]}
         actions={
-          <Button leftSection={<IconPlus size={18} stroke={1.5} />} onClick={() => openForm(null)}>
+          <Button leftSection={<IconPlus size={18} stroke={1.5} />} onClick={() => abrirFormulario(null)}>
             Crear usuario
           </Button>
         }
@@ -160,64 +219,128 @@ export function UsuariosPage() {
         <Card>
           <Group justify="space-between" mb="md">
             <Text fw={600}>Filtrar usuarios</Text>
-            <Button variant="subtle" color="slate" size="sm" onClick={() => { setFilters(emptyFilters()); pag.setPagina(1); }}>
+            <Button variant="subtle" color="slate" size="sm" onClick={limpiarFiltros} disabled={!hayFiltros}>
               Limpiar filtros
             </Button>
           </Group>
-          <SimpleGrid cols={{ base: 1, xs: 2, lg: 4 }} spacing="md">
-            <MultiSelect label="Sedes" placeholder="Todas las sedes" data={SEDES} value={filters.sedes} onChange={(v) => changeFilter('sedes', v)} clearable />
-            <MultiSelect label="Carreras" placeholder="Todas las carreras" data={CARRERAS} value={filters.carreras} onChange={(v) => changeFilter('carreras', v)} clearable />
-            <MultiSelect label="Roles" placeholder="Todos los roles" data={roleOptions} value={filters.roles} onChange={(v) => changeFilter('roles', v)} clearable />
-            <MultiSelect label="Estado" placeholder="Todos los estados" data={ESTADOS} value={filters.estados} onChange={(v) => changeFilter('estados', v)} clearable />
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+            <TextInput
+              label="Buscar"
+              placeholder="Nombre, correo o RUT"
+              value={q}
+              onChange={(event) => setQ(event.currentTarget.value)}
+            />
+            <Select
+              label="Rol"
+              placeholder="Todos los roles"
+              data={ROLES_USUARIO}
+              value={rol}
+              onChange={setRol}
+              clearable
+              searchable={false}
+            />
+            <Select
+              label="Estado"
+              placeholder="Todos los estados"
+              data={[...ESTADOS_USUARIO]}
+              value={estado}
+              onChange={setEstado}
+              clearable
+              searchable={false}
+            />
           </SimpleGrid>
-          <Text fz="sm" c="dimmed" mt="sm">
-            Sin selección se incluyen todos los valores.
-          </Text>
         </Card>
 
         <Card>
           <Stack gap="md">
-            <Text fz="sm" c="dimmed" role="status" aria-live="polite">
-              {filtered.length} de {users.length} cuentas
-            </Text>
+            {!pag.cargando && pag.total > 0 && (
+              <Text fz="sm" c="dimmed" role="status" aria-live="polite">
+                {pag.total} {pag.total === 1 ? 'cuenta' : 'cuentas'}
+              </Text>
+            )}
+            {pag.cargando && usuarios.length > 0 && (
+              <Text fz="sm" c="dimmed" role="status" aria-live="polite">
+                Cargando cuentas…
+              </Text>
+            )}
+            {omitidas > 0 && (
+              <Text fz="sm" c="dimmed">
+                {omitidas === 1 ? 'Una fila no se pudo leer.' : `${omitidas} filas no se pudieron leer.`}
+              </Text>
+            )}
 
-            {filtered.length === 0 ? (
-              <EmptyState title="No hay usuarios que coincidan" description="Ajusta o limpia los filtros para ver otras cuentas." />
+            {errorLista && usuarios.length === 0 ? (
+              <Alert color="crimson" role="alert" title="No se pudo cargar el listado">
+                <Stack gap="sm" align="flex-start">
+                  <Text>{errorLista.message}</Text>
+                  <Button variant="light" onClick={() => pag.recargar()}>
+                    Reintentar
+                  </Button>
+                </Stack>
+              </Alert>
+            ) : pag.cargando && usuarios.length === 0 ? (
+              <Stack gap="sm" role="status" aria-busy="true" aria-label="Cargando cuentas">
+                <Skeleton height={18} width="30%" />
+                <Skeleton height={240} radius="md" />
+              </Stack>
+            ) : !pag.cargando && usuarios.length === 0 && pag.datos.length > 0 ? (
+              <Alert color="crimson" role="alert" title="No se pudo leer el listado">
+                El servidor respondió, pero las cuentas no tienen el formato esperado.
+              </Alert>
+            ) : usuarios.length === 0 ? (
+              <EmptyState
+                title={hayFiltros ? 'Ninguna cuenta coincide' : 'Todavía no hay cuentas'}
+                description={
+                  hayFiltros
+                    ? 'Prueba con otro nombre, rol o estado, o limpia los filtros.'
+                    : 'Cuando crees la primera cuenta, aparecerá aquí.'
+                }
+              />
             ) : (
               <>
-                {/* Escritorio y tableta: tabla de 7 columnas */}
+                {errorLista && (
+                  <Alert color="crimson" role="alert">
+                    {errorLista.message}
+                  </Alert>
+                )}
                 <Box visibleFrom="sm">
-                  <Table.ScrollContainer minWidth={900}>
+                  <Table.ScrollContainer minWidth={960}>
                     <Table aria-label="Cuentas de usuarios">
                       <Table.Thead>
                         <Table.Tr>
                           <Table.Th>Usuario</Table.Th>
                           <Table.Th>Rol</Table.Th>
                           <Table.Th>Sedes</Table.Th>
-                          <Table.Th>Carreras / departamentos</Table.Th>
+                          <Table.Th>Perfil</Table.Th>
                           <Table.Th>Contacto</Table.Th>
-                          <Table.Th w={130} aria-label="Acciones" />
+                          <Table.Th w={180} aria-label="Acciones" />
                           <Table.Th>Estado</Table.Th>
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
-                        {pag.visibles.map((user) => (
-                          <Table.Tr key={user.id} className={clsx(user.estado === 'inactivo' && classes.inactiva)}>
+                        {usuarios.map((cuenta) => (
+                          <Table.Tr key={cuenta.id} className={clsx(cuenta.estado === 'inactivo' && classes.inactiva)}>
                             <Table.Td>
-                              <Text fz="sm" fw={500}>{user.nombre}</Text>
-                              <Text component="span" className="sga-code" c="dimmed" fz="xs">{user.rut}</Text>
+                              <Text fz="sm" fw={500}>{cuenta.nombre}</Text>
+                              <Text component="span" className="sga-code" c="dimmed" fz="xs">{cuenta.rut || '—'}</Text>
                             </Table.Td>
-                            <Table.Td><Text fz="sm">{ROLES[user.rol]}</Text></Table.Td>
-                            <Table.Td><Text fz="sm">{user.sedes.join(', ')}</Text></Table.Td>
-                            <Table.Td><Text fz="sm">{detalle(user)}</Text></Table.Td>
+                            <Table.Td><Text fz="sm">{ROLES_USUARIO.find((item) => item.value === cuenta.rol)?.label}</Text></Table.Td>
+                            <Table.Td><Text fz="sm">{cuenta.sedes.map((sede) => sede.nombre).join(', ') || '—'}</Text></Table.Td>
+                            <Table.Td><Text fz="sm" className={classes.largo}>{textoPerfil(cuenta)}</Text></Table.Td>
                             <Table.Td>
-                              <Text fz="sm" className={classes.largo}>{user.correo}</Text>
-                              <Text fz="xs" c="dimmed">{user.telefono || '—'}</Text>
+                              <Text fz="sm" className={classes.largo}>{cuenta.correo || '—'}</Text>
+                              <Text fz="xs" c="dimmed">{cuenta.telefono || '—'}</Text>
                             </Table.Td>
                             <Table.Td>
-                              <Acciones user={user} onEditar={() => openForm(user)} onDesactivar={() => setPendingDeactivation(user)} />
+                              <Acciones
+                                cuenta={cuenta}
+                                esPropia={cuenta.id === actor.id}
+                                onEditar={() => abrirFormulario(cuenta)}
+                                onEstado={() => setPendienteEstado(cuenta)}
+                                onClave={() => setPendienteClave(cuenta)}
+                              />
                             </Table.Td>
-                            <Table.Td><EstadoBadge user={user} /></Table.Td>
+                            <Table.Td><EstadoBadge usuario={cuenta} /></Table.Td>
                           </Table.Tr>
                         ))}
                       </Table.Tbody>
@@ -225,138 +348,177 @@ export function UsuariosPage() {
                   </Table.ScrollContainer>
                 </Box>
 
-                {/* Móvil: una card por cuenta */}
                 <Stack hiddenFrom="sm" gap="sm">
-                  {pag.visibles.map((user) => (
-                    <Card key={user.id} withBorder shadow="none" padding="md" className={clsx(classes.card, user.estado === 'inactivo' && classes.inactiva)}>
+                  {usuarios.map((cuenta) => (
+                    <Card key={cuenta.id} withBorder shadow="none" padding="md" className={clsx(classes.card, cuenta.estado === 'inactivo' && classes.inactiva)}>
                       <Stack gap="xs">
                         <Box>
-                          <Text fw={600}>{user.nombre}</Text>
-                          <Text component="span" className="sga-code" c="dimmed" fz="xs">{user.rut}</Text>
+                          <Text fw={600}>{cuenta.nombre}</Text>
+                          <Text component="span" className="sga-code" c="dimmed" fz="xs">{cuenta.rut || '—'}</Text>
                         </Box>
-                        <Text fz="sm">{ROLES[user.rol]} · {user.sedes.join(', ')}</Text>
-                        {user.rol === 'estudiante' && <Text fz="sm">Carreras: {user.carreras.join(', ') || '—'}</Text>}
-                        {user.rol === 'docente' && <Text fz="sm">Departamentos: {user.departamentos.join(', ') || '—'}</Text>}
-                        <Text fz="sm" className={classes.largo}>{user.correo}<br />{user.telefono || '—'}</Text>
+                        <Text fz="sm">{ROLES_USUARIO.find((item) => item.value === cuenta.rol)?.label}</Text>
+                        <Text fz="sm">Sedes: {cuenta.sedes.map((sede) => sede.nombre).join(', ') || '—'}</Text>
+                        <Text fz="sm" className={classes.largo}>{textoPerfil(cuenta)}</Text>
+                        <Text fz="sm" className={classes.largo}>{cuenta.correo || '—'}<br />{cuenta.telefono || '—'}</Text>
                         <Group justify="space-between">
-                          <Acciones user={user} onEditar={() => openForm(user)} onDesactivar={() => setPendingDeactivation(user)} />
-                          <EstadoBadge user={user} />
+                          <Acciones
+                            cuenta={cuenta}
+                            esPropia={cuenta.id === actor.id}
+                            onEditar={() => abrirFormulario(cuenta)}
+                            onEstado={() => setPendienteEstado(cuenta)}
+                            onClave={() => setPendienteClave(cuenta)}
+                          />
+                          <EstadoBadge usuario={cuenta} />
                         </Group>
                       </Stack>
                     </Card>
                   ))}
                 </Stack>
 
-                <PaginacionBar pagina={pag.pagina} total={pag.total} desde={pag.desde} hasta={pag.hasta} cantidad={filtered.length} onChange={pag.setPagina} />
+                <PaginacionBar
+                  pagina={pag.pagina}
+                  total={pag.totalPaginas}
+                  desde={rango.desde}
+                  hasta={rango.hasta}
+                  cantidad={pag.total}
+                  onChange={pag.setPagina}
+                />
               </>
             )}
           </Stack>
         </Card>
       </Stack>
 
-      <DetailDrawer
+      <UsuarioFormDrawer
         opened={formOpened}
+        usuario={editing}
+        sedes={sedes}
+        errorSedes={sedesEstado === 'error' ? errorSedes : null}
+        cargandoSedes={sedesEstado === 'cargando'}
+        guardando={guardando}
         onClose={() => setFormOpened(false)}
-        size={theme.other.layout.drawerWidthLg}
-        title={editing ? 'Editar usuario' : 'Crear usuario'}
-        subtitle="Cuenta de acceso, perfil y alcance (sedes, carreras o departamentos)."
-        closeOnClickOutside={!form.isDirty()}
-        footer={
-          <>
-            <Button variant="subtle" color="slate" onClick={() => setFormOpened(false)}>Cancelar</Button>
-            <Button type="submit" form={FORM_ID} leftSection={<IconCheck size={18} stroke={1.5} />}>
-              {editing ? 'Guardar cambios' : 'Crear cuenta'}
-            </Button>
-          </>
-        }
-      >
-        <form
-          id={FORM_ID}
-          noValidate
-          onSubmit={form.onSubmit(submit, (errors) => {
-            const field = Object.keys(errors)[0];
-            if (field) form.getInputNode(field)?.focus();
-          })}
-        >
-          <Stack gap="md">
-            <Text fz="sm" c="dimmed">* Campo obligatorio</Text>
-            {formError && <Alert color="crimson" role="alert">{formError}</Alert>}
-            <Grid gutter="md">
-              <Grid.Col span={12}>
-                <TextInput label="Nombre" withAsterisk autoComplete="name" data-autofocus {...form.getInputProps('nombre')} />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput label="RUT" withAsterisk placeholder="12.345.678-5" {...form.getInputProps('rut')} />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Select
-                  label="Rol"
-                  withAsterisk
-                  searchable={false}
-                  allowDeselect={false}
-                  data={roleOptions}
-                  {...form.getInputProps('rol')}
-                  onChange={(value) => {
-                    if (value) {
-                      form.setFieldValue('rol', value as Role);
-                      form.clearErrors();
-                    }
-                  }}
-                />
-              </Grid.Col>
-              <Grid.Col span={12}>
-                <MultiSelect
-                  label="Sedes"
-                  withAsterisk
-                  data={SEDES}
-                  maxValues={limitedSedes ? 3 : undefined}
-                  description={limitedSedes ? 'Máximo 3 sedes.' : 'Una, varias o todas las sedes.'}
-                  {...form.getInputProps('sedes')}
-                />
-                {!limitedSedes && (
-                  <Button variant="subtle" size="sm" mt="xs" onClick={() => form.setFieldValue('sedes', [...SEDES])}>
-                    Seleccionar todas las sedes
-                  </Button>
-                )}
-              </Grid.Col>
-              {form.values.rol === 'estudiante' && (
-                <Grid.Col span={12}>
-                  <MultiSelect label="Carreras" data={CARRERAS} maxValues={2} description="Máximo 2 carreras." {...form.getInputProps('carreras')} />
-                </Grid.Col>
-              )}
-              {form.values.rol === 'docente' && (
-                <Grid.Col span={12}>
-                  <MultiSelect label="Departamentos" data={DEPARTAMENTOS} maxValues={3} description="Máximo 3 departamentos." {...form.getInputProps('departamentos')} />
-                </Grid.Col>
-              )}
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput label="Correo" withAsterisk type="email" autoComplete="email" {...form.getInputProps('correo')} />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <TextInput label="Teléfono" type="tel" autoComplete="tel" {...form.getInputProps('telefono')} />
-              </Grid.Col>
-            </Grid>
-          </Stack>
-        </form>
-      </DetailDrawer>
+        onSubmit={guardar}
+      />
 
       <ConfirmModal
-        opened={pendingDeactivation !== null}
-        onClose={() => setPendingDeactivation(null)}
-        title="¿Desactivar usuario?"
+        opened={pendienteEstado !== null}
+        onClose={() => {
+          if (!cambiandoEstado) setPendienteEstado(null);
+        }}
+        title={pendienteEstado?.estado === 'activo' ? '¿Desactivar usuario?' : '¿Activar usuario?'}
         message={
-          pendingDeactivation ? (
+          pendienteEstado ? (
+            pendienteEstado.estado === 'activo' ? (
+              <>
+                La cuenta de <strong>{pendienteEstado.nombre}</strong> quedará desactivada y seguirá visible en el listado.
+              </>
+            ) : (
+              <>
+                La cuenta de <strong>{pendienteEstado.nombre}</strong> volverá a poder iniciar sesión.
+              </>
+            )
+          ) : (
+            ''
+          )
+        }
+        confirmLabel={pendienteEstado?.estado === 'activo' ? 'Desactivar' : 'Activar'}
+        destructive={pendienteEstado?.estado === 'activo'}
+        loading={cambiandoEstado}
+        onConfirm={() => void confirmarEstado()}
+      />
+
+      <ConfirmModal
+        opened={pendienteClave !== null}
+        onClose={() => {
+          if (!generandoClave) setPendienteClave(null);
+        }}
+        title="¿Restablecer la clave?"
+        message={
+          pendienteClave ? (
             <>
-              La cuenta de <strong>{pendingDeactivation.nombre}</strong> ({pendingDeactivation.rut}) quedará desactivada y seguirá visible en el listado.
+              Vas a generar una clave temporal para <strong>{pendienteClave.nombre}</strong>. La anterior dejará de servir y la nueva se muestra una sola vez.
             </>
           ) : (
             ''
           )
         }
-        confirmLabel="Desactivar"
-        destructive
-        onConfirm={confirmDeactivation}
+        confirmLabel="Generar clave"
+        loading={generandoClave}
+        onConfirm={() => void confirmarClave()}
       />
+
+      <Modal opened={claveTemporal !== null} onClose={cerrarClave} title="Clave temporal" closeOnClickOutside={false} size="sm">
+        <Stack gap="md">
+          {claveTemporal?.clave ? (
+            <>
+              <Text>
+                Esta es la clave de <strong>{claveTemporal.nombre}</strong>. Cópiala ahora: no se vuelve a mostrar.
+              </Text>
+              <Text className="sga-code" fz="lg">
+                {claveTemporal.clave}
+              </Text>
+              <Group justify="flex-end" gap="sm">
+                <Button variant="subtle" color="slate" onClick={() => void copiarClave()}>
+                  Copiar
+                </Button>
+                <Button onClick={cerrarClave}>Ya la copié</Button>
+              </Group>
+            </>
+          ) : (
+            <>
+              <Alert color="orange" role="alert">
+                La clave se restableció, pero la respuesta no trajo la clave temporal. Si la generas de nuevo, la anterior deja de servir.
+              </Alert>
+              <Group justify="flex-end">
+                <Button onClick={cerrarClave}>Entendido</Button>
+              </Group>
+            </>
+          )}
+        </Stack>
+      </Modal>
     </>
+  );
+}
+
+function Acciones({
+  cuenta,
+  esPropia,
+  onEditar,
+  onEstado,
+  onClave,
+}: {
+  cuenta: UsuarioLista;
+  esPropia: boolean;
+  onEditar: () => void;
+  onEstado: () => void;
+  onClave: () => void;
+}) {
+  const desactivar = cuenta.estado === 'activo';
+  const bloqueada = desactivar && esPropia;
+  return (
+    <Group gap="xs" wrap="nowrap">
+      <Tooltip label={`Editar a ${cuenta.nombre}`}>
+        <ActionIcon aria-label={`Editar a ${cuenta.nombre}`} color="navy" variant="light" size={44} onClick={onEditar}>
+          <IconPencil size={18} stroke={1.5} aria-hidden />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label={bloqueada ? 'No puedes desactivar tu propia cuenta' : desactivar ? `Desactivar a ${cuenta.nombre}` : `Activar a ${cuenta.nombre}`}>
+        <ActionIcon
+          aria-label={desactivar ? `Desactivar a ${cuenta.nombre}` : `Activar a ${cuenta.nombre}`}
+          color={desactivar ? 'crimson' : 'navy'}
+          variant="light"
+          size={44}
+          disabled={bloqueada}
+          onClick={onEstado}
+        >
+          {desactivar ? <IconUserOff size={18} stroke={1.5} aria-hidden /> : <IconUserCheck size={18} stroke={1.5} aria-hidden />}
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label={`Restablecer la clave de ${cuenta.nombre}`}>
+        <ActionIcon aria-label={`Restablecer la clave de ${cuenta.nombre}`} color="navy" variant="light" size={44} onClick={onClave}>
+          <IconKey size={18} stroke={1.5} aria-hidden />
+        </ActionIcon>
+      </Tooltip>
+    </Group>
   );
 }

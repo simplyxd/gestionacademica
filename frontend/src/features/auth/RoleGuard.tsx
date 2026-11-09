@@ -9,8 +9,8 @@ interface RoleGuardProps {
 }
 
 /**
- * Control de acceso por rol (mock). En el SGA real el backend valida el permiso (403);
- * aquí la UI muestra la página de «sin acceso» y nunca monta la pantalla protegida.
+ * 403 en la interfaz: si el rol no está permitido, muestra ForbiddenPage y no monta la pantalla.
+ * El backend responde 403 por su cuenta; esta guarda evita pedir una sección que no corresponde.
  */
 export function RoleGuard({ allow, children }: RoleGuardProps) {
   const { usuario } = useAuth();

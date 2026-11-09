@@ -1,6 +1,6 @@
 # Asignaciones del equipo — SGA
 
-Este reparto convierte `.cursor/plans/pendientes_sga_y_roles_4366da4a.plan.md` en **6 asignaciones** (una por integrante). Cada una es un archivo pensado para **entregárselo a la IA de cada persona**: la IA deja de ser un generador de código y pasa a ser un **tutor** que hace preguntas en cada decisión, exige tests primero, pide explicaciones y deja evidencia de lo que la persona entendió.
+Este reparto convierte `.cursor/plans/pendientes_sga_y_roles_4366da4a.plan.md` en **6 asignaciones** (una por integrante). Cada una es un archivo con la tarea de esa persona. La IA implementa el código (modelos, servicios, rutas, componentes y tests) siguiendo ese archivo.
 
 | Integrante | Archivo | Rama | Épicos | Revisa / es revisado por |
 |---|---|---|---|---|
@@ -17,8 +17,8 @@ Las parejas de revisión no son al azar: cada una revisa el código **del que m�
 
 1. Crea tu *worktree* en tu rama (comandos al final de tu archivo).
 2. Abre tu IA (Claude Code, Cursor…) **en la raíz del repo** y dile exactamente:
-   > *Lee `asignaciones/asignacion-<tu nombre>.md` completo y síguelo al pie de la letra como mi tutor. Empieza por la Etapa 0 y no escribas código por mí.*
-3. La IA te pedirá explicar la tarea con tus palabras, te hará **una pregunta por decisión**, te pedirá escribir los tests antes que el código y te hará una **defensa** al final. Si intentas saltarte esto, te lo va a recordar.
+   > *Lee `asignaciones/asignacion-<tu nombre>.md` completo y síguelo al pie de la letra como mi tutor. Empieza por la Etapa 0.*
+3. La IA implementa la tarea de ese archivo, con tests, cuando se lo pides.
 4. Tus decisiones quedan en `asignaciones/bitacoras/<tu nombre>.md` (plantilla en [`bitacoras/_PLANTILLA.md`](bitacoras/_PLANTILLA.md)). Esa bitácora se enlaza en cada PR.
 
 ## Orden de trabajo e hitos

@@ -8,6 +8,7 @@ import inscripcionesRoutes from './inscripciones.routes.js';
 import matriculasRoutes from './matriculas.routes.js';
 import ofertaRoutes from './oferta.routes.js';
 import parametrosRoutes from './parametros.routes.js';
+import permisosRoutes from './permisos.routes.js';
 import periodosRoutes from './periodos.routes.js';
 import planesRoutes from './planes.routes.js';
 import reportesRoutes from './reportes.routes.js';
@@ -32,6 +33,7 @@ export const DOMINIOS = {
   inscripciones: inscripcionesRoutes,
   docente: docenteRoutes,
   reportes: reportesRoutes,
+  permisos: permisosRoutes,
 };
 
 const router = Router();

@@ -75,4 +75,15 @@ export default async function sembrar({ upsertPorClave, resolver }) {
 - Referencia las colecciones por **clave natural** (código, RUT, correo).
 - El número del archivo es único (dos archivos con `04-` se rechazan). Un archivo puede usar lo creado por los de número menor.
 - Los modelos pasan por sus validaciones, así que los datos de ejemplo deben ser válidos.
-- Contraseñas de ejemplo: nunca reales, y siempre guardadas con hash por el servicio de usuarios.
+- Contraseñas de ejemplo: nunca reales, y siempre guardadas con hash (bcrypt, costo 12). No se escriben en los logs.
+
+### Cuentas de desarrollo (semilla 01)
+
+Solo para la base local. No son cuentas reales.
+
+| Rol | Correo | Clave |
+|---|---|---|
+| admin | `admin@iunf.cl` | `Clave-Dev-Admin-2026` |
+| coordinador | `coordinador@iunf.cl` | `Clave-Dev-Coord-2026` |
+
+El coordinador queda en las sedes de código `central` y `norte`. La semilla 01 las asegura por ese código (upsert) para poder referenciarlas; la semilla 02 debe reutilizar los mismos códigos si quiere esas sedes.

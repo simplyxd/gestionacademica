@@ -107,7 +107,15 @@ export function crearApi({
     const datos = esCuerpoDeError(cuerpo) ? cuerpo : null;
 
     // 401 con token = la sesión venció o dejó de ser válida. Sin token (p. ej. clave incorrecta en el login) no.
-    if (respuesta.status === 401 && teniaToken) {
+    // La clave actual incorrecta al cambiarla también es 401, pero la sesión sigue viva.
+    const sesionMuerta =
+      !datos?.code ||
+      datos.code === 'AUT_TOKEN_VENCIDO' ||
+      datos.code === 'AUT_TOKEN_INVALIDO' ||
+      datos.code === 'AUT_TOKEN_AUSENTE' ||
+      datos.code === 'AUT_SESION_INVALIDA' ||
+      datos.code === 'AUT_CUENTA_INACTIVA';
+    if (respuesta.status === 401 && teniaToken && sesionMuerta) {
       sesion.clear();
       alSesionInvalida();
     }
@@ -160,6 +168,7 @@ export function crearApi({
   return {
     get: <T>(ruta: string, opciones?: OpcionesDePeticion) => pedir<T>('GET', ruta, undefined, opciones),
     post: <T>(ruta: string, cuerpo?: unknown, opciones?: OpcionesDePeticion) => pedir<T>('POST', ruta, cuerpo, opciones),
+    put: <T>(ruta: string, cuerpo?: unknown, opciones?: OpcionesDePeticion) => pedir<T>('PUT', ruta, cuerpo, opciones),
     patch: <T>(ruta: string, cuerpo?: unknown, opciones?: OpcionesDePeticion) => pedir<T>('PATCH', ruta, cuerpo, opciones),
     delete: <T>(ruta: string, opciones?: OpcionesDePeticion) => pedir<T>('DELETE', ruta, undefined, opciones),
   };

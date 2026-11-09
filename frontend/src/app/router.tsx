@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { RoleGuard } from '@/features/auth/RoleGuard';
 import { AppLayout } from './layout/AppLayout';
 import { EscucharSesionInvalida } from './EscucharSesionInvalida';
+import { CambiarClavePage } from '@/features/auth/CambiarClavePage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RequireAuth } from '@/features/auth/RequireAuth';
 import { InicioPage } from './pages/InicioPage';
@@ -53,6 +54,15 @@ const PersonasPage = lazy(() => import('@/features/personas/PersonasPage').then(
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  {
+    path: '/cambiar-clave',
+    element: (
+      <RequireAuth permitirClavePendiente>
+        <EscucharSesionInvalida />
+        <CambiarClavePage />
+      </RequireAuth>
+    ),
+  },
   {
     path: '/',
     element: (

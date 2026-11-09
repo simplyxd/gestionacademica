@@ -1,86 +1,133 @@
-import { Button, Card, Checkbox, Group, Stack, Table, Text } from '@mantine/core';
-import { IconCheck } from '@tabler/icons-react';
-import { useState } from 'react';
+import { Alert, Button, Card, Group, Skeleton, Stack, Table, Text } from '@mantine/core';
+import { useEffect, useState } from 'react';
 import { ROL_LABEL, type Rol } from '@/app/navigation';
+import { ForbiddenPage } from '@/app/pages/ForbiddenPage';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { notify } from '@/lib/notify';
-import { usePermisos, type Funcionalidad } from './PermisosContext';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ApiError, api, type RespuestaItem } from '@/lib/api';
+import { esAbort } from '@/features/auth/usuario';
+import { leerMatriz, type FilaPermiso } from './matriz';
 
 const PERFILES: Rol[] = ['admin', 'coordinador', 'docente', 'estudiante'];
 
 export function MatrizPermisosPage() {
-  const { matriz, guardar } = usePermisos();
-  const [borrador, setBorrador] = useState<Funcionalidad[]>(matriz);
+  const [estado, setEstado] = useState<'cargando' | 'listo' | 'error'>('cargando');
+  const [filas, setFilas] = useState<FilaPermiso[]>([]);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [intento, setIntento] = useState(0);
 
-  const hayCambios = JSON.stringify(borrador) !== JSON.stringify(matriz);
+  useEffect(() => {
+    const control = new AbortController();
+    let vivo = true;
 
-  const cambiar = (idFila: string, perfil: Rol, permitido: boolean) => {
-    setBorrador((actual) =>
-      actual.map((f) => (f.id === idFila ? { ...f, permisos: { ...f.permisos, [perfil]: permitido } } : f)),
-    );
+    api
+      .get<RespuestaItem<unknown>>('/permisos', { senal: control.signal })
+      .then((respuesta) => {
+        if (!vivo) return;
+        const matriz = leerMatriz(respuesta.data);
+        if (!matriz) {
+          setEstado('error');
+          setMensaje('No se pudo leer la matriz de permisos.');
+          return;
+        }
+        setFilas(matriz);
+        setMensaje(null);
+        setEstado('listo');
+      })
+      .catch((causa: unknown) => {
+        if (!vivo || esAbort(causa)) return;
+        if (causa instanceof ApiError && causa.status === 401) return;
+        setEstado('error');
+        if (causa instanceof ApiError && causa.status === 403) {
+          setMensaje('403');
+          return;
+        }
+        setMensaje(causa instanceof ApiError ? causa.message : 'No se pudo cargar la matriz de permisos.');
+      });
+
+    return () => {
+      vivo = false;
+      control.abort();
+    };
+  }, [intento]);
+
+  const reintentar = () => {
+    setEstado('cargando');
+    setMensaje(null);
+    setIntento((n) => n + 1);
   };
 
-  const confirmar = () => {
-    guardar(borrador);
-    notify.success({ title: 'Permisos guardados', message: 'La matriz de permisos por perfil quedó actualizada.' });
-  };
+  if (estado === 'error' && mensaje === '403') return <ForbiddenPage />;
 
   return (
     <>
       <PageHeader
         title="Permisos por perfil"
-        description="Define qué perfil puede usar cada módulo. El Administrador siempre conserva el acceso a su gestión."
-        breadcrumbs={[{ label: 'Inicio', to: '/' }, { label: 'Permisos' }]}
-        actions={
-          <Button leftSection={<IconCheck size={18} stroke={1.5} />} onClick={confirmar} disabled={!hayCambios}>
-            Guardar cambios
-          </Button>
-        }
+        description="Consulta qué puede hacer cada perfil. Esta matriz es fija: no se edita desde aquí."
+        breadcrumbs={[{ label: 'Inicio', to: '/admin' }, { label: 'Permisos' }]}
       />
 
-      <Card>
-        <Stack gap="md">
-          <Table.ScrollContainer minWidth={640}>
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Módulo / funcionalidad</Table.Th>
-                  {PERFILES.map((p) => (
-                    <Table.Th key={p} ta="center">
-                      {ROL_LABEL[p]}
-                    </Table.Th>
-                  ))}
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {borrador.map((fila) => (
-                  <Table.Tr key={fila.id}>
-                    <Table.Th scope="row" fw={500}>
-                      {fila.nombre}
-                    </Table.Th>
+      {estado === 'cargando' ? (
+        <Card>
+          <Stack gap="sm" role="status" aria-busy="true" aria-label="Cargando permisos">
+            <Skeleton height={18} width="40%" />
+            <Skeleton height={240} radius="md" />
+          </Stack>
+        </Card>
+      ) : estado === 'error' ? (
+        <Alert color="crimson" role="alert" title="No se pudo cargar la matriz">
+          <Stack gap="sm" align="flex-start">
+            <Text>{mensaje}</Text>
+            <Button variant="light" onClick={reintentar}>
+              Reintentar
+            </Button>
+          </Stack>
+        </Alert>
+      ) : filas.length === 0 ? (
+        <Card>
+          <EmptyState title="No hay permisos definidos" description="Cuando el sistema publique la matriz, la verás aquí." />
+        </Card>
+      ) : (
+        <Card>
+          <Stack gap="md">
+            <Table.ScrollContainer minWidth={640}>
+              <Table aria-label="Permisos por perfil">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Módulo / funcionalidad</Table.Th>
                     {PERFILES.map((perfil) => (
-                      <Table.Td key={perfil}>
-                        <Group justify="center">
-                          <Checkbox
-                            aria-label={`${ROL_LABEL[perfil]}: ${fila.nombre}`}
-                            checked={perfil === 'admin' ? fila.permisos.admin : fila.permisos[perfil]}
-                            disabled={perfil === 'admin'}
-                            onChange={(e) => cambiar(fila.id, perfil, e.currentTarget.checked)}
-                          />
-                        </Group>
-                      </Table.Td>
+                      <Table.Th key={perfil} ta="center">
+                        {ROL_LABEL[perfil]}
+                      </Table.Th>
                     ))}
                   </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </Table.ScrollContainer>
-
-          <Text fz="sm" c="dimmed" role="status" aria-live="polite">
-            {hayCambios ? 'Tienes cambios sin guardar.' : 'Sin cambios pendientes.'}
-          </Text>
-        </Stack>
-      </Card>
+                </Table.Thead>
+                <Table.Tbody>
+                  {filas.map((fila) => (
+                    <Table.Tr key={fila.id}>
+                      <Table.Th scope="row" fw={500}>
+                        {fila.nombre}
+                      </Table.Th>
+                      {PERFILES.map((perfil) => (
+                        <Table.Td key={perfil} ta="center">
+                          <Text fz="sm" aria-label={`${ROL_LABEL[perfil]}: ${fila.nombre}, ${fila.permisos[perfil] ? 'sí' : 'no'}`}>
+                            {fila.permisos[perfil] ? 'Sí' : 'No'}
+                          </Text>
+                        </Table.Td>
+                      ))}
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
+            <Group justify="space-between">
+              <Text fz="sm" c="dimmed" role="status">
+                Solo lectura. Los cambios de permiso se hacen en el sistema, no en esta pantalla.
+              </Text>
+            </Group>
+          </Stack>
+        </Card>
+      )}
     </>
   );
 }
