@@ -1,0 +1,21 @@
+.footer {
+  margin-top: var(--sga-space-2xl);
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+}
+
+.copy {
+  border-top: 1px solid var(--sga-glass-border);
+  padding-top: var(--mantine-spacing-md);
+}
+
+.footerLink {
+  color: var(--mantine-color-navy-6);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footerLink:hover {
+  color: var(--mantine-color-navy-8);
+}

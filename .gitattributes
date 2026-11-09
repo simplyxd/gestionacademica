@@ -1,0 +1,3 @@
+# Todo el texto del repositorio se guarda con fin de línea LF, sin importar el sistema operativo de cada persona.
+# Git decide solo qué es texto y qué es binario (imágenes, etc.).
+* text=auto eol=lf

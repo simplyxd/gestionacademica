@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["oxc", "import", "node", "promise", "vitest"],
+  "env": { "node": true, "es2022": true },
+  "rules": {
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "error"
+  },
+  "overrides": [
+    {
+      // El test de enums recorre los nombres del contrato, así que accede al módulo con una clave calculada a propósito.
+      "files": ["tests/constants/enums.test.js"],
+      "rules": { "import/namespace": "off" }
+    }
+  ]
+}
