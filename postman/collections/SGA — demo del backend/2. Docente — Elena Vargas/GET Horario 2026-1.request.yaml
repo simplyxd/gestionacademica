@@ -1,0 +1,18 @@
+$kind: http-request
+description: Bloques de horario de Elena en 2026-1.
+url: "{{baseUrl}}/docente/horario?periodoId={{periodo2026_1}}"
+method: GET
+queryParams:
+  periodoId: "{{periodo2026_1}}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenDocente}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El horario respondió 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 3000

@@ -1,0 +1,27 @@
+$kind: http-request
+description: Entra como Sofía Núñez y guarda el token en tokenEstudiante.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "correo": "estudiante@iunf.cl",
+      "password": "Clave-Dev-Estudiante-2026"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El login respondió 200', function () {
+          pm.response.to.have.status(200);
+      });
+      const cuerpo = pm.response.json();
+      pm.collectionVariables.set('tokenEstudiante', cuerpo.data.token);
+      pm.test('La sesión es de Sofía Núñez, estudiante', function () {
+          pm.expect(cuerpo.data.usuario.nombre).to.eql('Sofía Núñez');
+          pm.expect(cuerpo.data.usuario.rol).to.eql('estudiante');
+      });
+    language: text/javascript
+order: 1000

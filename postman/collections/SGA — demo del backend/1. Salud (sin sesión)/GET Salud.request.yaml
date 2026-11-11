@@ -1,0 +1,12 @@
+$kind: http-request
+description: No pide token. Tiene que responder 200.
+url: "{{baseUrl}}/health"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El backend está en pie', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 1000

@@ -1,0 +1,16 @@
+$kind: http-request
+description: Sedes de la institución.
+url: "{{baseUrl}}/sedes"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Las sedes respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 3000

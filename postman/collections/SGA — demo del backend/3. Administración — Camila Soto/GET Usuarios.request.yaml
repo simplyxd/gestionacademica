@@ -1,0 +1,16 @@
+$kind: http-request
+description: Listado de cuentas. Hay que haber enviado antes el login de la administradora. Sin token responde 401.
+url: "{{baseUrl}}/usuarios"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Los usuarios respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 2000

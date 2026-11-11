@@ -1,0 +1,18 @@
+$kind: http-request
+description: Catálogo de asignaturas.
+url: "{{baseUrl}}/asignaturas?limit=20"
+method: GET
+queryParams:
+  limit: "20"
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Las asignaturas respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 4000

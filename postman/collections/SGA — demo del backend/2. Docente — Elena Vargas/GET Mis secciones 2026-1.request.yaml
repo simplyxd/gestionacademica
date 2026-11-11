@@ -1,0 +1,25 @@
+$kind: http-request
+description: "Cursos de Elena en el primer semestre 2026: INF-101 A e INF-210 A. Hay que haber enviado antes el login de la docente."
+url: "{{baseUrl}}/docente/secciones?periodoId={{periodo2026_1}}"
+method: GET
+queryParams:
+  - key: periodoId
+    value: "{{periodo2026_1}}"
+    description: 2026-1, en curso
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenDocente}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Las secciones respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+      const cursos = pm.response.json().data.map((curso) => curso.codigoAsignatura + ' ' + curso.letra);
+      pm.test('Están INF-101 A e INF-210 A', function () {
+          pm.expect(cursos).to.include('INF-101 A');
+          pm.expect(cursos).to.include('INF-210 A');
+      });
+    language: text/javascript
+order: 2000

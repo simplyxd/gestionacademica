@@ -1,0 +1,24 @@
+$kind: http-request
+description: En el segundo semestre 2026 Elena tiene INF-230 B.
+url: "{{baseUrl}}/docente/secciones?periodoId={{periodo2026_2}}"
+method: GET
+queryParams:
+  - key: periodoId
+    value: "{{periodo2026_2}}"
+    description: 2026-2, inscripción abierta
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenDocente}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Las secciones respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+      const cursos = pm.response.json().data.map((curso) => curso.codigoAsignatura + ' ' + curso.letra);
+      pm.test('Está INF-230 B', function () {
+          pm.expect(cursos).to.include('INF-230 B');
+      });
+    language: text/javascript
+order: 4000

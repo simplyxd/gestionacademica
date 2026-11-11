@@ -1,0 +1,26 @@
+$kind: http-request
+description: Entra como Camila Soto y guarda el token en tokenAdmin.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "correo": "admin@iunf.cl",
+      "password": "Clave-Dev-Admin-2026"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El login respondió 200', function () {
+          pm.response.to.have.status(200);
+      });
+      const cuerpo = pm.response.json();
+      pm.collectionVariables.set('tokenAdmin', cuerpo.data.token);
+      pm.test('La sesión es de una administradora', function () {
+          pm.expect(cuerpo.data.usuario.rol).to.eql('admin');
+      });
+    language: text/javascript
+order: 1000

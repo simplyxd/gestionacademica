@@ -1,0 +1,24 @@
+$kind: http-request
+description: Cambia el teléfono de Sofía Núñez. Solo se actualizan los campos enviados. El estado no entra por esta ruta.
+url: "{{baseUrl}}/usuarios/{{usuarioSofiaId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "telefono": "+56 9 5555 0199"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('La modificación respondió 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 5000

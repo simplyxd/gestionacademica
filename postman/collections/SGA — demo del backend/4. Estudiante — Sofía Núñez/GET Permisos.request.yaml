@@ -1,0 +1,16 @@
+$kind: http-request
+description: Matriz de permisos. Sirve para mostrar qué puede hacer el rol estudiante.
+url: "{{baseUrl}}/permisos"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenEstudiante}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Los permisos respondieron 200', function () {
+          pm.response.to.have.status(200);
+      });
+    language: text/javascript
+order: 4000

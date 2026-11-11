@@ -1,0 +1,27 @@
+$kind: http-request
+description: Entra como Elena Vargas y guarda el token en la variable tokenDocente.
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "correo": "docente@iunf.cl",
+      "password": "Clave-Dev-Docente-2026"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('El login respondió 200', function () {
+          pm.response.to.have.status(200);
+      });
+      const cuerpo = pm.response.json();
+      pm.collectionVariables.set('tokenDocente', cuerpo.data.token);
+      pm.test('La sesión es de Elena Vargas, docente', function () {
+          pm.expect(cuerpo.data.usuario.nombre).to.eql('Elena Vargas');
+          pm.expect(cuerpo.data.usuario.rol).to.eql('docente');
+      });
+    language: text/javascript
+order: 1000

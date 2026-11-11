@@ -1,0 +1,20 @@
+$kind: collection
+description: |-
+  Peticiones contra el backend local (http://localhost:3000/api).
+
+  El backend tiene que estar corriendo (`npm run dev` en la carpeta backend).
+
+  Orden: en cada carpeta, primero el login. Ese POST guarda el token y las peticiones siguientes lo usan solas.
+
+  Cuentas de desarrollo:
+  - docente@iunf.cl / Clave-Dev-Docente-2026 (Elena Vargas)
+  - admin@iunf.cl / Clave-Dev-Admin-2026 (Camila Soto)
+  - estudiante@iunf.cl / Clave-Dev-Estudiante-2026 (Sofía Núñez)
+variables:
+  baseUrl: http://localhost:3000/api
+  tokenDocente: ""
+  tokenAdmin: ""
+  tokenEstudiante: ""
+  periodo2026_1: 6af1dfd2c187c8dbc0d7e849
+  periodo2026_2: 6af1dfd2c187c8dbc0d7e84c
+  usuarioSofiaId: 6af1f7d42d2370945eb7330b
