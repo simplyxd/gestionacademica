@@ -98,6 +98,16 @@ export const PLANES: PlanEstudio[] = [
 
 export const PERIODOS: Periodo[] = [
   {
+    id: 'per-2025-2',
+    codigo: '2025-2',
+    nombre: '2025 · Segundo semestre',
+    inicio: '2025-08-04',
+    termino: '2025-12-20',
+    inscripcionInicio: '2025-06-02',
+    inscripcionTermino: '2025-07-18',
+    estado: 'cerrado',
+  },
+  {
     id: 'per-2026-1',
     codigo: '2026-1',
     nombre: '2026 · Primer semestre',
@@ -105,7 +115,8 @@ export const PERIODOS: Periodo[] = [
     termino: '2026-07-18',
     inscripcionInicio: '2026-01-05',
     inscripcionTermino: '2026-02-20',
-    estado: 'cerrado',
+    // Clases en marcha (D-06: el alumno no inscribe aquí; mira el de inscripción abierta).
+    estado: 'en curso',
   },
   {
     id: 'per-2026-2',
@@ -113,9 +124,10 @@ export const PERIODOS: Periodo[] = [
     nombre: '2026 · Segundo semestre',
     inicio: '2026-08-03',
     termino: '2026-12-19',
-    inscripcionInicio: '2026-06-01',
-    inscripcionTermino: '2026-07-15',
-    estado: 'en curso',
+    // Ventana abierta para la demo: el alumno puede inscribir.
+    inscripcionInicio: '2026-07-20',
+    inscripcionTermino: '2026-08-20',
+    estado: 'inscripción abierta',
   },
   {
     id: 'per-2027-1',
@@ -129,5 +141,8 @@ export const PERIODOS: Periodo[] = [
   },
 ];
 
-/** Período «en curso»: el que muestra el Header (solo uno a la vez). */
-export const PERIODO_ACTUAL = PERIODOS.find((p) => p.estado === 'en curso') ?? PERIODOS[0];
+/** Período que ve el estudiante: inscripción abierta si existe; si no, el en curso. */
+export const PERIODO_ACTUAL =
+  PERIODOS.find((p) => p.estado === 'inscripción abierta') ??
+  PERIODOS.find((p) => p.estado === 'en curso') ??
+  PERIODOS[0];

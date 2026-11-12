@@ -33,8 +33,15 @@ export function PeriodosProvider({ children }: PropsWithChildren) {
     [periodos],
   );
 
+  // D-06: el «actual» prefiere inscripción abierta (donde el alumno toma ramos); si no hay, el en curso.
   const value = useMemo(
-    () => ({ periodos, periodoActual: periodos.find((p) => p.estado === 'en curso'), guardar }),
+    () => ({
+      periodos,
+      periodoActual:
+        periodos.find((p) => p.estado === 'inscripción abierta') ??
+        periodos.find((p) => p.estado === 'en curso'),
+      guardar,
+    }),
     [periodos, guardar],
   );
 

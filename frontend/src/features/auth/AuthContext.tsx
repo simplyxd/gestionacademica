@@ -3,6 +3,16 @@ import type { Rol } from '@/app/navigation';
 import { ApiError, api, type RespuestaItem } from '@/lib/api';
 import { notify } from '@/lib/notify';
 import { session } from '@/lib/session';
+import {
+  borrarUsuarioDemo,
+  CUENTAS_DEMO,
+  esTokenDemo,
+  guardarUsuarioDemo,
+  leerUsuarioDemo,
+  TOKEN_DEMO,
+  usuarioDesdeCuenta,
+  type CuentaDemo,
+} from '@/mocks/demoUsuarios';
 import { esAbort, leerLogin, normalizarUsuario, type Usuario } from './usuario';
 
 export type { Usuario };
@@ -34,6 +44,8 @@ interface AuthStore {
    */
   cambiarRol: (rol: Rol) => void;
   iniciarSesion: (correo: string, password: string) => Promise<Usuario>;
+  /** Entrada local (sin API) para la demo de períodos e inscripción. */
+  iniciarSesionDemo: (cuenta: CuentaDemo) => Usuario;
   cerrarSesion: () => void;
   recargarSesion: () => void;
   /** Vuelve a pedir /auth/me y deja el usuario que respondió el servidor. */
@@ -50,7 +62,26 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [ciclo, setCiclo] = useState(0);
 
   useEffect(() => {
-    if (!session.getToken()) return;
+    const token = session.getToken();
+    if (!token) return;
+
+    // Demo local (períodos + inscripción): no llama a /auth/me.
+    if (esTokenDemo(token)) {
+      const demo = leerUsuarioDemo() ?? CUENTAS_DEMO.map(usuarioDesdeCuenta).find((u) => token === `${TOKEN_DEMO}:${u.id}`) ?? null;
+      if (!demo) {
+        session.clear();
+        borrarUsuarioDemo();
+        setUsuarioReal(null);
+        setErrorSesion('No se pudo restaurar la demo. Entra de nuevo con una cuenta de demostración.');
+        setFase('lista');
+        return;
+      }
+      setUsuarioReal(demo);
+      setErrorSesion(null);
+      setFase('lista');
+      return;
+    }
+
     const control = new AbortController();
     let vivo = true;
 
@@ -103,6 +134,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
     setRolDePrueba(rol);
   }, []);
 
+  const iniciarSesionDemo = useCallback((cuenta: CuentaDemo) => {
+    const usuario = usuarioDesdeCuenta(cuenta);
+    session.setToken(`${TOKEN_DEMO}:${cuenta.id}`);
+    guardarUsuarioDemo(usuario);
+    setUsuarioReal(usuario);
+    setRolDePrueba(null);
+    setErrorSesion(null);
+    setFase('lista');
+    return usuario;
+  }, []);
+
   const iniciarSesion = useCallback(async (correo: string, password: string) => {
     const respuesta = await api.post<RespuestaItem<unknown>>('/auth/login', { correo: correo.trim(), password });
     const leido = leerLogin(respuesta.data, correo);
@@ -113,6 +155,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         message: 'No se pudo interpretar la respuesta del servidor.',
       });
     }
+    borrarUsuarioDemo();
     session.setToken(leido.token);
     setUsuarioReal(leido.usuario);
     setRolDePrueba(null);
@@ -123,6 +166,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const cerrarSesion = useCallback(() => {
     session.clear();
+    borrarUsuarioDemo();
     setUsuarioReal(null);
     setRolDePrueba(null);
     setErrorSesion(null);
@@ -141,6 +185,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const refrescarUsuario = useCallback(async () => {
+    if (esTokenDemo(session.getToken())) {
+      const demo = leerUsuarioDemo();
+      if (!demo) {
+        throw new ApiError({
+          status: 0,
+          code: 'GEN_RESPUESTA_INVALIDA',
+          message: 'No se pudo leer la sesión de demostración.',
+        });
+      }
+      setUsuarioReal(demo);
+      setErrorSesion(null);
+      setFase('lista');
+      return demo;
+    }
     const respuesta = await api.get<RespuestaItem<unknown>>('/auth/me');
     const fresco = normalizarUsuario(respuesta.data, usuarioReal?.correo ?? '');
     if (!fresco) {
@@ -172,11 +230,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       errorSesion,
       cambiarRol,
       iniciarSesion,
+      iniciarSesionDemo,
       cerrarSesion,
       recargarSesion,
       refrescarUsuario,
     }),
-    [usuario, sesion, fase, errorSesion, cambiarRol, iniciarSesion, cerrarSesion, recargarSesion, refrescarUsuario],
+    [usuario, sesion, fase, errorSesion, cambiarRol, iniciarSesion, iniciarSesionDemo, cerrarSesion, recargarSesion, refrescarUsuario],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

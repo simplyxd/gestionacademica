@@ -115,7 +115,10 @@ export function crearApi({
       datos.code === 'AUT_TOKEN_AUSENTE' ||
       datos.code === 'AUT_SESION_INVALIDA' ||
       datos.code === 'AUT_CUENTA_INACTIVA';
-    if (respuesta.status === 401 && teniaToken && sesionMuerta) {
+    // La demo local usa un token sintético: un 401 del proxy no debe echar al alumno.
+    const token = sesion.getToken();
+    const esDemo = typeof token === 'string' && token.startsWith('__sga_demo__');
+    if (respuesta.status === 401 && teniaToken && sesionMuerta && !esDemo) {
       sesion.clear();
       alSesionInvalida();
     }

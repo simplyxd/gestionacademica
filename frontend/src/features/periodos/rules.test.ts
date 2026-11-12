@@ -35,7 +35,7 @@ describe('validarPeriodo', () => {
   });
 
   it('solo puede haber un período en curso', () => {
-    expect(validarPeriodo({ ...valido, estado: 'en curso' }, PERIODOS).estado).toMatch(/2026-2/);
+    expect(validarPeriodo({ ...valido, estado: 'en curso' }, PERIODOS).estado).toMatch(/2026-1/);
     const actual = PERIODOS.find((p) => p.estado === 'en curso')!;
     expect(validarPeriodo({ ...valido, codigo: actual.codigo, estado: 'en curso' }, PERIODOS, actual.id).estado).toBeUndefined();
   });
