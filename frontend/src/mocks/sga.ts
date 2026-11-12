@@ -6,7 +6,7 @@ const h = (hora: number, minuto = 0) => hora * 60 + minuto;
 export const PERIODO_ACTUAL = '2026-2';
 
 /** Fechas de la ventana de inscripción, tal como se nombran en los avisos. */
-export const VENTANA_INSCRIPCION = { abre: '10 de marzo', cierra: '21 de marzo' };
+export const VENTANA_INSCRIPCION = { abre: '20 de julio', cierra: '20 de agosto' };
 
 export const asignaturas: Asignatura[] = [
   { codigo: 'MAT-100', nombre: 'Álgebra', creditos: 6, prerrequisitos: [] },

@@ -62,7 +62,7 @@ describe('registrarMatricula', () => {
   });
 
   it('rechaza un período cerrado', () => {
-    const r = registrarMatricula([], { ...base, periodoId: 'per-2026-1' }, PLANES, PERIODOS, meta(8));
+    const r = registrarMatricula([], { ...base, periodoId: 'per-2025-2' }, PLANES, PERIODOS, meta(8));
     expect(r).toMatchObject({ ok: false, error: { code: 'PERIODO_CERRADO', field: 'periodoId' } });
   });
 

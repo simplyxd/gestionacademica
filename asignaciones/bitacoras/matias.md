@@ -14,8 +14,21 @@ Guía para defender el código. Cada parte dice **qué hice**, **por qué** y **
 | MAT-3 · Modelo `Inscripcion` | ✅ modelo · ⏳ seed 10 (faltan secciones de Diego y matrículas de Angel) |
 | MAT-4 · Las 7 reglas puras | ✅ |
 | MAT-5 a MAT-8 · Inscribir, endpoints, evidencia y front | ⏳ dependen de Endert, Angel y Diego |
+| Demo UI para el profesor (estudiante + períodos) | ✅ login demo local sin backend |
 
 Tests: `cd backend && npm test` → todo verde (tus tests están en `backend/tests/inscripcion/`).
+
+---
+
+## Guion de demo al profesor (frontend mock)
+
+1. `cd frontend && npm run dev` → abrir http://localhost:5173
+2. En el login: **Entrar como Javiera Soto (estudiante)**
+3. Ir a **Inscripción** → ver asignaturas por tomar → tocar una → en Oferta abrir una sección → **Inscribir**
+4. Ir a **Mi horario** y mostrar que quedó inscrita
+5. (Opcional) Cerrar sesión → **Entrar como coordinador (períodos)** → pantalla **Períodos** (ventana de inscripción vs fechas del semestre)
+
+Cuenta demo estudiante: `estudiante@iunf.cl` (botón en el login; no necesita API ni Mongo).
 
 ---
 

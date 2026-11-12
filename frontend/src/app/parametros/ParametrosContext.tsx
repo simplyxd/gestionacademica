@@ -3,6 +3,7 @@ import {
   PARAMETROS_DEFAULT,
   type ParametrosInstitucionales,
 } from '@/mocks/parametros';
+import { esTokenDemo } from '@/mocks/demoUsuarios';
 import { api, ApiError, type RespuestaItem } from '@/lib/api';
 import { session } from '@/lib/session';
 import { escucharSesionInvalida } from '@/lib/sesionInvalida';
@@ -103,6 +104,16 @@ export function ParametrosProvider({ children }: { children: ReactNode }) {
       publicar(conservarPublico(parametrosRef.current));
       setEstado('error');
       setError(MENSAJE_SIN_SESION);
+      setCargando(false);
+      return;
+    }
+
+    // Demo de períodos/inscripción: usa los parámetros mock, sin llamar a la API.
+    if (esTokenDemo(session.getToken())) {
+      if (id !== cargaId.current) return;
+      publicar({ ...PARAMETROS_DEFAULT });
+      setEstado('listo');
+      setError(null);
       setCargando(false);
       return;
     }
