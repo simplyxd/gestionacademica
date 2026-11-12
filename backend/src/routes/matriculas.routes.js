@@ -2,12 +2,16 @@ import { Router } from 'express';
 import { body, param, query } from 'express-validator';
 import { actualizarEstadoMatricula, listarMatriculas } from '../controllers/matriculas.controller.js';
 import { ESTADOS_MATRICULA } from '../models/matricula.model.js';
+import { authenticate, authorize } from '../middlewares/auth.js';
 import { validate } from '../middlewares/validate.js';
 
+// /api/matriculas · authenticate en todas; lectura admin y coordinador, escritura solo coordinador (config/permisos.js).
 const router = Router();
+router.use(authenticate);
 
 router.get(
   '/',
+  authorize('matriculas.leer'),
   validate([
     query('periodoId').optional().isMongoId().withMessage('periodoId debe tener formato de id'),
     query('carreraId').optional().isMongoId().withMessage('carreraId debe tener formato de id'),
@@ -21,6 +25,7 @@ router.get(
 
 router.patch(
   '/:id/estado',
+  authorize('matriculas.escribir'),
   validate([
     param('id').isMongoId().withMessage('id debe tener formato de id'),
     body('estado').isIn(ESTADOS_MATRICULA).withMessage(`estado debe ser uno de: ${ESTADOS_MATRICULA.join(', ')}`),

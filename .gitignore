@@ -1,5 +1,6 @@
 .DS_Store
-node_modules/
+# sin barra final: también ignora enlaces simbólicos llamados node_modules
+node_modules
 .env
 .env.*
 !.env.example

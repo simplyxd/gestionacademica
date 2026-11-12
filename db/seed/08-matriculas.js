@@ -1,69 +1,43 @@
-import mongoose from 'mongoose';
+import { Asignatura } from '../../backend/src/models/asignatura.model.js';
+import { Carrera } from '../../backend/src/models/carrera.model.js';
 import Matricula from '../../backend/src/models/matricula.model.js';
+import { Periodo } from '../../backend/src/models/periodo.model.js';
+import { Plan } from '../../backend/src/models/plan.model.js';
+import { Usuario } from '../../backend/src/models/usuario.model.js';
+import { PERIODO_ANTERIOR, PERIODO_EN_CURSO } from './06-periodos.js';
 import { ALUMNOS_DEMO } from './lib/demo.js';
 
-const coleccion = (nombre) => mongoose.connection.db.collection(nombre);
+// Matrículas e historial de los alumnos de demo (D-12). Todo se resuelve por clave natural:
+// alumno por correo, carrera por código, plan por (carrera, «Plan AAAA»), período por código.
+// Matrícula en el período en curso; historial de aprobadas en el anterior (ver 06-periodos).
 
-async function buscarId(consulta, filtros) {
-  for (const filtro of filtros) {
-    const doc = await consulta.findOne(filtro, { projection: { _id: 1 } });
-    if (doc?._id) return doc._id;
-  }
-  return null;
-}
+export default async function sembrarMatriculas({ upsertPorClave, resolver, log }) {
+  await Matricula.init();
+  const periodoAnterior = await resolver(Periodo, { codigo: PERIODO_ANTERIOR });
+  const periodoMatricula = await resolver(Periodo, { codigo: PERIODO_EN_CURSO });
 
-async function resolverMatriculaDemo(alumno) {
-  const usuarioId = await buscarId(coleccion('usuarios'), [{ email: alumno.email }, { rut: alumno.rut }]);
-  if (!usuarioId) return null;
-
-  const carreraId = await buscarId(coleccion('carreras'), [{ codigo: alumno.matricula.carrera }]);
-  if (!carreraId) return null;
-
-  const periodoId = await buscarId(coleccion('periodos'), [{ codigo: alumno.matricula.periodo }, { nombre: alumno.matricula.periodo }]);
-  if (!periodoId) return null;
-
-  const añoPlan = Number.parseInt(alumno.matricula.plan, 10);
-  const planes = ['planesestudio', 'planesestudios', 'planes'];
-  let planId = null;
-  for (const nombre of planes) {
-    planId = await buscarId(coleccion(nombre), [
-      { carrera: carreraId, codigo: alumno.matricula.plan },
-      { carreraId, codigo: alumno.matricula.plan },
-      { carrera: carreraId, anio: añoPlan },
-      { carreraId, anio: añoPlan },
-      { carrera: carreraId, version: alumno.matricula.plan },
-      { carreraId, version: alumno.matricula.plan },
-    ]);
-    if (planId) break;
-  }
-  if (!planId) return null;
-
-  return { estudianteId: usuarioId, carreraId, planId, periodoId, estado: 'vigente' };
-}
-
-export default async function sembrarMatriculas({ upsertPorClave, log }) {
-  if (!mongoose.connection.db) {
-    log('08-matriculas: omitida (no hay conexión activa a MongoDB).');
-    return;
-  }
-
-  const casos = ALUMNOS_DEMO.filter((a) => a.matricula);
   let creadas = 0;
-  let omitidas = 0;
+  for (const alumno of ALUMNOS_DEMO) {
+    const estudianteId = await resolver(Usuario, { correo: alumno.email });
 
-  for (const alumno of casos) {
-    const datos = await resolverMatriculaDemo(alumno);
-    if (!datos) {
-      omitidas += 1;
-      continue;
+    // El historial se guarda en el perfil: asignatura aprobada en el período anterior.
+    const aprobadas = [];
+    for (const codigo of alumno.aprobadas) {
+      aprobadas.push({ asignaturaId: await resolver(Asignatura, { codigo }), periodoId: periodoAnterior });
     }
-    await upsertPorClave(Matricula, { estudianteId: datos.estudianteId, periodoId: datos.periodoId, estado: 'vigente' }, datos);
+    await Usuario.updateOne({ _id: estudianteId }, { $set: { 'perfilEstudiante.aprobadas': aprobadas } }, { runValidators: true });
+
+    if (!alumno.matricula) continue; // «sinmatricula» demuestra la regla 1: no tiene matrícula
+    const carreraId = await resolver(Carrera, { codigo: alumno.matricula.carrera });
+    const planId = await resolver(Plan, { carreraId, nombre: `Plan ${alumno.matricula.plan}` });
+
+    await upsertPorClave(
+      Matricula,
+      { estudianteId, periodoId: periodoMatricula, estado: 'vigente' },
+      { estudianteId, carreraId, planId, periodoId: periodoMatricula, estado: 'vigente' },
+    );
     creadas += 1;
   }
 
-  if (omitidas > 0) {
-    log(`08-matriculas: ${creadas} sembradas, ${omitidas} omitidas por dependencias externas (usuarios/carreras/planes/períodos).`);
-    return;
-  }
-  log(`08-matriculas: ${creadas} matrículas demo vigentes listas.`);
+  log(`08-matriculas: ${creadas} matrículas demo vigentes y el historial de ${ALUMNOS_DEMO.length} alumnos demo.`);
 }

@@ -82,7 +82,7 @@ function perfilEstudiante() {
   return body('perfilEstudiante')
     .optional({ nullable: true })
     .customSanitizer((valor) => {
-      if (valor == null) return null;
+      if (valor === null || valor === undefined) return null;
       if (typeof valor !== 'object' || Array.isArray(valor)) return valor;
       const nivel = Number(valor.nivelCursando);
       return {
@@ -92,7 +92,7 @@ function perfilEstudiante() {
       };
     })
     .custom((valor) => {
-      if (valor == null) return true;
+      if (valor === null || valor === undefined) return true;
       if (typeof valor !== 'object') throw new Error('debe ser un objeto');
       if (!CODIGO_ESTUDIANTE.test(valor.codigoEstudiante ?? '')) throw new Error('el código debe tener el formato EST-AAAA-NNN');
       if (typeof valor.contactoEmergencia !== 'string' || valor.contactoEmergencia === '' || valor.contactoEmergencia.length > 120) {
@@ -109,7 +109,7 @@ function perfilDocente() {
   return body('perfilDocente')
     .optional({ nullable: true })
     .customSanitizer((valor) => {
-      if (valor == null) return null;
+      if (valor === null || valor === undefined) return null;
       if (typeof valor !== 'object' || Array.isArray(valor)) return valor;
       const departamentos = Array.isArray(valor.departamentos)
         ? valor.departamentos.filter((item) => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
@@ -121,7 +121,7 @@ function perfilDocente() {
       };
     })
     .custom((valor) => {
-      if (valor == null) return true;
+      if (valor === null || valor === undefined) return true;
       if (typeof valor !== 'object') throw new Error('debe ser un objeto');
       if (!VINCULOS.includes(valor.tipoVinculo)) throw new Error('el vínculo debe ser planta, contrata u honorarios');
       if (typeof valor.especialidad !== 'string' || valor.especialidad.length > 120) throw new Error('la especialidad admite hasta 120 caracteres');

@@ -305,7 +305,7 @@ export function UsuariosPage() {
                   </Alert>
                 )}
                 <Box visibleFrom="sm">
-                  <Table.ScrollContainer minWidth={960}>
+                  <Table.ScrollContainer minWidth={820}>
                     <Table aria-label="Cuentas de usuarios">
                       <Table.Thead>
                         <Table.Tr>
@@ -314,8 +314,8 @@ export function UsuariosPage() {
                           <Table.Th>Sedes</Table.Th>
                           <Table.Th>Perfil</Table.Th>
                           <Table.Th>Contacto</Table.Th>
-                          <Table.Th w={180} aria-label="Acciones" />
-                          <Table.Th>Estado</Table.Th>
+                          <Table.Th w={104}>Estado</Table.Th>
+                          <Table.Th w={156} aria-label="Acciones" />
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
@@ -332,6 +332,7 @@ export function UsuariosPage() {
                               <Text fz="sm" className={classes.largo}>{cuenta.correo || '—'}</Text>
                               <Text fz="xs" c="dimmed">{cuenta.telefono || '—'}</Text>
                             </Table.Td>
+                            <Table.Td><EstadoBadge usuario={cuenta} /></Table.Td>
                             <Table.Td>
                               <Acciones
                                 cuenta={cuenta}
@@ -341,7 +342,6 @@ export function UsuariosPage() {
                                 onClave={() => setPendienteClave(cuenta)}
                               />
                             </Table.Td>
-                            <Table.Td><EstadoBadge usuario={cuenta} /></Table.Td>
                           </Table.Tr>
                         ))}
                       </Table.Tbody>

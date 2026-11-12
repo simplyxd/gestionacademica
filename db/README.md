@@ -86,14 +86,20 @@ Solo para la base local. No son cuentas reales.
 | admin | `admin@iunf.cl` | `Clave-Dev-Admin-2026` |
 | coordinador | `coordinador@iunf.cl` | `Clave-Dev-Coord-2026` |
 | docente | `docente@iunf.cl` | `Clave-Dev-Docente-2026` |
+| estudiante demo (semilla 07) | `demo.feliz@alumnos.nuevaformacion.cl` (y los otros `demo.*`) | `Clave-Dev-Persona-2026` |
+
+Las 226 personas de la semilla 07 (20 docentes, 200 estudiantes y 6 alumnos demo) comparten la clave `Clave-Dev-Persona-2026`.
+La docente `docente@iunf.cl` dicta INF-101 A, INF-201 A e INF-105 A en los dos períodos (semilla 09), así su portal muestra datos.
 
 El coordinador queda en las sedes de código `central` y `norte`. La semilla 01 las asegura por ese código (upsert) para poder referenciarlas; la semilla 02 debe reutilizar los mismos códigos si quiere esas sedes.
 
 ## Generadores de Angel (`db/seed/lib/`)
 
-`07-personas.js` y `08-matriculas.js` se ejecutan con **guardas de compatibilidad**: si falta el modelo de usuario o las colecciones
-base de otros dominios (usuarios/carreras/planes/períodos), registran una omisión explícita y no rompen el seed completo.
-En paralelo, se avanzó en utilidades y tests de consistencia:
+`07-personas.js` adapta lo generado al modelo `Usuario` (nombre, correo, incorporación y clave de desarrollo).
+`08-matriculas.js` matricula a los alumnos demo en el período `AAAA-2` y guarda su historial de aprobadas en `AAAA-1`;
+resuelve todo por clave natural y falla con un mensaje claro si una semilla anterior no corrió.
+`db/` no tiene `node_modules`: las semillas no importan paquetes (`mongoose`, `bcryptjs`) directamente, solo módulos de `backend/src`.
+Utilidades y tests de consistencia:
 
 | Archivo | Qué hace |
 |---|---|

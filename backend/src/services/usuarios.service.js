@@ -196,7 +196,7 @@ function historialAprobadas(usuario) {
 function aplicarPerfiles(usuario, cambios) {
   if (usuario.rol === ROLES.ESTUDIANTE) {
     if (Object.hasOwn(cambios, 'perfilEstudiante')) {
-      if (cambios.perfilEstudiante == null) usuario.set('perfilEstudiante', undefined);
+      if (cambios.perfilEstudiante === null || cambios.perfilEstudiante === undefined) usuario.set('perfilEstudiante', undefined);
       else usuario.perfilEstudiante = { ...cambios.perfilEstudiante, aprobadas: historialAprobadas(usuario) };
     }
     usuario.set('perfilDocente', undefined);
@@ -205,7 +205,7 @@ function aplicarPerfiles(usuario, cambios) {
 
   if (usuario.rol === ROLES.DOCENTE) {
     if (Object.hasOwn(cambios, 'perfilDocente')) {
-      if (cambios.perfilDocente == null) usuario.set('perfilDocente', undefined);
+      if (cambios.perfilDocente === null || cambios.perfilDocente === undefined) usuario.set('perfilDocente', undefined);
       else usuario.perfilDocente = cambios.perfilDocente;
     }
     usuario.set('perfilEstudiante', undefined);

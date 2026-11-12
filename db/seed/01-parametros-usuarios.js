@@ -1,7 +1,8 @@
-import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
 import { CLAVE_PARAMETROS, Parametros } from '../../backend/src/models/parametros.model.js';
-import { COSTO_BCRYPT, Usuario } from '../../backend/src/models/usuario.model.js';
+import { Usuario } from '../../backend/src/models/usuario.model.js';
+
+// db/ no tiene node_modules propio: no se importan paquetes (bcryptjs, mongoose) directamente.
+// El hash sale de Usuario#fijarClave y la conexión de Usuario.db, que resuelven desde backend/.
 
 // Contraseñas solo de desarrollo. Están repetidas en db/README.md. No uses estas cuentas fuera de local.
 export const CLAVE_ADMIN_DESARROLLO = 'Clave-Dev-Admin-2026';
@@ -63,7 +64,7 @@ const SEDES_DEL_COORDINADOR = [
 
 /** Asegura la sede por código y devuelve su _id, sin registrar el modelo de Lorenzo. */
 async function idDeSede(codigo, nombre) {
-  const crudo = await mongoose.connection.collection('sedes').findOneAndUpdate(
+  const crudo = await Usuario.db.collection('sedes').findOneAndUpdate(
     { codigo },
     { $setOnInsert: { codigo, nombre, estado: 'activa' } },
     { upsert: true, returnDocument: 'after' },
@@ -76,7 +77,9 @@ async function idDeSede(codigo, nombre) {
 async function hashSiNoExiste(correo, clave) {
   const existente = await Usuario.findOne({ correo }).select('+passwordHash');
   if (existente?.passwordHash) return existente.passwordHash;
-  return bcrypt.hash(clave, COSTO_BCRYPT);
+  const temporal = new Usuario();
+  await temporal.fijarClave(clave);
+  return temporal.passwordHash;
 }
 
 export default async function sembrar({ upsertPorClave, log }) {

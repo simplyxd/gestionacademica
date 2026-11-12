@@ -15,6 +15,18 @@ const NOMBRES: Record<string, string> = {
   'parametros.escribir': 'Editar parámetros',
   'permisos.leer': 'Ver permisos',
   'docente.leer': 'Ver secciones y horario propios',
+  'periodos.leer': 'Ver períodos',
+  'sedes.leer': 'Ver sedes',
+  'sedes.escribir': 'Editar sedes',
+  'asignaturas.leer': 'Ver asignaturas',
+  'asignaturas.escribir': 'Editar asignaturas',
+  'carreras.leer': 'Ver carreras',
+  'carreras.escribir': 'Editar carreras',
+  'planes.leer': 'Ver planes de estudio',
+  'planes.escribir': 'Editar planes de estudio',
+  'reportes.leer': 'Ver reportes',
+  'matriculas.leer': 'Ver matrículas',
+  'matriculas.escribir': 'Cambiar estado de matrículas',
 };
 
 function nombreDe(id: string): string {

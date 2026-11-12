@@ -16,16 +16,20 @@ beforeAll(async () => {
 afterAll(desconectarBaseDePrueba);
 
 describe('semilla 01', () => {
-  it('crea los parámetros, un admin y un coordinador con sedes, y se puede correr dos veces', async () => {
+  it('crea los parámetros, un admin, un coordinador con sedes y un docente, y se puede correr dos veces', async () => {
     await sembrar(crearContexto());
     await sembrar(crearContexto());
 
     expect(await Parametros.countDocuments()).toBe(1);
-    expect(await Usuario.countDocuments()).toBe(2);
+    expect(await Usuario.countDocuments()).toBe(3);
 
     const coordinador = await Usuario.findOne({ correo: 'coordinador@iunf.cl' });
     expect(coordinador.rol).toBe('coordinador');
     expect(coordinador.sedes).toHaveLength(2);
+
+    const docente = await Usuario.findOne({ correo: 'docente@iunf.cl' });
+    expect(docente.rol).toBe('docente');
+    expect(docente.sedes).toHaveLength(1);
 
     const admin = await Usuario.findOne({ correo: 'ADMIN@iunf.cl' }).select('+passwordHash');
     expect(admin.rut).toBe('12345678-5');

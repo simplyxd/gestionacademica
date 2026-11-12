@@ -364,6 +364,9 @@ describe('GET /api/permisos', () => {
       'planes.leer': cuatro,
       'planes.escribir': ['coordinador'],
       'reportes.leer': ['admin', 'coordinador'],
+      // Matrículas (Angel).
+      'matriculas.leer': ['admin', 'coordinador'],
+      'matriculas.escribir': ['coordinador'],
     });
   });
 });

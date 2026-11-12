@@ -31,6 +31,9 @@ export const PERMISOS = Object.freeze({
   'planes.leer': CUATRO,
   'planes.escribir': Object.freeze([ROLES.COORDINADOR]),
   'reportes.leer': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
+  // Matrículas (Angel): las administra el coordinador; el admin solo consulta.
+  'matriculas.leer': Object.freeze([ROLES.ADMIN, ROLES.COORDINADOR]),
+  'matriculas.escribir': Object.freeze([ROLES.COORDINADOR]),
 });
 
 /** True si el rol tiene ese permiso. Un permiso desconocido no lo tiene nadie. */

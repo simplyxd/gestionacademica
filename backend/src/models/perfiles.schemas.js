@@ -76,8 +76,8 @@ export const perfilEstudianteSchema = new Schema(
  * Devuelve `null` si es válido o el motivo en español; el modelo Usuario lo usa con `invalidate()`.
  */
 export function validarPerfilSegunRol({ rol, perfilDocente, perfilEstudiante }) {
-  const tieneDocente = perfilDocente != null;
-  const tieneEstudiante = perfilEstudiante != null;
+  const tieneDocente = perfilDocente !== null && perfilDocente !== undefined;
+  const tieneEstudiante = perfilEstudiante !== null && perfilEstudiante !== undefined;
 
   if (!ROLES.includes(rol)) return `Rol desconocido: «${rol}»`;
   if (rol === 'docente' && tieneEstudiante) return 'Un docente no puede tener perfil de estudiante';

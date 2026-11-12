@@ -240,4 +240,22 @@ describe('Modelo Seccion - Pruebas de Creación, Defaults y Restricciones', () =
       mongoose.Error.ValidationError
     );
   });
+  it('valida inscritos contra cupoMaximo también en un upsert con runValidators (como la semilla 09)', async () => {
+    const clave = { asignaturaId: new mongoose.Types.ObjectId(), periodoId: new mongoose.Types.ObjectId(), letra: 'A' };
+    const datos = {
+      docenteId: new mongoose.Types.ObjectId(),
+      sedeId: new mongoose.Types.ObjectId(),
+      jornada: 'diurna',
+      modalidad: 'presencial',
+      bloques: [{ dia: 0, inicioMin: 480, finMin: 530 }],
+    };
+    const opciones = { upsert: true, runValidators: true, returnDocument: 'after' };
+
+    const ok = await Seccion.findOneAndUpdate(clave, { $set: { ...datos, cupoMaximo: 30, inscritos: 30 } }, opciones);
+    expect(ok.inscritos).toBe(30);
+
+    await expect(
+      Seccion.findOneAndUpdate(clave, { $set: { ...datos, cupoMaximo: 30, inscritos: 31 } }, opciones),
+    ).rejects.toThrow('El número de inscritos no puede superar el cupo máximo');
+  });
 });

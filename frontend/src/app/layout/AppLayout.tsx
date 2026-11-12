@@ -68,6 +68,8 @@ export function AppLayout() {
   useEffect(() => {
     if (rutaPrevia.current !== pathname) {
       rutaPrevia.current = pathname;
+      // La SPA conserva el scroll de la página anterior: la nueva debe empezar arriba.
+      window.scrollTo({ top: 0 });
       mainRef.current?.focus({ preventScroll: true });
     }
   }, [pathname]);

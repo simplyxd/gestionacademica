@@ -61,6 +61,13 @@ const seccionSchema = new mongoose.Schema({
     min: 0,
     validate: {
       validator: function(v) {
+        // En save() `this` es el documento; en findOneAndUpdate/updateOne es la Query y el cupo viene en el update.
+        // Si el update no trae cupoMaximo no se puede comparar aquí: lo resguarda el servicio que cambia inscritos.
+        if (this instanceof mongoose.Query) {
+          const update = this.getUpdate() ?? {};
+          const cupo = update.$set?.cupoMaximo ?? update.cupoMaximo;
+          return cupo === undefined || v <= cupo;
+        }
         return v <= this.cupoMaximo;
       },
       message: 'El número de inscritos no puede superar el cupo máximo'
